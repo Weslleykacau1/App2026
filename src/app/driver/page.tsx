@@ -15,6 +15,7 @@ import { useTheme } from 'next-themes';
 import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/20 border-red-700/0" },
@@ -194,16 +195,11 @@ function DriverDashboard() {
         </MapGL>
 
         <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
-            <Sheet onOpenChange={() => setActiveView('profile')}>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                        <Menu className="h-5 w-5" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-                    {renderSheetContent()}
-                </SheetContent>
-            </Sheet>
+            <Link href="/driver" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
+                  <Menu className="h-5 w-5" />
+              </Button>
+            </Link>
 
             <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
                 <Shield className="h-5 w-5" />

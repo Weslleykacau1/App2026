@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "next-themes";
+import { useToast } from "@/hooks/use-toast";
 
 
 function ProfilePage() {
@@ -24,6 +25,9 @@ function ProfilePage() {
     const { user } = useAuth();
     const { theme, setTheme } = useTheme();
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const { toast } = useToast();
+    const idInputRef = useRef<HTMLInputElement>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
@@ -34,6 +38,17 @@ function ProfilePage() {
         setTheme(newTheme);
         setIsDarkMode(checked);
     };
+    
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, documentName: string) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            toast({
+                title: "Arquivo Selecionado",
+                description: `${documentName}: ${file.name}`,
+            });
+        }
+    };
+
 
     if (!user) return null;
 
@@ -141,7 +156,8 @@ function ProfilePage() {
                                             </div>
                                             <Badge variant="destructive">Pendente</Badge>
                                         </div>
-                                        <Button variant="outline" className="w-full mt-4">Enviar arquivo</Button>
+                                        <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'Documento de Identidade')} accept="image/*,.pdf" />
+                                        <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>Enviar arquivo</Button>
                                     </div>
                                     <div className="p-4 border rounded-lg">
                                         <div className="flex items-center justify-between">
@@ -151,7 +167,8 @@ function ProfilePage() {
                                             </div>
                                             <Badge variant="destructive">Pendente</Badge>
                                         </div>
-                                        <Button variant="outline" className="w-full mt-4">Enviar arquivo</Button>
+                                        <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'Comprovante de Endereço')} accept="image/*,.pdf" />
+                                        <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>Enviar arquivo</Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -250,3 +267,5 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
+
+    

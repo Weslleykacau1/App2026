@@ -57,11 +57,11 @@ function PassengerDashboard() {
                 </div>
               </div>
               
-              <div className="flex gap-2">
-                 <button 
+              <div className="grid grid-cols-2 grid-rows-2 gap-2">
+                <button 
                   onClick={() => setRideCategory('comfort')} 
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'comfort' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
                   )}
                 >
@@ -71,7 +71,7 @@ function PassengerDashboard() {
                  <button 
                   onClick={() => setRideCategory('executive')} 
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'executive' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
                   )}
                 >
@@ -80,40 +80,40 @@ function PassengerDashboard() {
                 </button>
                 <button
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center border-border bg-muted/50"
+                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center border-border bg-muted/50"
                   )}
                 >
                   <User className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Meu Perfil</span>
                 </button>
-              </div>
-
-              <div className="flex gap-2">
-                <Select defaultValue="pix">
-                  <SelectTrigger className="h-12 text-base w-full">
-                      <SelectValue placeholder="Pagamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="pix">
-                           <div className="flex items-center gap-2">
-                              <Wallet className="h-4 w-4" />
-                              <span>Pix</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="cash">
-                           <div className="flex items-center gap-2">
-                              <Coins className="h-4 w-4" />
-                              <span>Dinheiro</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="card_machine">
-                           <div className="flex items-center gap-2">
-                              <Landmark className="h-4 w-4" />
-                              <span>Máquina de Cartão</span>
-                          </div>
-                      </SelectItem>
-                  </SelectContent>
-                </Select>
+                
+                <div className="col-span-1 row-span-1">
+                  <Select defaultValue="pix">
+                    <SelectTrigger className="h-full text-base w-full">
+                        <SelectValue placeholder="Pagamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="pix">
+                             <div className="flex items-center gap-2">
+                                <Wallet className="h-4 w-4" />
+                                <span>Pix</span>
+                            </div>
+                        </SelectItem>
+                        <SelectItem value="cash">
+                             <div className="flex items-center gap-2">
+                                <Coins className="h-4 w-4" />
+                                <span>Dinheiro</span>
+                            </div>
+                        </SelectItem>
+                        <SelectItem value="card_machine">
+                             <div className="flex items-center gap-2">
+                                <Landmark className="h-4 w-4" />
+                                <span>Máquina de Cartão</span>
+                            </div>
+                        </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Button className="w-full h-14 text-lg justify-between">

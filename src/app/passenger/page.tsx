@@ -47,10 +47,8 @@ function PassengerDashboard() {
       const distance = Math.random() * (30 - 1) + 1; // Random distance between 1km and 30km
       
       // Calculate price based on distance
-      // Comfort: R$5.00 base + R$1.50/km
-      const comfortFare = 5 + (distance * 1.5);
-      // Executive: R$8.00 base + R$2.50/km
-      const executiveFare = 8 + (distance * 2.5);
+      const comfortFare = distance * 1.80;
+      const executiveFare = distance * 1.20;
 
       setComfortPrice(comfortFare);
       setExecutivePrice(executiveFare);

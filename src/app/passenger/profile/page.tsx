@@ -113,7 +113,19 @@ function ProfilePage() {
                         </Card>
                     </TabsContent>
                     <TabsContent value="documents">
-                        <p className="text-center text-muted-foreground py-12">Seus documentos aparecerão aqui.</p>
+                        <Card className="mt-6">
+                            <CardContent className="p-6 text-center flex flex-col items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-full">
+                                    <FileText className="h-8 w-8 text-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-semibold">Documentos de Passageiro</h3>
+                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                        Como passageiro, você não precisa enviar documentos adicionais. Sua conta está verificada.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                     <TabsContent value="settings">
                        <p className="text-center text-muted-foreground py-12">Suas configurações aparecerão aqui.</p>

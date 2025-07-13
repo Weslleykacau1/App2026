@@ -3,7 +3,7 @@
 import React from 'react';
 import MapGL, { Marker, GeolocateControl } from 'react-map-gl';
 import { useTheme } from "next-themes";
-import { Pin } from 'lucide-react';
+import { Car } from 'lucide-react';
 
 export function Map() {
   const { resolvedTheme } = useTheme();
@@ -36,14 +36,23 @@ export function Map() {
       mapStyle={mapStyle}
     >
       <GeolocateControl position="top-left" trackUserLocation={true} />
-      <Marker longitude={-46.6333} latitude={-23.5505} anchor="bottom">
-        <Pin className="h-8 w-8 text-primary fill-primary" />
+      {/* User's Location */}
+      <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
+         <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>
       </Marker>
+      {/* Ride X Cars */}
        <Marker longitude={-46.65} latitude={-23.56} anchor="bottom">
-        <Pin className="h-8 w-8 text-secondary fill-secondary" />
+        <Car className="h-8 w-8 text-foreground" />
       </Marker>
        <Marker longitude={-46.60} latitude={-23.54} anchor="bottom">
-        <Pin className="h-8 w-8 text-secondary fill-secondary" />
+        <Car className="h-8 w-8 text-foreground" />
+      </Marker>
+      {/* Confort Cars */}
+       <Marker longitude={-46.64} latitude={-23.57} anchor="bottom">
+        <Car className="h-8 w-8 text-secondary" />
+      </Marker>
+        <Marker longitude={-46.62} latitude={-23.53} anchor="bottom">
+        <Car className="h-8 w-8 text-secondary" />
       </Marker>
     </MapGL>
   );

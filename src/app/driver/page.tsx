@@ -74,9 +74,7 @@ function DriverDashboard() {
         </MapGL>
 
         <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/30 to-transparent">
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                <Menu className="h-5 w-5" />
-            </Button>
+            <div></div>
             <div className="flex items-center gap-2 bg-background/80 p-2 rounded-full shadow-lg">
                 <span className="font-bold text-lg">R$0,00</span>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />

@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowRight, Wallet, CreditCard, Tag } from "lucide-react";
+import { MapPin, Search, Car, ArrowRight, Wallet, CreditCard, Tag, User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -19,7 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 
-type RideCategory = "taxi" | "comfort" | "executive";
+type RideCategory = "comfort" | "executive";
 
 function PassengerDashboard() {
   const { user } = useAuth();
@@ -58,22 +58,11 @@ function PassengerDashboard() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-3 gap-2">
-                <button 
-                  onClick={() => setRideCategory('taxi')} 
-                  className={cn(
-                    "flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
-                    rideCategory === 'taxi' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
-                  )}
-                >
-                  <Car className="h-8 w-8 mb-1"/>
-                  <span className="text-sm font-medium">Taxi</span>
-                  <span className="text-sm font-bold text-green-600">$35</span>
-                </button>
+              <div className="flex gap-2">
                  <button 
                   onClick={() => setRideCategory('comfort')} 
                   className={cn(
-                    "flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'comfort' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
                   )}
                 >
@@ -84,13 +73,21 @@ function PassengerDashboard() {
                  <button 
                   onClick={() => setRideCategory('executive')} 
                   className={cn(
-                    "flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'executive' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
                   )}
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Executive</span>
                    <span className="text-sm font-bold text-indigo-600">$60</span>
+                </button>
+                <button
+                  className={cn(
+                    "flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center border-border bg-muted/50"
+                  )}
+                >
+                  <User className="h-8 w-8 mb-1"/>
+                  <span className="text-sm font-medium">Meu Perfil</span>
                 </button>
               </div>
 

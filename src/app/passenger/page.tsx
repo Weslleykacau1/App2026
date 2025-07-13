@@ -88,9 +88,6 @@ function PassengerMobileDashboard() {
             </div>
           </div>
         </div>
-         <Button variant="outline" size="icon" className="rounded-full shadow-md bg-background/80 backdrop-blur-sm">
-            <User className="h-5 w-5" />
-        </Button>
       </header>
       
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4">

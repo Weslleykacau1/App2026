@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -24,6 +23,7 @@ type RideCategory = "comfort" | "executive";
 function PassengerDashboard() {
   const { user } = useAuth();
   const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
+  const [showPrice, setShowPrice] = useState(false);
 
   if (!user) return null;
 
@@ -32,6 +32,14 @@ function PassengerDashboard() {
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase();
   }
+
+  const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value.length > 0) {
+      setShowPrice(true);
+    } else {
+      setShowPrice(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -70,6 +78,7 @@ function PassengerDashboard() {
                     placeholder="Digite seu endereço"
                     className="pl-10 h-12 text-base"
                     required
+                    onChange={handleDestinationChange}
                   />
                 </div>
               </div>
@@ -84,7 +93,7 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Comfort</span>
-                  <span className="font-bold text-lg">R$25,50</span>
+                  {showPrice && <span className="font-bold text-lg">R$25,50</span>}
                 </button>
                  <button 
                   onClick={() => setRideCategory('executive')} 
@@ -95,7 +104,7 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Executive</span>
-                  <span className="font-bold text-lg">R$42,00</span>
+                  {showPrice && <span className="font-bold text-lg">R$42,00</span>}
                 </button>
                 
                 <div className="col-span-2">

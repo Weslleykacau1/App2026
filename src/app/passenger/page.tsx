@@ -89,16 +89,8 @@ function PassengerDashboard() {
               </div>
 
               <div className="flex gap-2">
-                <div className="relative flex items-center flex-1">
-                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="promotion"
-                    placeholder="Promotion code"
-                    className="pl-10 h-12 text-base"
-                  />
-                </div>
                 <Select defaultValue="pix">
-                  <SelectTrigger className="h-12 text-base w-[160px]">
+                  <SelectTrigger className="h-12 text-base w-full">
                       <SelectValue placeholder="Pagamento" />
                   </SelectTrigger>
                   <SelectContent>

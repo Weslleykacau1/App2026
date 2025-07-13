@@ -17,6 +17,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type RideCategory = "comfort" | "executive";
 
@@ -26,11 +27,28 @@ function PassengerDashboard() {
 
   if (!user) return null;
 
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    const initials = names.map(n => n[0]).join('');
+    return initials.toUpperCase();
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <div className="absolute inset-0 h-full w-full z-0">
         <Map />
       </div>
+
+      <header className="absolute top-0 left-0 right-0 z-10 p-4">
+        <div className="flex justify-end">
+             <Button variant="ghost" className="relative h-12 w-12 rounded-full bg-background/80 shadow-lg">
+                <Avatar className="h-12 w-12">
+                    <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                </Avatar>
+            </Button>
+        </div>
+      </header>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
          <Card className="shadow-2xl rounded-2xl">
@@ -56,11 +74,11 @@ function PassengerDashboard() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 grid-rows-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button 
                   onClick={() => setRideCategory('comfort')} 
                   className={cn(
-                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'comfort' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-muted/50'
                   )}
                 >
@@ -71,7 +89,7 @@ function PassengerDashboard() {
                  <button 
                   onClick={() => setRideCategory('executive')} 
                   className={cn(
-                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
+                    "flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
                     rideCategory === 'executive' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-muted/50'
                   )}
                 >
@@ -79,18 +97,10 @@ function PassengerDashboard() {
                   <span className="text-sm font-medium">Executive</span>
                   <span className="font-bold text-lg">R$42,00</span>
                 </button>
-                <button
-                  className={cn(
-                    "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center border-border bg-muted/50"
-                  )}
-                >
-                  <User className="h-8 w-8 mb-1"/>
-                  <span className="text-sm font-medium">Meu Perfil</span>
-                </button>
                 
-                <div className="col-span-1 row-span-1">
+                <div className="col-span-2">
                   <Select defaultValue="pix">
-                    <SelectTrigger className="h-full text-base w-full">
+                    <SelectTrigger className="h-14 text-base w-full">
                         <SelectValue placeholder="Pagamento" />
                     </SelectTrigger>
                     <SelectContent>

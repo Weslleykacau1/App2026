@@ -20,6 +20,7 @@ import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 type RideCategory = "x" | "confort";
 interface RideDetails {
@@ -239,11 +240,14 @@ function PassengerMobileDashboard() {
                     <span>Pagamento</span>
                     <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
                   </button>
-                  <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
+                  <div className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
                     <Bell className="h-5 w-5 mr-4 text-primary"/>
-                    <span>Notificações</span>
-                    <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
-                  </button>
+                    <div className="flex-1">
+                      <p>Notificações</p>
+                      <p className="text-sm text-muted-foreground">Receber alertas de viagens e promoções</p>
+                    </div>
+                    <Switch defaultChecked/>
+                  </div>
                   <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
                     <Globe className="h-5 w-5 mr-4 text-primary"/>
                     <span>Idioma Preferido</span>
@@ -305,3 +309,5 @@ function PassengerMobileDashboard() {
 }
 
 export default withAuth(PassengerMobileDashboard, ["passenger"]);
+
+    

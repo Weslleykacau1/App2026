@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -76,39 +77,6 @@ function DriverDashboard() {
               <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80" onClick={() => router.push('/driver/profile')}>
                   <Menu className="h-5 w-5" />
               </Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                        <Shield className="h-5 w-5 text-destructive" />
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="grid grid-cols-1 gap-4 py-4">
-                        <a href="tel:190" className="w-full">
-                            <Button variant="destructive" className="w-full h-12 text-lg">
-                                <Phone className="mr-2 h-5 w-5" />
-                                Ligar para a Polícia (190)
-                            </Button>
-                        </a>
-                         <a href="tel:192" className="w-full">
-                            <Button variant="destructive" className="w-full h-12 text-lg">
-                                <Phone className="mr-2 h-5 w-5" />
-                                Ligar para o SAMU (192)
-                            </Button>
-                        </a>
-                    </div>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
@@ -118,11 +86,44 @@ function DriverDashboard() {
               <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical /></Button>
-                      <div className="flex items-center gap-2">
-                            <label htmlFor="online-status" className={cn("font-semibold ml-2", isOnline ? "text-primary" : "text-muted-foreground")}>
-                                {isOnline ? 'Online' : 'Offline'}
-                            </label>
-                        </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-full">
+                                <Shield className="h-5 w-5 text-destructive" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="grid grid-cols-1 gap-4 py-4">
+                                <a href="tel:190" className="w-full">
+                                    <Button variant="destructive" className="w-full h-12 text-lg">
+                                        <Phone className="mr-2 h-5 w-5" />
+                                        Ligar para a Polícia (190)
+                                    </Button>
+                                </a>
+                                 <a href="tel:192" className="w-full">
+                                    <Button variant="destructive" className="w-full h-12 text-lg">
+                                        <Phone className="mr-2 h-5 w-5" />
+                                        Ligar para o SAMU (192)
+                                    </Button>
+                                </a>
+                            </div>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                        <label htmlFor="online-status" className={cn("font-semibold", isOnline ? "text-primary" : "text-muted-foreground")}>
+                            {isOnline ? 'Online' : 'Offline'}
+                        </label>
                   </div>
                   
                   <div className="flex items-center gap-1">

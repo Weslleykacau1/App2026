@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +16,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTheme } from "next-themes";
 
 
 function ProfilePage() {
     const router = useRouter();
     const { user } = useAuth();
+    const { theme, setTheme } = useTheme();
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        setIsDarkMode(theme === 'dark');
+    }, [theme]);
+
+    const handleThemeChange = (checked: boolean) => {
+        const newTheme = checked ? 'dark' : 'light';
+        setTheme(newTheme);
+        setIsDarkMode(checked);
+    };
 
     if (!user) return null;
 
@@ -144,9 +158,12 @@ function ProfilePage() {
                                             <Moon className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
                                                 <p className="font-medium">Modo Escuro</p>
-                                                <p className="text-sm text-muted-foreground">Interface otimizada para motoristas</p>
+                                                <p className="text-sm text-muted-foreground">Alterne entre o tema claro e escuro</p>
                                             </div>
-                                            <Switch />
+                                            <Switch
+                                                checked={isDarkMode}
+                                                onCheckedChange={handleThemeChange}
+                                            />
                                         </div>
                                         <Separator />
                                         <div className="flex items-start justify-between gap-4">

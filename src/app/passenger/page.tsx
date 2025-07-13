@@ -319,7 +319,3 @@ function PassengerMobileDashboard() {
 }
 
 export default withAuth(PassengerMobileDashboard, ["passenger"]);
-
-    
-
-    

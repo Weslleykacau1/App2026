@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 function ProfilePage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const [isDarkMode, setIsDarkMode] = useState(false);
     const { toast } = useToast();
@@ -268,6 +268,18 @@ function ProfilePage() {
                                             <Switch />
                                         </div>
                                     </div>
+                                </CardContent>
+                            </Card>
+
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Conta</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Button variant="destructive" className="w-full" onClick={logout}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Sair da Conta
+                                    </Button>
                                 </CardContent>
                             </Card>
                        </div>

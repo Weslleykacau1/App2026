@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
-import MapGL, { Marker, GeolocateControl } from 'react-map-gl';
+import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2 } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2, LocateFixed } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -28,11 +28,21 @@ function DriverDashboard() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [isOnline, setIsOnline] = useState(false);
   const router = useRouter();
-
+  const mapRef = useRef<MapRef>(null);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
+
+  const handleLocateUser = () => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      mapRef.current?.flyTo({
+        center: [position.coords.longitude, position.coords.latitude],
+        zoom: 15,
+        essential: true,
+      });
+    });
+  };
 
   if (!mapboxToken) {
     return (
@@ -47,6 +57,7 @@ function DriverDashboard() {
   return (
       <div className="h-screen w-screen relative">
           <MapGL
+              ref={mapRef}
               mapboxAccessToken={mapboxToken}
               initialViewState={{
                   longitude: -46.6333,
@@ -56,7 +67,7 @@ function DriverDashboard() {
               style={{width: '100%', height: '100%'}}
               mapStyle={mapStyle}
           >
-              <GeolocateControl position="top-right" trackUserLocation={true} showUserHeading={true} />
+              <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
               <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
                   <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -74,50 +85,66 @@ function DriverDashboard() {
               ))}
           </MapGL>
 
-          <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
-              <Button variant="default" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => router.push('/driver/profile')}>
-                  <Menu className="h-6 w-6" />
-              </Button>
+          <header className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center bg-transparent z-20 pointer-events-none">
+            <Button 
+                variant="primary" 
+                size="icon" 
+                className="h-14 w-14 rounded-full shadow-lg pointer-events-auto" 
+                onClick={() => router.push('/driver/profile')}
+            >
+                <Menu className="h-6 w-6 text-primary-foreground" />
+            </Button>
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 rounded-lg bg-background shadow-lg pointer-events-auto"
+                onClick={handleLocateUser}
+            >
+                <LocateFixed className="h-5 w-5" />
+            </Button>
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-              <Button onClick={() => router.push('/driver/accept-ride')} className="w-full">
-                Ver Corrida de Teste
-              </Button>
+              <div className="absolute bottom-24 right-4 z-10">
+                  <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="icon" className="h-16 w-16 rounded-full shadow-2xl">
+                              <Shield className="h-8 w-8" />
+                          </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                  Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <div className="grid grid-cols-1 gap-4 py-4">
+                              <a href="tel:190" className="w-full">
+                                  <Button variant="destructive" className="w-full h-12 text-lg">
+                                      <Phone className="mr-2 h-5 w-5" />
+                                      Ligar para a Polícia (190)
+                                  </Button>
+                              </a>
+                               <a href="tel:192" className="w-full">
+                                  <Button variant="destructive" className="w-full h-12 text-lg">
+                                      <Phone className="mr-2 h-5 w-5" />
+                                      Ligar para o SAMU (192)
+                                  </Button>
+                              </a>
+                          </div>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          </AlertDialogFooter>
+                      </AlertDialogContent>
+                  </AlertDialog>
+              </div>
+
               <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-1">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full">
-                                <Shield className="h-5 w-5 text-destructive" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <div className="grid grid-cols-1 gap-4 py-4">
-                                <a href="tel:190" className="w-full">
-                                    <Button variant="destructive" className="w-full h-12 text-lg">
-                                        <Phone className="mr-2 h-5 w-5" />
-                                        Ligar para a Polícia (190)
-                                    </Button>
-                                </a>
-                                 <a href="tel:192" className="w-full">
-                                    <Button variant="destructive" className="w-full h-12 text-lg">
-                                        <Phone className="mr-2 h-5 w-5" />
-                                        Ligar para o SAMU (192)
-                                    </Button>
-                                </a>
-                            </div>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                     <Button onClick={() => router.push('/driver/accept-ride')} variant="ghost" className="rounded-full px-4">
+                        Ver Corrida
+                      </Button>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -130,7 +157,7 @@ function DriverDashboard() {
                   <div className="flex items-center gap-1">
                       <Button 
                         onClick={() => router.push('/driver/statistics')}
-                        variant="secondary" 
+                        variant="ghost" 
                         size="icon" 
                         className="rounded-full h-12 w-12"
                       >

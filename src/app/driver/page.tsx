@@ -14,6 +14,7 @@ import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { useRouter } from 'next/navigation';
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/30 border-red-700/0" },
@@ -40,6 +41,7 @@ function DriverDashboard() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [isOnline, setIsOnline] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+  const router = useRouter();
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -139,6 +141,9 @@ function DriverDashboard() {
         </header>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
+            <Button onClick={() => router.push('/driver/accept-ride')} className="w-full">
+              Ver Corrida de Teste
+            </Button>
             <Card>
                 <CardHeader>
                     <CardTitle>Estatísticas de Desempenho</CardTitle>

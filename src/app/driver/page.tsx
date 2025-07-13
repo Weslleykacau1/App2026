@@ -4,10 +4,16 @@
 import { useState } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Home, Search, Shield, BarChart2, Settings2 } from "lucide-react";
+import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield } from "lucide-react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/30 border-red-700/0" },
@@ -18,11 +24,22 @@ const surgeZones = [
   { lat: -23.54, lng: -46.625, color: "bg-red-600/30 border-red-800/0" },
 ];
 
+const weeklyEarningsData = [
+    { day: "Seg", earnings: 200 },
+    { day: "Ter", earnings: 250 },
+    { day: "Qua", earnings: 300 },
+    { day: "Qui", earnings: 150 },
+    { day: "Sex", earnings: 280 },
+    { day: "Sáb", earnings: 320 },
+    { day: "Dom", earnings: 245 },
+];
+
 
 function DriverDashboard() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [isOnline, setIsOnline] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -53,7 +70,7 @@ function DriverDashboard() {
              <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
                  <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--foreground))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
+                        <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
                     </svg>
                  </div>
             </Marker>
@@ -69,40 +86,118 @@ function DriverDashboard() {
         </MapGL>
 
         <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] p-0">
+                    <SheetHeader className="p-4 border-b">
+                         <div className="flex flex-col items-start gap-2">
+                             <Avatar className="h-16 w-16">
+                                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="person avatar" />
+                                <AvatarFallback>CS</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <h2 className="text-xl font-bold">Olá, Carlos Silva</h2>
+                                <p className="text-sm text-muted-foreground flex items-center gap-1">4.8 <Star className="h-4 w-4 text-accent" fill="hsl(var(--accent))"/></p>
+                            </div>
+                         </div>
+                    </SheetHeader>
+                     <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium">Status</span>
+                            <div className="flex items-center gap-2">
+                                <Switch id="online-status" checked={isOnline} onCheckedChange={setIsOnline} />
+                                <label htmlFor="online-status" className={cn("font-semibold", isOnline ? "text-primary" : "text-muted-foreground")}>
+                                    {isOnline ? 'Online' : 'Offline'}
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Ganhos Totais</span>
+                            <span className="font-bold">R$ 156,50</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Corridas Hoje</span>
+                            <span className="font-bold">8</span>
+                        </div>
+                    </div>
+                    <nav className="flex flex-col gap-1 p-4 border-t">
+                        <Button variant="ghost" className="justify-start gap-2"><Home /> Início</Button>
+                        <Button variant="ghost" className="justify-start gap-2"><BarChart2 /> Estatísticas</Button>
+                        <Button variant="ghost" className="justify-start gap-2"><Wallet /> Carteira</Button>
+                        <Button variant="ghost" className="justify-start gap-2"><User /> Perfil</Button>
+                    </nav>
+                </SheetContent>
+            </Sheet>
+
             <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                <Home className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center gap-2 bg-foreground text-background font-bold text-lg p-2 px-4 rounded-full shadow-lg">
-                <span>R$</span>
-                <span>0,00</span>
-            </div>
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                <Search className="h-5 w-5" />
+                <Shield className="h-5 w-5" />
             </Button>
         </header>
 
-        <div className="absolute bottom-32 right-4 flex flex-col gap-3">
-             <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80 w-12 h-12">
-                <Shield className="h-6 w-6" />
-            </Button>
-             <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80 w-12 h-12">
-                <BarChart2 className="h-6 w-6" />
-            </Button>
-        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Estatísticas de Desempenho</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                     <div>
+                        <p className="text-sm font-medium text-muted-foreground">Taxa de Aceitação</p>
+                        <div className="flex items-center gap-2">
+                            <Progress value={92} className="h-2" />
+                            <span className="font-bold">92%</span>
+                        </div>
+                    </div>
+                     <div>
+                        <p className="text-sm font-medium text-muted-foreground">Taxa de Cancelamento</p>
+                         <div className="flex items-center gap-2">
+                            <Progress value={5} className="h-2 [&>div]:bg-destructive" />
+                            <span className="font-bold">5%</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
+            <Card>
+                <CardHeader>
+                    <CardTitle>Ganhos da Semana</CardTitle>
+                    <CardDescription>Total: R$ 1.245,80</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <ResponsiveContainer width="100%" height={150}>
+                        <BarChart data={weeklyEarningsData}>
+                            <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value}`} />
+                            <Tooltip
+                                cursor={{ fill: 'hsl(var(--muted))' }}
+                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                                 formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                            />
+                            <Bar dataKey="earnings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
 
-        <footer className="absolute bottom-0 left-0 right-0 p-4 flex flex-col items-center gap-4">
-            <Button size="lg" className="h-20 w-20 rounded-full text-lg font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-2xl" onClick={() => setIsOnline(!isOnline)}>
-                {isOnline ? 'Parar' : 'Iniciar'}
-            </Button>
-            <div className="flex items-center gap-3 text-lg font-medium">
-                <Settings2 className="h-6 w-6"/>
-                <p>Você está {isOnline ? <span className="font-bold text-primary">online</span> : <span className="font-bold">offline</span>}</p>
+            <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
+                <p className="ml-4 font-medium text-muted-foreground">Você está {isOnline ? <span className="text-primary font-bold">Online</span> : <span className="font-bold">Offline</span>}</p>
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="rounded-full"><Search /></Button>
+                    <Button variant="ghost" size="icon" className="rounded-full"><Zap /></Button>
+                    <Button onClick={() => setIsPlaying(!isPlaying)} variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                        {isPlaying ? <Pause className="h-6 w-6"/> : <Play className="h-6 w-6"/>}
+                    </Button>
+                </div>
             </div>
-        </footer>
+        </div>
       
     </div>
   );
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

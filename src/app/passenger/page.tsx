@@ -7,28 +7,22 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import type { MapRef } from "react-map-gl";
 
 
 type RideCategory = "comfort" | "executive";
+type PaymentMethod = "pix" | "cash" | "card_machine";
 
 function PassengerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [showPrice, setShowPrice] = useState(false);
   const [comfortPrice, setComfortPrice] = useState(0);
   const [executivePrice, setExecutivePrice] = useState(0);
@@ -100,7 +94,20 @@ function PassengerDashboard() {
             </div>
         </div>
     </div>
-);
+  );
+
+  const PaymentOption = ({ method, icon, label, isSelected, onSelect }: { method: PaymentMethod, icon: React.ReactNode, label: string, isSelected: boolean, onSelect: () => void }) => (
+    <div
+      onClick={onSelect}
+      className={cn(
+        "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all h-24",
+        isSelected ? 'border-primary bg-primary/10' : 'bg-muted hover:bg-muted/80'
+      )}
+    >
+      {icon}
+      <span className="text-xs font-medium">{label}</span>
+    </div>
+  );
 
 
   return (
@@ -184,32 +191,28 @@ function PassengerDashboard() {
                   </div>
               )}
                 
-              <div className="col-span-2">
-                <Select defaultValue="pix">
-                  <SelectTrigger className="h-14 text-base w-full">
-                      <SelectValue placeholder="Pagamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="pix">
-                           <div className="flex items-center gap-2">
-                              <Wallet className="h-4 w-4" />
-                              <span>Pix</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="cash">
-                           <div className="flex items-center gap-2">
-                              <Coins className="h-4 w-4" />
-                              <span>Dinheiro</span>
-                          </div>
-                      </SelectItem>
-                      <SelectItem value="card_machine">
-                           <div className="flex items-center gap-2">
-                              <Landmark className="h-4 w-4" />
-                              <span>Máquina de Cartão</span>
-                          </div>
-                      </SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-3 gap-2">
+                <PaymentOption
+                  method="pix"
+                  icon={<Wallet className="h-6 w-6 text-primary" />}
+                  label="Pix"
+                  isSelected={paymentMethod === 'pix'}
+                  onSelect={() => setPaymentMethod('pix')}
+                />
+                <PaymentOption
+                  method="cash"
+                  icon={<Coins className="h-6 w-6 text-primary" />}
+                  label="Dinheiro"
+                  isSelected={paymentMethod === 'cash'}
+                  onSelect={() => setPaymentMethod('cash')}
+                />
+                <PaymentOption
+                  method="card_machine"
+                  icon={<Landmark className="h-6 w-6 text-primary" />}
+                  label="Cartão"
+                  isSelected={paymentMethod === 'card_machine'}
+                  onSelect={() => setPaymentMethod('card_machine')}
+                />
               </div>
 
               <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice}>

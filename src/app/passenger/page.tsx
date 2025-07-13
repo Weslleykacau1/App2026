@@ -43,7 +43,7 @@ function PassengerDashboard() {
                     id="pickup"
                     placeholder="Local de embarque"
                     className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                    defaultValue="2 Le Lai, ward 12, Tan Binh dist, Saigon..."
+                    defaultValue="Localização atual"
                   />
                 </div>
                 <div className="relative flex items-center">

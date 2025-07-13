@@ -12,9 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical } from "lucide-react";
+import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical, Phone } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useRouter } from 'next/navigation';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/20 border-red-700/0" },
@@ -200,9 +202,38 @@ function DriverDashboard() {
                 </Button>
               </SheetTrigger>
 
-              <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                  <Shield className="h-5 w-5" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
+                        <Shield className="h-5 w-5 text-destructive" />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="grid grid-cols-1 gap-4 py-4">
+                        <a href="tel:190" className="w-full">
+                            <Button variant="destructive" className="w-full h-12 text-lg">
+                                <Phone className="mr-2 h-5 w-5" />
+                                Ligar para a Polícia (190)
+                            </Button>
+                        </a>
+                         <a href="tel:192" className="w-full">
+                            <Button variant="destructive" className="w-full h-12 text-lg">
+                                <Phone className="mr-2 h-5 w-5" />
+                                Ligar para o SAMU (192)
+                            </Button>
+                        </a>
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">

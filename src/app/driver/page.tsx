@@ -5,15 +5,13 @@ import { useState } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
-import MapGL, { Marker } from 'react-map-gl';
+import MapGL, { Marker, GeolocateControl } from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { Menu, Shield, Phone, BarChart2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/20 border-red-700/0" },
@@ -30,7 +28,6 @@ function DriverDashboard() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [isOnline, setIsOnline] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
 
   const mapStyle = resolvedTheme === 'dark' 
@@ -59,6 +56,7 @@ function DriverDashboard() {
               style={{width: '100%', height: '100%'}}
               mapStyle={mapStyle}
           >
+              <GeolocateControl position="top-right" trackUserLocation={true} />
               <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
                   <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -131,7 +129,7 @@ function DriverDashboard() {
                   
                   <div className="flex items-center gap-1">
                       <Button 
-                        onClick={() => toast({ title: "Em breve", description: "A tela de estatísticas estará disponível em breve."})} 
+                        onClick={() => router.push('/driver/statistics')}
                         variant="secondary" 
                         size="icon" 
                         className="rounded-full h-12 w-12"

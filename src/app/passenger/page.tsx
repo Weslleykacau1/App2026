@@ -17,11 +17,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from 'next/navigation';
+
 
 type RideCategory = "comfort" | "executive";
 
 function PassengerDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
   const [showPrice, setShowPrice] = useState(false);
   const [comfortPrice, setComfortPrice] = useState(0);
@@ -68,7 +71,7 @@ function PassengerDashboard() {
 
       <header className="absolute top-0 left-0 right-0 z-10 p-4">
         <div className="flex justify-end">
-             <Button variant="ghost" className="relative h-12 w-12 rounded-full bg-background/80 shadow-lg">
+             <Button variant="ghost" className="relative h-12 w-12 rounded-full bg-background/80 shadow-lg" onClick={() => router.push('/passenger/profile')}>
                 <Avatar className="h-12 w-12">
                     <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>

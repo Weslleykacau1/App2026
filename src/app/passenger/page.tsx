@@ -24,6 +24,8 @@ function PassengerDashboard() {
   const { user } = useAuth();
   const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
   const [showPrice, setShowPrice] = useState(false);
+  const [comfortPrice, setComfortPrice] = useState(0);
+  const [executivePrice, setExecutivePrice] = useState(0);
 
   if (!user) return null;
 
@@ -35,11 +37,28 @@ function PassengerDashboard() {
 
   const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length > 0) {
+      // Simulate distance calculation
+      const distance = Math.random() * (30 - 1) + 1; // Random distance between 1km and 30km
+      
+      // Calculate price based on distance
+      // Comfort: R$5.00 base + R$1.50/km
+      const comfortFare = 5 + (distance * 1.5);
+      // Executive: R$8.00 base + R$2.50/km
+      const executiveFare = 8 + (distance * 2.5);
+
+      setComfortPrice(comfortFare);
+      setExecutivePrice(executiveFare);
       setShowPrice(true);
     } else {
       setShowPrice(false);
+      setComfortPrice(0);
+      setExecutivePrice(0);
     }
   };
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -93,7 +112,7 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Comfort</span>
-                  {showPrice && <span className="font-bold text-lg">R$25,50</span>}
+                  {showPrice && <span className="font-bold text-lg">{formatCurrency(comfortPrice)}</span>}
                 </button>
                  <button 
                   onClick={() => setRideCategory('executive')} 
@@ -104,7 +123,7 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Executive</span>
-                  {showPrice && <span className="font-bold text-lg">R$42,00</span>}
+                  {showPrice && <span className="font-bold text-lg">{formatCurrency(executivePrice)}</span>}
                 </button>
                 
                 <div className="col-span-2">

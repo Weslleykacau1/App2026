@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import MapGL, { Marker, Polyline } from 'react-map-gl';
+import MapGL, { Marker, Source, Layer, LngLatLike } from 'react-map-gl';
+import type {LineLayer} from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { User, Star, X, Check, MapPin, Navigation } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -33,13 +34,37 @@ const rideData = {
   }
 };
 
-const routeCoordinates = [
+const routeCoordinates: LngLatLike[] = [
   [-46.635, -23.555],
   [-46.638, -23.558],
   [-46.645, -23.565],
   [-46.65, -23.57],
   [-46.66, -23.58]
 ];
+
+const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+        type: 'LineString',
+        coordinates: routeCoordinates
+    }
+};
+
+const routeLayer: LineLayer = {
+    id: 'route',
+    type: 'line',
+    source: 'route',
+    layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+    },
+    paint: {
+        'line-color': 'hsl(var(--foreground))',
+        'line-width': 4
+    }
+};
+
 
 function AcceptRidePage() {
   const { resolvedTheme } = useTheme();
@@ -84,7 +109,9 @@ function AcceptRidePage() {
             </div>
         </Marker>
         
-        <Polyline coordinates={routeCoordinates} color="hsl(var(--foreground))" width={4} />
+        <Source id="route" type="geojson" data={routeGeoJSON}>
+            <Layer {...routeLayer} />
+        </Source>
 
       </MapGL>
 

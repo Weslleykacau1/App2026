@@ -74,7 +74,7 @@ function PassengerMobileDashboard() {
         <Map />
       </div>
 
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+      <header className="absolute top-0 left-0 right-0 z-10 flex items-center p-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 border-2 border-background shadow-md">
             <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, Camera, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Fingerprint, Share2, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, Camera, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -182,15 +182,6 @@ function ProfilePage() {
                                                     <SelectItem value="en-us">English</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-start justify-between gap-4">
-                                            <Fingerprint className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">Autenticação Biométrica</p>
-                                                <p className="text-sm text-muted-foreground">Proteger alterações sensíveis</p>
-                                            </div>
-                                            <Switch defaultChecked/>
                                         </div>
                                     </div>
                                 </CardContent>

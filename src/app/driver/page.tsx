@@ -1,3 +1,4 @@
+
 "use client";
 
 import { withAuth } from "@/components/with-auth";
@@ -67,8 +68,8 @@ function DriverDashboard() {
             </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1">
+          <div className="col-span-1">
              <Card className="h-[600px] shadow-lg">
                 <CardHeader>
                     <CardTitle>Mapa ao Vivo</CardTitle>
@@ -78,49 +79,6 @@ function DriverDashboard() {
                 <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center overflow-hidden">
                     <Map />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pedido de Corrida</CardTitle>
-                <CardDescription>Aceite um pedido para iniciar uma viagem.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="p-4 border rounded-lg flex flex-col items-start justify-between gap-4">
-                  <div className="flex items-center gap-4 w-full">
-                    <Avatar className="h-12 w-12">
-                       <AvatarImage src="https://placehold.co/100x100.png" alt="User" data-ai-hint="person portrait" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-semibold">Jane Doe <Badge variant="outline">4.8 ★</Badge></p>
-                      <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>4 km de distância</span>
-                      </div>
-                    </div>
-                     <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-lg text-primary">R$18,45</p>
-                      <p className="text-sm text-muted-foreground">15 min</p>
-                  </div>
-                  </div>
-                  <Separator />
-                   <div className="w-full">
-                        <div className="font-medium text-sm">Embarque</div>
-                        <p className="text-muted-foreground text-sm">Rua Principal, 123, Cidade</p>
-                   </div>
-                    <div className="w-full">
-                        <div className="font-medium text-sm">Destino</div>
-                        <p className="text-muted-foreground text-sm">Avenida Carvalho, 456, Cidade</p>
-                   </div>
-                  <div className="flex gap-2 w-full pt-2">
-                    <Button variant="outline" className="flex-1">Recusar</Button>
-                    <Button className="flex-1"><Navigation className="mr-2 h-4 w-4" /> Aceitar e Navegar</Button>
-                  </div>
-                </div>
-                 <p className="text-center text-sm text-muted-foreground pt-4">Nenhum pedido no momento.</p>
               </CardContent>
             </Card>
           </div>

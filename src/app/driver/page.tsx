@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, MoreVertical, Phone, BarChart2 } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -88,7 +88,6 @@ function DriverDashboard() {
               </Button>
               <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical /></Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="rounded-full">

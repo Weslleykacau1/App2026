@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard } from "lucide-react";
+import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -90,7 +90,7 @@ function PassengerMobileDashboard() {
         </div>
       </header>
       
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
         <Card className="shadow-2xl rounded-2xl">
           <CardContent className="p-4">
             {rideDetails ? (
@@ -141,54 +141,75 @@ function PassengerMobileDashboard() {
               </div>
             ) : (
               // Search form view
-              <form onSubmit={handleSearchRide} className="space-y-4">
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="pickup"
-                    placeholder="Local de embarque"
-                    className="pl-10 h-12 text-base border-0 bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                    defaultValue="Minha localização atual"
-                    disabled
-                  />
-                </div>
-                <div className="relative flex items-center">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="destination"
-                    placeholder="Para onde vamos?"
-                    className="pl-10 h-12 text-base"
-                    required
-                  />
-                </div>
-                <div className="flex gap-2">
-                    <div className="flex-1">
-                        <Select onValueChange={(value: RideCategory) => setRideCategory(value)} defaultValue={rideCategory}>
-                            <SelectTrigger className="h-12 text-base">
-                                <SelectValue placeholder="Categoria" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="x">
-                                    <div className="flex items-center gap-2">
-                                        <Car className="h-4 w-4" />
-                                        <span>Corrida X</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="confort">
-                                     <div className="flex items-center gap-2">
-                                        <Star className="h-4 w-4" />
-                                        <span>Corrida Confort</span>
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Button type="submit" className="h-12 text-lg" disabled={isSearching}>
-                        {isSearching ? <Loader2 className="animate-spin" /> : "Buscar"}
-                    </Button>
-                </div>
-              </form>
+              <div className="space-y-4">
+                 <h2 className="text-2xl font-bold">Para onde vamos?</h2>
+                <form onSubmit={handleSearchRide} className="space-y-4">
+                  <div className="relative flex items-center">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="pickup"
+                      placeholder="Local de embarque"
+                      className="pl-10 h-12 text-base border-0 bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                      defaultValue="Minha localização atual"
+                      disabled
+                    />
+                  </div>
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="destination"
+                      placeholder="Seu destino"
+                      className="pl-10 h-12 text-base"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                      <div className="flex-1">
+                          <Select onValueChange={(value: RideCategory) => setRideCategory(value)} defaultValue={rideCategory}>
+                              <SelectTrigger className="h-12 text-base">
+                                  <SelectValue placeholder="Categoria" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="x">
+                                      <div className="flex items-center gap-2">
+                                          <Car className="h-4 w-4" />
+                                          <span>Corrida X</span>
+                                      </div>
+                                  </SelectItem>
+                                  <SelectItem value="confort">
+                                      <div className="flex items-center gap-2">
+                                          <Star className="h-4 w-4" />
+                                          <span>Corrida Confort</span>
+                                      </div>
+                                  </SelectItem>
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <Button type="submit" className="h-12 text-lg" disabled={isSearching}>
+                          {isSearching ? <Loader2 className="animate-spin" /> : "Buscar"}
+                      </Button>
+                  </div>
+                </form>
+              </div>
             )}
+          </CardContent>
+        </Card>
+         <Card className="rounded-2xl">
+          <CardContent className="p-2">
+            <nav className="grid grid-cols-3 gap-2">
+                <Button variant="ghost" className="flex flex-col h-auto items-center justify-center p-2 rounded-lg text-primary">
+                    <Home className="h-6 w-6 mb-1"/>
+                    <span className="text-xs font-medium">Início</span>
+                </Button>
+                <Button variant="ghost" className="flex flex-col h-auto items-center justify-center p-2 rounded-lg text-muted-foreground">
+                    <Activity className="h-6 w-6 mb-1"/>
+                    <span className="text-xs font-medium">Atividade</span>
+                </Button>
+                <Button variant="ghost" className="flex flex-col h-auto items-center justify-center p-2 rounded-lg text-muted-foreground">
+                    <User className="h-6 w-6 mb-1"/>
+                    <span className="text-xs font-medium">Conta</span>
+                </Button>
+            </nav>
           </CardContent>
         </Card>
       </div>

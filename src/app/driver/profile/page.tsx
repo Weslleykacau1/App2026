@@ -184,8 +184,8 @@ function DriverProfilePage() {
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
             <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+                    <Button variant="default" className="h-10 w-10 p-0 rounded-lg" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-lg font-semibold">Perfil</h1>

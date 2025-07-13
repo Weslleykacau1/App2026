@@ -5,16 +5,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Car, User } from "lucide-react";
+import { Car, User, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -68,25 +61,26 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">Criar uma Conta</CardTitle>
-          <CardDescription className="text-center">
-            Junte-se ao TriDriver e comece sua jornada hoje.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-sm">
+        <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.push('/')}>
+            <ArrowLeft />
+        </Button>
+        <div className="text-center mb-8">
+            <Car className="h-12 w-12 mx-auto text-primary" />
+            <h1 className="text-4xl font-bold text-primary mt-2">Criar Conta</h1>
+            <p className="text-muted-foreground">Comece sua jornada com TriDriver.</p>
+        </div>
+        
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="João da Silva" {...field} />
+                      <Input placeholder="Nome Completo" {...field} className="h-12 text-base" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -97,9 +91,8 @@ export default function SignupPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="nome@exemplo.com" {...field} />
+                      <Input placeholder="Email" {...field} className="h-12 text-base" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -110,9 +103,8 @@ export default function SignupPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -122,28 +114,26 @@ export default function SignupPage() {
                 control={form.control}
                 name="role"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
+                  <FormItem className="space-y-3 pt-2">
                     <FormLabel>Eu sou...</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-1"
+                        className="flex gap-4"
                       >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="passenger" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" /> Passageiro
+                        <FormItem className="flex-1">
+                          <RadioGroupItem value="passenger" id="passenger" className="sr-only" />
+                          <FormLabel htmlFor="passenger" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            <User className="mb-3 h-6 w-6" />
+                            Passageiro
                           </FormLabel>
                         </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="driver" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center gap-2">
-                             <Car className="h-4 w-4 text-muted-foreground" /> Motorista
+                        <FormItem className="flex-1">
+                          <RadioGroupItem value="driver" id="driver" className="sr-only" />
+                           <FormLabel htmlFor="driver" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            <Car className="mb-3 h-6 w-6" />
+                            Motorista
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>
@@ -152,21 +142,19 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full !mt-8" size="lg">
+              <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold">
                 Cadastrar
               </Button>
             </form>
           </Form>
-        </CardContent>
-        <CardContent className="mt-4">
-          <div className="text-center text-sm text-muted-foreground">
+        
+        <div className="mt-8 text-center text-sm text-muted-foreground">
             Já tem uma conta?{" "}
             <Link href="/" className="font-semibold text-primary hover:underline">
               Entrar
             </Link>
           </div>
-        </CardContent>
-      </Card>
+      </div>
     </main>
   );
 }

@@ -46,6 +46,7 @@ function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
 
   useEffect(() => {
+    // Generate random data on client-side to avoid hydration mismatch
     const generatedData = initialRevenueData.map(item => ({
       ...item,
       total: Math.floor(Math.random() * 5000) + 1000
@@ -56,7 +57,7 @@ function AdminDashboard() {
   return (
     <AppLayout>
       <div className="container mx-auto py-8">
-        <h2 className="text-3xl font-bold tracking-tight mb-6">Painel do Administrador</h2>
+        <h2 className="text-3xl font-bold tracking-tight mb-6 text-foreground">Painel do Administrador</h2>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
@@ -85,7 +86,7 @@ function AdminDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$1.2M</div>
+              <div className="text-2xl font-bold">R$ 1.2M</div>
               <p className="text-xs text-muted-foreground">+5.2% este mês</p>
             </CardContent>
           </Card>
@@ -165,8 +166,8 @@ function AdminDashboard() {
             </Card>
             <Card className="md:col-span-2">
                  <CardHeader>
-                    <CardTitle>Receita</CardTitle>
-                    <CardDescription>Visão geral da receita mensal.</CardDescription>
+                    <CardTitle>Receita Mensal</CardTitle>
+                    <CardDescription>Visão geral da receita nos últimos meses.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -187,7 +188,7 @@ function AdminDashboard() {
                             />
                             <Tooltip
                                 cursor={{ fill: 'hsl(var(--muted))' }}
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
                                  formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                             />
                             <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

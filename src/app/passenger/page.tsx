@@ -6,8 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowRight, Wallet, CreditCard, Tag, User, Coins, Landmark } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -62,7 +61,7 @@ function PassengerDashboard() {
                   onClick={() => setRideCategory('comfort')} 
                   className={cn(
                     "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
-                    rideCategory === 'comfort' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
+                    rideCategory === 'comfort' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-muted/50'
                   )}
                 >
                   <Car className="h-8 w-8 mb-1"/>
@@ -73,7 +72,7 @@ function PassengerDashboard() {
                   onClick={() => setRideCategory('executive')} 
                   className={cn(
                     "col-span-1 row-span-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center",
-                    rideCategory === 'executive' ? 'border-primary bg-primary/10' : 'border-border bg-muted/50'
+                    rideCategory === 'executive' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-muted/50'
                   )}
                 >
                   <Car className="h-8 w-8 mb-1"/>
@@ -118,7 +117,7 @@ function PassengerDashboard() {
                 </div>
               </div>
 
-              <Button className="w-full h-14 text-lg justify-between">
+              <Button className="w-full h-14 text-lg justify-between font-bold">
                 <span>Confirmar Corrida</span>
                 <ArrowRight className="h-5 w-5"/>
               </Button>

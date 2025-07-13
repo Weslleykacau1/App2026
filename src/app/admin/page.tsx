@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { withAuth } from "@/components/with-auth";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,28 +21,38 @@ const users = [
   { id: 5, name: "Davi Motorista", email: "david.d@example.com", role: "motorista", status: "Ativo", joined: "2023-04-05" },
 ];
 
-const revenueData = [
-  { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Fev", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Abr", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Mai", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Jun", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Jul", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Ago", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Set", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Out", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Nov", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Dez", total: Math.floor(Math.random() * 5000) + 1000 },
+const initialRevenueData = [
+  { name: "Jan", total: 0 },
+  { name: "Fev", total: 0 },
+  { name: "Mar", total: 0 },
+  { name: "Abr", total: 0 },
+  { name: "Mai", total: 0 },
+  { name: "Jun", total: 0 },
+  { name: "Jul", total: 0 },
+  { name: "Ago", total: 0 },
+  { name: "Set", total: 0 },
+  { name: "Out", total: 0 },
+  { name: "Nov", total: 0 },
+  { name: "Dez", total: 0 },
 ];
 
 const roleTranslations: { [key: string]: string } = {
-  passenger: "Passageiro",
-  driver: "Motorista",
+  passageiro: "Passageiro",
+  motorista: "Motorista",
   admin: "Admin",
 };
 
 function AdminDashboard() {
+  const [revenueData, setRevenueData] = useState(initialRevenueData);
+
+  useEffect(() => {
+    const generatedData = initialRevenueData.map(item => ({
+      ...item,
+      total: Math.floor(Math.random() * 5000) + 1000
+    }));
+    setRevenueData(generatedData);
+  }, []);
+
   return (
     <AppLayout>
       <div className="container mx-auto py-8">

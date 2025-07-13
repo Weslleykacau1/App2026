@@ -10,6 +10,8 @@ import { useTheme } from 'next-themes';
 import { Menu, Shield, Pause, Play, MoreVertical, Phone } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 
 const surgeZones = [
@@ -121,9 +123,10 @@ function DriverDashboard() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                        <label htmlFor="online-status" className={cn("font-semibold", isOnline ? "text-primary" : "text-muted-foreground")}>
+                        <Label htmlFor="online-status" className={cn("font-semibold cursor-pointer", isOnline ? "text-primary" : "text-muted-foreground")}>
                             {isOnline ? 'Online' : 'Offline'}
-                        </label>
+                        </Label>
+                        <Switch id="online-status" checked={isOnline} onCheckedChange={setIsOnline} />
                   </div>
                   
                   <div className="flex items-center gap-1">

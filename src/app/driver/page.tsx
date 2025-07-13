@@ -15,7 +15,6 @@ import { useTheme } from 'next-themes';
 import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 const surgeZones = [
   { lat: -23.555, lng: -46.635, color: "bg-red-500/20 border-red-700/0" },
@@ -68,7 +67,7 @@ function DriverDashboard() {
   const renderSheetContent = () => {
     if (activeView === 'stats') {
         return (
-             <div className="p-4 flex flex-col h-full">
+             <div className="p-4 flex flex-col h-full bg-background">
                 <SheetHeader className="mb-4">
                     <SheetTitle className="text-2xl">Suas Estatísticas</SheetTitle>
                 </SheetHeader>
@@ -122,7 +121,7 @@ function DriverDashboard() {
     }
 
     return (
-      <>
+      <div className="bg-background h-full flex flex-col">
         <SheetHeader className="p-4 border-b">
             <div className="flex flex-col items-start gap-2">
                 <Avatar className="h-16 w-16">
@@ -160,74 +159,75 @@ function DriverDashboard() {
             <Button variant="ghost" className="justify-start gap-2"><Wallet /> Carteira</Button>
             <Button variant="ghost" className="justify-start gap-2"><User /> Perfil</Button>
         </nav>
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="h-screen w-screen relative">
-        <MapGL
-            mapboxAccessToken={mapboxToken}
-            initialViewState={{
-                longitude: -46.6333,
-                latitude: -23.5505,
-                zoom: 12
-            }}
-            style={{width: '100%', height: '100%'}}
-            mapStyle={mapStyle}
-        >
-             <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
-                 <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
-                    </svg>
-                 </div>
-            </Marker>
+    <Sheet>
+      <div className="h-screen w-screen relative">
+          <MapGL
+              mapboxAccessToken={mapboxToken}
+              initialViewState={{
+                  longitude: -46.6333,
+                  latitude: -23.5505,
+                  zoom: 12
+              }}
+              style={{width: '100%', height: '100%'}}
+              mapStyle={mapStyle}
+          >
+              <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
+                  <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
+                      </svg>
+                  </div>
+              </Marker>
 
-             {surgeZones.map((zone, index) => (
-                <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
-                    <div className="relative flex items-center justify-center w-24 h-24">
-                         <div className={cn("absolute w-full h-full rounded-full animate-pulse", zone.color)}></div>
-                    </div>
-                </Marker>
-             ))}
+              {surgeZones.map((zone, index) => (
+                  <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
+                      <div className="relative flex items-center justify-center w-24 h-24">
+                          <div className={cn("absolute w-full h-full rounded-full animate-pulse", zone.color)}></div>
+                      </div>
+                  </Marker>
+              ))}
+          </MapGL>
 
-        </MapGL>
+          <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
+                    <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
 
-        <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
-            <Link href="/driver" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                  <Menu className="h-5 w-5" />
+                  <Shield className="h-5 w-5" />
               </Button>
-            </Link>
+          </header>
 
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80">
-                <Shield className="h-5 w-5" />
-            </Button>
-        </header>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-             <Button onClick={() => router.push('/driver/accept-ride')} className="w-full">
-              Ver Corrida de Teste
-            </Button>
-             <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical /></Button>
-                     <p className="ml-2 font-medium">Você está {isOnline ? <span className="text-primary font-bold">Online</span> : <span className="font-bold">Offline</span>}</p>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                    <Button onClick={() => setIsPlaying(!isPlaying)} variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                        {isPlaying ? <Pause className="h-6 w-6"/> : <Play className="h-6 w-6"/>}
-                    </Button>
-                </div>
-            </div>
-        </div>
-      
-    </div>
+          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
+              <Button onClick={() => router.push('/driver/accept-ride')} className="w-full">
+                Ver Corrida de Teste
+              </Button>
+              <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical /></Button>
+                      <p className="ml-2 font-medium">Você está {isOnline ? <span className="text-primary font-bold">Online</span> : <span className="font-bold">Offline</span>}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                      <Button onClick={() => setIsPlaying(!isPlaying)} variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                          {isPlaying ? <Pause className="h-6 w-6"/> : <Play className="h-6 w-6"/>}
+                      </Button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <SheetContent side="left" className="w-[350px] p-0 border-none">
+        {renderSheetContent()}
+      </SheetContent>
+    </Sheet>
   );
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

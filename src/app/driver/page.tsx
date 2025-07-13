@@ -56,7 +56,7 @@ function DriverDashboard() {
               style={{width: '100%', height: '100%'}}
               mapStyle={mapStyle}
           >
-              <GeolocateControl position="top-right" trackUserLocation={true} />
+              <GeolocateControl position="top-right" trackUserLocation={true} showUserHeading={true} />
               <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
                   <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,16 +1,21 @@
+
 "use client";
 
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, Camera, User, Mail, Phone, Edit, FileText } from "lucide-react";
+import { ArrowLeft, Star, Camera, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Fingerprint, Share2, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 function ProfilePage() {
     const router = useRouter();
@@ -128,7 +133,96 @@ function ProfilePage() {
                         </Card>
                     </TabsContent>
                     <TabsContent value="settings">
-                       <p className="text-center text-muted-foreground py-12">Suas configurações aparecerão aqui.</p>
+                       <div className="space-y-6 mt-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Configurações</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <Moon className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Modo Escuro</p>
+                                                <p className="text-sm text-muted-foreground">Interface otimizada para motoristas</p>
+                                            </div>
+                                            <Switch />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-start justify-between gap-4">
+                                            <Bell className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Notificações</p>
+                                                <p className="text-sm text-muted-foreground">Receber alertas de viagens e promoções</p>
+                                            </div>
+                                            <Switch defaultChecked />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-start justify-between gap-4">
+                                            <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Compartilhar Localização</p>
+                                                <p className="text-sm text-muted-foreground">Permitir rastreamento durante viagens</p>
+                                            </div>
+                                            <Switch defaultChecked />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-center justify-between gap-4">
+                                            <Globe className="h-6 w-6 text-muted-foreground" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Idioma</p>
+                                                <p className="text-sm text-muted-foreground">Selecione seu idioma preferido</p>
+                                            </div>
+                                            <Select defaultValue="pt-br">
+                                                <SelectTrigger className="w-[120px]">
+                                                    <SelectValue placeholder="Idioma" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pt-br">Português</SelectItem>
+                                                    <SelectItem value="en-us">English</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-start justify-between gap-4">
+                                            <Fingerprint className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Autenticação Biométrica</p>
+                                                <p className="text-sm text-muted-foreground">Proteger alterações sensíveis</p>
+                                            </div>
+                                            <Switch defaultChecked/>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Privacidade e Segurança</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                     <div className="space-y-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Compartilhar dados de viagem</p>
+                                                <p className="text-sm text-muted-foreground">Permitir análise para melhorar o serviço</p>
+                                            </div>
+                                            <Switch defaultChecked />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-start justify-between gap-4">
+                                            <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
+                                            <div className="flex-1">
+                                                <p className="font-medium">Visibilidade do perfil</p>
+                                                <p className="text-sm text-muted-foreground">Mostrar perfil para outros usuários</p>
+                                            </div>
+                                            <Switch />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                       </div>
                     </TabsContent>
                 </Tabs>
             </main>

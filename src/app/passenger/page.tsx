@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash } from "lucide-react";
+import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash, ChevronRight, Edit, Bell, LogOut, Receipt } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -39,7 +39,7 @@ const rideHistory = [
 
 
 function PassengerMobileDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [rideCategory, setRideCategory] = useState<RideCategory>("x");
   const [isSearching, setIsSearching] = useState(false);
   const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
@@ -190,7 +190,7 @@ function PassengerMobileDashboard() {
         );
       case 'activity':
         return (
-          <Card className="shadow-2xl rounded-2xl max-h-[60vh] overflow-y-auto">
+          <Card className="shadow-2xl rounded-2xl max-h-[70vh] overflow-y-auto">
              <CardHeader>
                 <CardTitle className="text-xl">Histórico de Corridas</CardTitle>
             </CardHeader>
@@ -217,13 +217,40 @@ function PassengerMobileDashboard() {
         );
         case 'account':
         return (
-           <Card className="shadow-2xl rounded-2xl">
-             <CardHeader>
-                <CardTitle className="text-xl">Minha Conta</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Configurações da conta e perfil virão aqui.</p>
-            </CardContent>
+           <Card className="shadow-2xl rounded-2xl max-h-[70vh] overflow-y-auto">
+             <CardContent className="p-4">
+               <div className="flex flex-col items-center text-center pb-6 border-b">
+                  <Avatar className="h-24 w-24 mb-4 border-4 border-primary/20">
+                    <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  </Avatar>
+                  <h2 className="text-2xl font-bold">{user.name}</h2>
+                  <p className="text-muted-foreground">{user.email}</p>
+                  <Badge variant="outline" className="mt-2 text-base">4.8 <Star className="ml-1 h-4 w-4 text-accent" fill="hsl(var(--accent))"/></Badge>
+               </div>
+               <div className="space-y-2 pt-6">
+                  <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
+                    <Edit className="h-5 w-5 mr-4 text-primary"/>
+                    <span>Editar Perfil</span>
+                    <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
+                  </button>
+                  <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
+                    <Receipt className="h-5 w-5 mr-4 text-primary"/>
+                    <span>Pagamento</span>
+                    <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
+                  </button>
+                  <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
+                    <Bell className="h-5 w-5 mr-4 text-primary"/>
+                    <span>Notificações</span>
+                    <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
+                  </button>
+                  <Separator className="my-2"/>
+                  <button onClick={logout} className="flex items-center w-full p-3 rounded-lg text-left text-lg text-destructive hover:bg-destructive/10">
+                    <LogOut className="h-5 w-5 mr-4"/>
+                    <span>Sair</span>
+                  </button>
+               </div>
+             </CardContent>
           </Card>
         );
       default:

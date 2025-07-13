@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash, ChevronRight, Edit, Bell, LogOut, Receipt, Globe } from "lucide-react";
+import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash, ChevronRight, Edit, Bell, LogOut, Receipt, Globe, Briefcase } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -136,7 +136,17 @@ function PassengerMobileDashboard() {
               ) : (
                 // Search form view
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">Para onde vamos?</h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold">Para onde vamos?</h2>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="rounded-full">
+                            <Home className="h-4 w-4 mr-2" /> Casa
+                        </Button>
+                        <Button variant="outline" size="sm" className="rounded-full">
+                            <Briefcase className="h-4 w-4 mr-2" /> Trabalho
+                        </Button>
+                    </div>
+                  </div>
                   <form onSubmit={handleSearchRide} className="space-y-4">
                     <div className="relative flex items-center">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -309,5 +319,7 @@ function PassengerMobileDashboard() {
 }
 
 export default withAuth(PassengerMobileDashboard, ["passenger"]);
+
+    
 
     

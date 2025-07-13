@@ -1,9 +1,7 @@
-// NOTE: This component is a placeholder and does not display a real map.
-// You can replace this with a real map component from a library like react-map-gl or @vis.gl/react-google-maps.
 "use client";
 
 import React from 'react';
-import MapGL, { Marker } from 'react-map-gl';
+import MapGL, { Marker, GeolocateControl } from 'react-map-gl';
 import { useTheme } from "next-themes";
 import { Pin } from 'lucide-react';
 
@@ -37,6 +35,7 @@ export function Map() {
       style={{width: '100%', height: '100%'}}
       mapStyle={mapStyle}
     >
+      <GeolocateControl position="top-left" trackUserLocation={true} />
       <Marker longitude={-46.6333} latitude={-23.5505} anchor="bottom">
         <Pin className="h-8 w-8 text-primary fill-primary" />
       </Marker>

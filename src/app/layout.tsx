@@ -3,6 +3,8 @@ import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
 
 export const metadata: Metadata = {
   title: 'TriDriver',

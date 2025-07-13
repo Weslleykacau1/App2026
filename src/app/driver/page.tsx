@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { DollarSign, MapPin, Star, TrendingUp, Navigation } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import Image from "next/image";
+import { Map } from "@/components/map";
 
 function DriverDashboard() {
   return (
@@ -75,8 +75,8 @@ function DriverDashboard() {
                     <CardDescription>Your current position and ride requests.</CardDescription>
                 </CardHeader>
               <CardContent className="h-full -mt-6">
-                <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center">
-                    <Image src="https://placehold.co/800x500.png" alt="Map placeholder" width={800} height={500} className="object-cover w-full h-full rounded-lg" data-ai-hint="map city" />
+                <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+                    <Map />
                 </div>
               </CardContent>
             </Card>

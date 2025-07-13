@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ function DriverProfilePage() {
     const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
     const cnhInputRef = useRef<HTMLInputElement>(null);
     const crlvInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
 
     useEffect(() => {
@@ -90,6 +91,17 @@ function DriverProfilePage() {
             context.drawImage(video, 0, 0, width, height);
             setPhotoDataUrl(photo.toDataURL('image/png'));
         }
+        }
+    };
+    
+    const handleGalleryFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setPhotoDataUrl(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -153,11 +165,11 @@ function DriverProfilePage() {
                 <main className="flex-1 py-6 container mx-auto px-4">
                      <div className="flex flex-col items-center space-y-4">
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                            {hasCameraPermission === false ? (
+                            {hasCameraPermission === false && !photoDataUrl ? (
                                 <Alert variant="destructive">
                                     <AlertTitle>Câmera Indisponível</AlertTitle>
                                     <AlertDescription>
-                                        Permita o acesso à câmera para continuar.
+                                        Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
                                     </AlertDescription>
                                 </Alert>
                             ) : photoDataUrl ? (
@@ -167,14 +179,25 @@ function DriverProfilePage() {
                             )}
                         </div>
                         <canvas ref={photoRef} className="hidden"></canvas>
+                        <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
+
                         
-                        {!photoDataUrl && (
-                          <Button onClick={takePhoto} disabled={!hasCameraPermission}>
-                            <Camera className="mr-2"/> Tirar Foto
-                          </Button>
+                        {photoDataUrl ? (
+                            <div className="flex flex-col space-y-2 w-full max-w-sm">
+                                <Button onClick={() => { setPhotoDataUrl(null); setActiveTab('profile'); toast({ title: "Foto salva!"}) }}>Salvar Foto</Button>
+                                <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                                <Button onClick={takePhoto} disabled={!hasCameraPermission}>
+                                    <Camera className="mr-2"/> Tirar Foto
+                                </Button>
+                                <Button variant="outline" onClick={() => galleryInputRef.current?.click()}>
+                                    <Library className="mr-2"/> Escolher da Galeria
+                                </Button>
+                            </div>
                         )}
-                         <Button disabled={!photoDataUrl} onClick={() => setActiveTab('profile')}>Salvar Foto</Button>
-                         <Button variant="ghost" onClick={() => { setPhotoDataUrl(null); setActiveTab('profile'); }}>Cancelar</Button>
+                        { !photoDataUrl && <Button variant="ghost" onClick={() => setActiveTab('profile')}>Cancelar</Button> }
                     </div>
                 </main>
             </div>

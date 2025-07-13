@@ -67,7 +67,6 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Comfort</span>
-                  <span className="text-sm font-bold text-orange-500">$45</span>
                 </button>
                  <button 
                   onClick={() => setRideCategory('executive')} 
@@ -78,7 +77,6 @@ function PassengerDashboard() {
                 >
                   <Car className="h-8 w-8 mb-1"/>
                   <span className="text-sm font-medium">Executive</span>
-                   <span className="text-sm font-bold text-indigo-600">$60</span>
                 </button>
                 <button
                   className={cn(

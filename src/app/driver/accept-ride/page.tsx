@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import type {LineLayer} from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { User, Star, X, Check, MapPin, Navigation } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { Progress } from "@/components/ui/progress";
 
 const rideData = {
   fare: 32.96,
@@ -26,7 +28,7 @@ const rideData = {
   rideCategory: "Corrida X",
   passenger: {
     name: "Ana P.",
-    avatarUrl: "https://placehold.co/40x40.png"
+    avatarUrl: "https://placehold.co/80x80.png"
   },
   route: {
     pickup: { lat: -23.555, lng: -46.635 },
@@ -70,6 +72,21 @@ function AcceptRidePage() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const router = useRouter();
+  const [timeLeft, setTimeLeft] = useState(15);
+
+  useEffect(() => {
+    if (timeLeft === 0) {
+      router.back();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, router]);
+
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -116,7 +133,19 @@ function AcceptRidePage() {
       </MapGL>
 
       <div className="absolute bottom-0 left-0 right-0 p-4">
-        <Card className="w-full max-w-md mx-auto rounded-2xl shadow-2xl">
+        <Card className="w-full max-w-md mx-auto rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-muted p-4 flex flex-col items-center justify-center text-center">
+            <Progress value={(timeLeft / 15) * 100} className="w-full h-1 mb-4 [&>div]:bg-green-500" />
+            <Avatar className="h-20 w-20 mb-2 border-4 border-background">
+                <AvatarImage src={rideData.passenger.avatarUrl} data-ai-hint="person avatar" />
+                <AvatarFallback>{rideData.passenger.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <h3 className="text-xl font-bold">{rideData.passenger.name}</h3>
+            <div className="flex items-center gap-1">
+                <p className="font-semibold">{rideData.passengerRating.toFixed(1)}</p>
+                <Star className="h-4 w-4 text-accent" fill="hsl(var(--accent))" />
+            </div>
+          </div>
           <CardContent className="p-4 space-y-4">
             <div className="flex justify-center">
                 <Badge variant="secondary" className="gap-2 px-4 py-2 text-base">
@@ -128,10 +157,6 @@ function AcceptRidePage() {
             <div className="text-center">
                 <h2 className="text-4xl font-bold">R${rideData.fare.toFixed(2)}</h2>
                 <p className="text-muted-foreground">+R$ {rideData.bonus.toFixed(2)} incluído</p>
-                <div className="flex items-center justify-center gap-1 mt-1">
-                    <p className="font-semibold">{rideData.passengerRating.toFixed(2)}</p>
-                    <Star className="h-4 w-4 text-accent" fill="hsl(var(--accent))" />
-                </div>
             </div>
 
             <div className="space-y-3">

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, Camera, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -51,9 +51,7 @@ function ProfilePage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-lg font-semibold">Perfil</h1>
-                    <Button variant="ghost" size="icon">
-                        <Camera className="h-5 w-5" />
-                    </Button>
+                    <div className="w-9 h-9"></div>
                 </div>
             </header>
             
@@ -71,9 +69,6 @@ function ProfilePage() {
                                     <AvatarImage src={`https://placehold.co/112x112.png`} data-ai-hint="person avatar" />
                                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                                 </Avatar>
-                                <Button size="icon" className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary text-primary-foreground">
-                                    <Camera className="h-4 w-4" />
-                                </Button>
                             </div>
                             <h2 className="text-2xl font-bold">{user.name}</h2>
                             <div className="flex items-center gap-2 mt-1">

@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash, ChevronRight, Edit, Bell, LogOut, Receipt } from "lucide-react";
+import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard, Activity, Home, Calendar, Hash, ChevronRight, Edit, Bell, LogOut, Receipt, Globe } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -244,6 +244,12 @@ function PassengerMobileDashboard() {
                     <span>Notificações</span>
                     <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground"/>
                   </button>
+                  <button className="flex items-center w-full p-3 rounded-lg text-left text-lg hover:bg-muted">
+                    <Globe className="h-5 w-5 mr-4 text-primary"/>
+                    <span>Idioma Preferido</span>
+                    <span className="ml-auto text-sm text-muted-foreground">Português</span>
+                    <ChevronRight className="h-5 w-5 ml-2 text-muted-foreground"/>
+                  </button>
                   <Separator className="my-2"/>
                   <button onClick={logout} className="flex items-center w-full p-3 rounded-lg text-left text-lg text-destructive hover:bg-destructive/10">
                     <LogOut className="h-5 w-5 mr-4"/>
@@ -264,7 +270,7 @@ function PassengerMobileDashboard() {
         <Map />
       </div>
 
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center p-4">
+      <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 border-2 border-background shadow-md">
             <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />

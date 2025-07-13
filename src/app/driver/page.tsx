@@ -12,10 +12,12 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical, Phone } from "lucide-react";
+import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical, Phone, Upload, Car, FileText } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 
 const surgeZones = [
@@ -37,7 +39,7 @@ const weeklyEarningsData = [
     { day: "Dom", earnings: 245 },
 ];
 
-type DriverView = 'profile' | 'stats';
+type DriverView = 'profile' | 'stats' | 'edit-profile';
 
 function DriverDashboard() {
   const { resolvedTheme } = useTheme();
@@ -67,102 +69,139 @@ function DriverDashboard() {
   }
   
   const renderSheetContent = () => {
-    if (activeView === 'stats') {
-        return (
-             <div className="p-4 flex flex-col h-full bg-background">
-                <SheetHeader className="mb-4">
-                    <SheetTitle className="text-2xl">Suas Estatísticas</SheetTitle>
+    switch (activeView) {
+        case 'stats':
+            return (
+                <div className="p-4 flex flex-col h-full bg-background">
+                    <SheetHeader className="mb-4">
+                        <SheetTitle className="text-2xl">Suas Estatísticas</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Ganhos da Semana</CardTitle>
+                                <CardDescription>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalWeeklyEarnings)}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={150}>
+                                    <RechartsBarChart data={weeklyEarningsData}>
+                                        <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value}`} />
+                                        <Tooltip
+                                            cursor={{ fill: 'hsl(var(--muted))' }}
+                                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                                            formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                                        />
+                                        <Bar dataKey="earnings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                    </RechartsBarChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Métricas de Performance</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Taxa de Aceitação</p>
+                                    <div className="flex items-center gap-2">
+                                        <Progress value={92} className="h-2" />
+                                        <span className="font-bold">92%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Taxa de Cancelamento</p>
+                                    <div className="flex items-center gap-2">
+                                        <Progress value={5} className="h-2 [&>div]:bg-destructive" />
+                                        <span className="font-bold">5%</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <Button className="mt-4" onClick={() => setActiveView('profile')}>Voltar ao Perfil</Button>
+                </div>
+            );
+        case 'edit-profile':
+            return (
+                <div className="p-4 flex flex-col h-full bg-background">
+                    <SheetHeader className="mb-4">
+                        <SheetTitle className="text-2xl">Editar Perfil</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto space-y-6">
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="name">Nome Completo</Label>
+                                <Input id="name" defaultValue="Carlos Silva" />
+                            </div>
+                            <div>
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" defaultValue="carlos.silva@example.com" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                             <Button variant="outline" className="w-full justify-start gap-2">
+                                <Upload /> Alterar Foto de Perfil
+                            </Button>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                                <Car /> Gerenciar Veículo
+                            </Button>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                                <FileText /> Atualizar Documentos
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                         <Button>Salvar Alterações</Button>
+                         <Button variant="ghost" onClick={() => setActiveView('profile')}>Voltar</Button>
+                    </div>
+                </div>
+            );
+        case 'profile':
+        default:
+            return (
+              <div className="bg-background h-full flex flex-col">
+                <SheetHeader className="p-4 border-b">
+                    <div className="flex flex-col items-start gap-2">
+                        <Avatar className="h-16 w-16">
+                        <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="person avatar" />
+                        <AvatarFallback>CS</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h2 className="text-xl font-bold">Olá, Carlos Silva</h2>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">4.8 <Star className="h-4 w-4 text-accent" fill="hsl(var(--accent))"/></p>
+                    </div>
+                    </div>
                 </SheetHeader>
-                <div className="flex-1 overflow-y-auto space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Ganhos da Semana</CardTitle>
-                            <CardDescription>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalWeeklyEarnings)}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={150}>
-                                <RechartsBarChart data={weeklyEarningsData}>
-                                    <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value}`} />
-                                    <Tooltip
-                                        cursor={{ fill: 'hsl(var(--muted))' }}
-                                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                                        formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-                                    />
-                                    <Bar dataKey="earnings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                                </RechartsBarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Métricas de Performance</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid grid-cols-1 gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Taxa de Aceitação</p>
-                                <div className="flex items-center gap-2">
-                                    <Progress value={92} className="h-2" />
-                                    <span className="font-bold">92%</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Taxa de Cancelamento</p>
-                                <div className="flex items-center gap-2">
-                                    <Progress value={5} className="h-2 [&>div]:bg-destructive" />
-                                    <span className="font-bold">5%</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium">Status</span>
+                        <div className="flex items-center gap-2">
+                            <Switch id="online-status" checked={isOnline} onCheckedChange={setIsOnline} />
+                            <label htmlFor="online-status" className={cn("font-semibold", isOnline ? "text-primary" : "text-muted-foreground")}>
+                                {isOnline ? 'Online' : 'Offline'}
+                            </label>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Ganhos Totais</span>
+                        <span className="font-bold">R$ 156,50</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Corridas Hoje</span>
+                        <span className="font-bold">8</span>
+                    </div>
                 </div>
-                 <Button className="mt-4" onClick={() => setActiveView('profile')}>Voltar ao Perfil</Button>
-            </div>
-        );
+                <nav className="flex flex-col gap-1 p-4 border-t">
+                    <Button variant="ghost" className="justify-start gap-2"><Home /> Início</Button>
+                    <Button variant="ghost" className="justify-start gap-2" onClick={() => setActiveView('stats')}><BarChart2 /> Estatísticas</Button>
+                    <Button variant="ghost" className="justify-start gap-2"><Wallet /> Carteira</Button>
+                    <Button variant="ghost" className="justify-start gap-2" onClick={() => setActiveView('edit-profile')}><User /> Perfil</Button>
+                </nav>
+              </div>
+            );
     }
-
-    return (
-      <div className="bg-background h-full flex flex-col">
-        <SheetHeader className="p-4 border-b">
-            <div className="flex flex-col items-start gap-2">
-                <Avatar className="h-16 w-16">
-                <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="person avatar" />
-                <AvatarFallback>CS</AvatarFallback>
-            </Avatar>
-            <div>
-                <h2 className="text-xl font-bold">Olá, Carlos Silva</h2>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">4.8 <Star className="h-4 w-4 text-accent" fill="hsl(var(--accent))"/></p>
-            </div>
-            </div>
-        </SheetHeader>
-        <div className="p-4 space-y-2">
-            <div className="flex items-center justify-between">
-                <span className="font-medium">Status</span>
-                <div className="flex items-center gap-2">
-                    <Switch id="online-status" checked={isOnline} onCheckedChange={setIsOnline} />
-                    <label htmlFor="online-status" className={cn("font-semibold", isOnline ? "text-primary" : "text-muted-foreground")}>
-                        {isOnline ? 'Online' : 'Offline'}
-                    </label>
-                </div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Ganhos Totais</span>
-                <span className="font-bold">R$ 156,50</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Corridas Hoje</span>
-                <span className="font-bold">8</span>
-            </div>
-        </div>
-        <nav className="flex flex-col gap-1 p-4 border-t">
-            <Button variant="ghost" className="justify-start gap-2"><Home /> Início</Button>
-            <Button variant="ghost" className="justify-start gap-2" onClick={() => setActiveView('stats')}><BarChart2 /> Estatísticas</Button>
-            <Button variant="ghost" className="justify-start gap-2"><Wallet /> Carteira</Button>
-            <Button variant="ghost" className="justify-start gap-2"><User /> Perfil</Button>
-        </nav>
-      </div>
-    );
   }
 
   return (

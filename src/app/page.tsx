@@ -29,8 +29,8 @@ import { useAuth, UserRole } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(1, { message: "Password is required." }),
+  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  password: z.string().min(1, { message: "A senha é obrigatória." }),
 });
 
 export default function LoginPage() {
@@ -58,8 +58,8 @@ export default function LoginPage() {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // This is a mock login. In a real app, you'd call Firebase here.
     toast({
-      title: "Login Simulated",
-      description: "You are being redirected to the passenger dashboard.",
+      title: "Login Simulado",
+      description: "Você está sendo redirecionado para o painel do passageiro.",
     });
     handleLogin("passenger");
   };
@@ -70,23 +70,23 @@ export default function LoginPage() {
         <div className="text-center lg:text-left lg:w-1/2">
             <h1 className="text-5xl md:text-7xl font-bold text-primary font-headline">TriDriver</h1>
             <p className="mt-4 text-lg md:text-xl text-muted-foreground">
-                Your journey, simplified. Select your role to get started.
+                Sua jornada, simplificada. Selecione seu perfil para começar.
             </p>
              <div className="mt-8 hidden lg:flex items-center gap-4">
                 <Button variant="outline" size="lg" className="gap-2" onClick={() => handleLogin('passenger')}>
-                    <User /> I'm a Passenger
+                    <User /> Sou Passageiro
                 </Button>
                  <Button variant="outline" size="lg" className="gap-2" onClick={() => handleLogin('driver')}>
-                    <Car /> I'm a Driver
+                    <Car /> Sou Motorista
                 </Button>
             </div>
         </div>
 
         <Card className="w-full max-w-md lg:w-1/2 shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">Sign In</CardTitle>
+            <CardTitle className="text-3xl font-bold text-center">Entrar</CardTitle>
             <CardDescription className="text-center">
-              Enter your credentials to access your account.
+              Insira suas credenciais para acessar sua conta.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -99,7 +99,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="name@example.com" {...field} />
+                        <Input placeholder="nome@exemplo.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Senha</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••••" {...field} />
                       </FormControl>
@@ -119,16 +119,16 @@ export default function LoginPage() {
                   )}
                 />
                 <Button type="submit" className="w-full !mt-8" size="lg">
-                  Sign In
+                  Entrar
                 </Button>
               </form>
             </Form>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
              <div className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Não tem uma conta?{" "}
               <Link href="/signup" className="font-semibold text-primary hover:underline">
-                Sign up
+                Cadastre-se
               </Link>
             </div>
             <div className="relative w-full my-2">
@@ -137,16 +137,16 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground">
-                        Or continue as
+                        Ou continue como
                     </span>
                 </div>
             </div>
              <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-2">
                 <Button variant="outline" className="w-full gap-2" onClick={() => handleLogin('passenger')}>
-                    <User /> Passenger
+                    <User /> Passageiro
                 </Button>
                  <Button variant="outline" className="w-full gap-2" onClick={() => handleLogin('driver')}>
-                    <Car /> Driver
+                    <Car /> Motorista
                 </Button>
                  <Button variant="outline" className="w-full gap-2" onClick={() => handleLogin('admin')}>
                     <Shield /> Admin

@@ -16,7 +16,7 @@ export function Map() {
     return (
       <div className="w-full h-full bg-muted flex items-center justify-center">
         <p className="text-muted-foreground text-center p-4">
-          Mapbox token is not configured. Please add it to your environment variables.
+          O token do Mapbox não está configurado. Por favor, adicione-o às suas variáveis de ambiente.
         </p>
       </div>
     );

@@ -29,11 +29,11 @@ import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
+  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
   role: z.enum(["passenger", "driver"], {
-    required_error: "You need to select a role.",
+    required_error: "Você precisa selecionar um perfil.",
   }),
 });
 
@@ -61,8 +61,8 @@ export default function SignupPage() {
       role: role as "passenger" | "driver",
     });
     toast({
-      title: "Account Created!",
-      description: "You are being redirected to your dashboard.",
+      title: "Conta Criada!",
+      description: "Você está sendo redirecionado para o seu painel.",
     });
     router.push(`/${role}`);
   };
@@ -71,9 +71,9 @@ export default function SignupPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">Create an Account</CardTitle>
+          <CardTitle className="text-3xl font-bold text-center">Criar uma Conta</CardTitle>
           <CardDescription className="text-center">
-            Join TriDriver and start your journey today.
+            Junte-se ao TriDriver e comece sua jornada hoje.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -84,9 +84,9 @@ export default function SignupPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <Input placeholder="João da Silva" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +99,7 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="nome@exemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -110,7 +110,7 @@ export default function SignupPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Senha</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -123,7 +123,7 @@ export default function SignupPage() {
                 name="role"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>I am a...</FormLabel>
+                    <FormLabel>Eu sou...</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -135,7 +135,7 @@ export default function SignupPage() {
                             <RadioGroupItem value="passenger" />
                           </FormControl>
                           <FormLabel className="font-normal flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" /> Passenger
+                            <User className="h-4 w-4 text-muted-foreground" /> Passageiro
                           </FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
@@ -143,7 +143,7 @@ export default function SignupPage() {
                             <RadioGroupItem value="driver" />
                           </FormControl>
                           <FormLabel className="font-normal flex items-center gap-2">
-                             <Car className="h-4 w-4 text-muted-foreground" /> Driver
+                             <Car className="h-4 w-4 text-muted-foreground" /> Motorista
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>
@@ -153,16 +153,16 @@ export default function SignupPage() {
                 )}
               />
               <Button type="submit" className="w-full !mt-8" size="lg">
-                Sign Up
+                Cadastrar
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardContent className="mt-4">
           <div className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Já tem uma conta?{" "}
             <Link href="/" className="font-semibold text-primary hover:underline">
-              Sign in
+              Entrar
             </Link>
           </div>
         </CardContent>

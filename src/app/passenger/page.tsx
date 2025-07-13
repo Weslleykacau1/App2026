@@ -17,8 +17,8 @@ function PassengerDashboard() {
           <div className="lg:col-span-2">
             <Card className="h-[600px] shadow-lg">
                 <CardHeader>
-                    <CardTitle>Map</CardTitle>
-                    <CardDescription>Your current location and nearby drivers.</CardDescription>
+                    <CardTitle>Mapa</CardTitle>
+                    <CardDescription>Sua localização atual e motoristas próximos.</CardDescription>
                 </CardHeader>
               <CardContent className="h-full -mt-6">
                 <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center overflow-hidden">
@@ -31,57 +31,57 @@ function PassengerDashboard() {
             <div className="space-y-8">
               <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle>Request a Ride</CardTitle>
-                  <CardDescription>Where do you want to go?</CardDescription>
+                  <CardTitle>Pedir uma Corrida</CardTitle>
+                  <CardDescription>Para onde você quer ir?</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pickup">Pickup Location</Label>
+                      <Label htmlFor="pickup">Local de Embarque</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="pickup" placeholder="Current Location" className="pl-10" />
+                        <Input id="pickup" placeholder="Localização Atual" className="pl-10" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="destination">Destination</Label>
+                      <Label htmlFor="destination">Destino</Label>
                        <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="destination" placeholder="Enter destination" className="pl-10" />
+                        <Input id="destination" placeholder="Digite o destino" className="pl-10" />
                        </div>
                     </div>
                     <Button type="submit" className="w-full !mt-6" size="lg">
                         <Search className="mr-2 h-4 w-4" />
-                        Find Ride
+                        Encontrar Corrida
                     </Button>
                   </form>
                 </CardContent>
               </Card>
               <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle>Recent Rides</CardTitle>
-                  <CardDescription>Your ride history.</CardDescription>
+                  <CardTitle>Corridas Recentes</CardTitle>
+                  <CardDescription>Seu histórico de corridas.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-4">
                     <li className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Downtown to Airport</p>
-                        <p className="text-sm text-muted-foreground">Jan 15, 2024</p>
+                        <p className="font-medium">Centro para Aeroporto</p>
+                        <p className="text-sm text-muted-foreground">15 de Jan, 2024</p>
                       </div>
-                      <p className="font-semibold text-primary">$25.50</p>
+                      <p className="font-semibold text-primary">R$25,50</p>
                     </li>
                     <li className="flex items-center justify-between">
                        <div>
-                        <p className="font-medium">Mall to Home</p>
-                        <p className="text-sm text-muted-foreground">Jan 14, 2024</p>
+                        <p className="font-medium">Shopping para Casa</p>
+                        <p className="text-sm text-muted-foreground">14 de Jan, 2024</p>
                       </div>
-                      <p className="font-semibold text-primary">$12.75</p>
+                      <p className="font-semibold text-primary">R$12,75</p>
                     </li>
                   </ul>
                   <Button variant="outline" className="w-full mt-4">
                     <History className="mr-2 h-4 w-4" />
-                    View All History
+                    Ver Histórico Completo
                   </Button>
                 </CardContent>
               </Card>

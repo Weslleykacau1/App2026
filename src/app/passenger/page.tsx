@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User } from "lucide-react";
+import { MapPin, Search, Car, ArrowLeft, Loader2, Star, User, Wallet, Landmark, CircleDollarSign, CreditCard } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
+import { cn } from "@/lib/utils";
 
 type RideCategory = "x" | "confort";
 interface RideDetails {
@@ -24,12 +25,14 @@ interface RideDetails {
   price: number;
   category: RideCategory;
 }
+type PaymentMethod = "pix" | "cash" | "card_machine";
 
 function PassengerMobileDashboard() {
   const { user } = useAuth();
   const [rideCategory, setRideCategory] = useState<RideCategory>("x");
   const [isSearching, setIsSearching] = useState(false);
   const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
 
   const getInitials = (name: string) => {
     if (!name) return "";
@@ -117,6 +120,25 @@ function PassengerMobileDashboard() {
                         <p className="text-sm text-muted-foreground">Categoria</p>
                         <p className="text-lg font-bold">{rideDetails.category === 'x' ? 'Corrida X' : 'Confort'}</p>
                     </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">Pagamento</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                      <button onClick={() => setPaymentMethod('pix')} className={cn("flex flex-col items-center justify-center p-2 rounded-lg border-2", paymentMethod === 'pix' ? 'border-primary bg-primary/10' : 'border-transparent bg-muted')}>
+                          <Landmark className="h-6 w-6 mb-1"/>
+                          <span className="text-sm font-medium">Pix</span>
+                      </button>
+                       <button onClick={() => setPaymentMethod('cash')} className={cn("flex flex-col items-center justify-center p-2 rounded-lg border-2", paymentMethod === 'cash' ? 'border-primary bg-primary/10' : 'border-transparent bg-muted')}>
+                          <CircleDollarSign className="h-6 w-6 mb-1"/>
+                          <span className="text-sm font-medium">Dinheiro</span>
+                      </button>
+                       <button onClick={() => setPaymentMethod('card_machine')} className={cn("flex flex-col items-center justify-center p-2 rounded-lg border-2", paymentMethod === 'card_machine' ? 'border-primary bg-primary/10' : 'border-transparent bg-muted')}>
+                          <CreditCard className="h-6 w-6 mb-1"/>
+                          <span className="text-sm font-medium">Máquina</span>
+                      </button>
+                  </div>
                 </div>
                  <Button className="w-full h-12 text-lg">Confirmar Corrida</Button>
               </div>

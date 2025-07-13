@@ -67,7 +67,6 @@ function DriverDashboard() {
                 <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
                     <div className="relative flex items-center justify-center w-20 h-20">
                          <div className={cn("absolute w-16 h-16 transform rotate-45", zone.color, "border-2")}></div>
-                         <span className="relative text-white font-bold text-sm z-10">{zone.multiplier}</span>
                     </div>
                 </Marker>
              ))}

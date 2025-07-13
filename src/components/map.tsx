@@ -1,11 +1,12 @@
+
 "use client";
 
 import React from 'react';
-import MapGL, { Marker, GeolocateControl } from 'react-map-gl';
+import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from "next-themes";
 import { Car } from 'lucide-react';
 
-export function Map() {
+export function Map({ mapRef }: { mapRef?: React.Ref<MapRef> }) {
   const { resolvedTheme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -26,6 +27,7 @@ export function Map() {
 
   return (
     <MapGL
+      ref={mapRef}
       mapboxAccessToken={mapboxToken}
       initialViewState={{
         longitude: -46.6333,
@@ -35,7 +37,7 @@ export function Map() {
       style={{width: '100%', height: '100%'}}
       mapStyle={mapStyle}
     >
-      <GeolocateControl position="top-left" trackUserLocation={true} />
+      <GeolocateControl style={{display: 'none'}} position="top-left" trackUserLocation={true} />
       {/* User's Location */}
       <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
          <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>

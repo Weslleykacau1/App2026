@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
+import type { MapRef } from "react-map-gl";
 
 
 type RideCategory = "comfort" | "executive";
@@ -32,14 +33,19 @@ function PassengerDashboard() {
   const [comfortPrice, setComfortPrice] = useState(0);
   const [executivePrice, setExecutivePrice] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
+  const mapRef = useRef<MapRef>(null);
 
   if (!user) return null;
 
-  const getInitials = (name: string) => {
-    const names = name.split(' ');
-    const initials = names.map(n => n[0]).join('');
-    return initials.toUpperCase();
-  }
+  const handleLocateUser = () => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      mapRef.current?.flyTo({
+        center: [position.coords.longitude, position.coords.latitude],
+        zoom: 15,
+        essential: true,
+      });
+    });
+  };
 
   const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length > 0) {
@@ -100,18 +106,26 @@ function PassengerDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <div className="absolute inset-0 h-full w-full z-0">
-        <Map />
+        <Map mapRef={mapRef} />
       </div>
 
-      <header className="absolute top-0 left-0 right-0 z-10 p-4">
-        <div className="flex justify-end">
-             <Button variant="ghost" className="relative h-12 w-12 rounded-full bg-background/80 shadow-lg" onClick={() => router.push('/passenger/profile')}>
-                <Avatar className="h-12 w-12">
-                    <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={`@${user.name}`} />
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
-            </Button>
-        </div>
+      <header className="absolute top-0 left-0 right-0 z-10 p-6 flex justify-between items-center pointer-events-none">
+        <Button
+            variant="primary"
+            size="icon"
+            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
+            onClick={() => router.push('/passenger/profile')}
+        >
+            <Menu className="h-6 w-6 text-primary-foreground" />
+        </Button>
+        <Button
+            variant="outline"
+            size="icon"
+            className="h-11 w-11 rounded-lg bg-background shadow-lg pointer-events-auto"
+            onClick={handleLocateUser}
+        >
+            <LocateFixed className="h-5 w-5" />
+        </Button>
       </header>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">

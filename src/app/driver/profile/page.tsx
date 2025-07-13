@@ -184,7 +184,7 @@ function DriverProfilePage() {
                         
                         {photoDataUrl ? (
                             <div className="flex flex-col space-y-2 w-full max-w-sm">
-                                <Button onClick={() => { setPhotoDataUrl(null); setActiveTab('profile'); toast({ title: "Foto salva!"}) }}>Salvar Foto</Button>
+                                <Button onClick={() => { setActiveTab('profile'); toast({ title: "Foto salva!"}) }}>Salvar Foto</Button>
                                 <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
                             </div>
                         ) : (

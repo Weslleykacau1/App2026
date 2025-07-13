@@ -1,17 +1,18 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Pause, Play, MoreVertical, Phone } from "lucide-react";
+import { Menu, Shield, MoreVertical, Phone, BarChart2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 
 const surgeZones = [
@@ -28,8 +29,8 @@ function DriverDashboard() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [isOnline, setIsOnline] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
 
 
   const mapStyle = resolvedTheme === 'dark' 
@@ -130,8 +131,13 @@ function DriverDashboard() {
                   </div>
                   
                   <div className="flex items-center gap-1">
-                      <Button onClick={() => setIsPlaying(!isPlaying)} variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                          {isPlaying ? <Pause className="h-6 w-6"/> : <Play className="h-6 w-6"/>}
+                      <Button 
+                        onClick={() => toast({ title: "Em breve", description: "A tela de estatísticas estará disponível em breve."})} 
+                        variant="secondary" 
+                        size="icon" 
+                        className="rounded-full h-12 w-12"
+                      >
+                          <BarChart2 className="h-6 w-6"/>
                       </Button>
                   </div>
               </div>

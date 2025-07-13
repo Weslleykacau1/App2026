@@ -74,8 +74,8 @@ function DriverDashboard() {
           </MapGL>
 
           <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/20 to-transparent">
-              <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-background/80" onClick={() => router.push('/driver/profile')}>
-                  <Menu className="h-5 w-5" />
+              <Button variant="default" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => router.push('/driver/profile')}>
+                  <Menu className="h-6 w-6" />
               </Button>
           </header>
 

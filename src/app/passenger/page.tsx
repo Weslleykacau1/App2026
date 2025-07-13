@@ -81,7 +81,11 @@ function PassengerDashboard() {
                         <Car className="w-8 h-8 text-foreground" />
                     </div>
                 ) : (
-                    <Image src="https://placehold.co/64x64.png" alt="Car" width={48} height={48} data-ai-hint="luxury car" />
+                    <div className="w-12 h-12 flex items-center justify-center bg-muted rounded-md">
+                        <svg className="w-8 h-8 text-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 16h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v1"></path><path d="M18 10h1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1"></path><path d="m3 16-1 2"></path><path d="M20 16l1 2"></path><path d="M4 11h10"></path><path d="M4 18h1"></path><path d="M15 18h1"></path><circle cx="6.5" cy="18.5" r="2.5"></circle><circle cx="16.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                    </div>
                 )}
                 <div>
                     <h3 className="font-bold text-lg text-foreground">{name}</h3>

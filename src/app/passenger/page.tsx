@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Search, Car, ArrowRight, Wallet, CreditCard, Tag, User } from "lucide-react";
+import { MapPin, Search, Car, ArrowRight, Wallet, CreditCard, Tag, User, Coins, Landmark } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -97,21 +97,27 @@ function PassengerDashboard() {
                     className="pl-10 h-12 text-base"
                   />
                 </div>
-                <Select defaultValue="visa">
-                  <SelectTrigger className="h-12 text-base w-[120px]">
+                <Select defaultValue="pix">
+                  <SelectTrigger className="h-12 text-base w-[160px]">
                       <SelectValue placeholder="Pagamento" />
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="visa">
-                          <div className="flex items-center gap-2">
-                              <CreditCard className="h-4 w-4" />
-                              <span>Visa</span>
-                          </div>
-                      </SelectItem>
                       <SelectItem value="pix">
                            <div className="flex items-center gap-2">
                               <Wallet className="h-4 w-4" />
                               <span>Pix</span>
+                          </div>
+                      </SelectItem>
+                      <SelectItem value="cash">
+                           <div className="flex items-center gap-2">
+                              <Coins className="h-4 w-4" />
+                              <span>Dinheiro</span>
+                          </div>
+                      </SelectItem>
+                      <SelectItem value="card_machine">
+                           <div className="flex items-center gap-2">
+                              <Landmark className="h-4 w-4" />
+                              <span>Máquina de Cartão</span>
                           </div>
                       </SelectItem>
                   </SelectContent>

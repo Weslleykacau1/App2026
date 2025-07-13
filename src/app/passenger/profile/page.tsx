@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 
 function ProfilePage() {
@@ -28,6 +29,7 @@ function ProfilePage() {
     const { toast } = useToast();
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
@@ -48,6 +50,16 @@ function ProfilePage() {
             });
         }
     };
+
+    const handleEditToggle = () => {
+        setIsEditing(!isEditing);
+        if (isEditing) {
+            toast({
+                title: "Informações Salvas!",
+                description: "Seus dados foram atualizados com sucesso.",
+            })
+        }
+    }
 
 
     if (!user) return null;
@@ -102,9 +114,9 @@ function ProfilePage() {
                             <CardContent className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-lg font-semibold">Informações Pessoais</h3>
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary">
-                                        <Edit className="h-4 w-4"/>
-                                        Editar
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleEditToggle}>
+                                        {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
+                                        {isEditing ? 'Salvar' : 'Editar'}
                                     </Button>
                                 </div>
 
@@ -113,28 +125,28 @@ function ProfilePage() {
                                         <Label htmlFor="name">Nome Completo</Label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="name" defaultValue={user.name} readOnly className="pl-10 bg-muted border-none" />
+                                            <Input id="name" defaultValue={user.name} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="email">Email</Label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="email" type="email" defaultValue={user.email} readOnly className="pl-10 bg-muted border-none" />
+                                            <Input id="email" type="email" defaultValue={user.email} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="phone">Telefone</Label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="phone" type="tel" defaultValue="+55 11 99999-8888" readOnly className="pl-10 bg-muted border-none" />
+                                            <Input id="phone" type="tel" defaultValue="+55 11 99999-8888" disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="cpf">CPF</Label>
                                         <div className="relative">
                                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="cpf" defaultValue="123.456.789-00" readOnly className="pl-10 bg-muted border-none" />
+                                            <Input id="cpf" defaultValue="123.456.789-00" disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                 </div>
@@ -267,5 +279,3 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
-
-    

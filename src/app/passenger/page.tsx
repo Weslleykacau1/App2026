@@ -76,7 +76,13 @@ function PassengerDashboard() {
     >
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-                <Image src="https://placehold.co/64x64.png" alt="Car" width={48} height={48} data-ai-hint="car side" />
+                {type === 'comfort' ? (
+                    <div className="w-12 h-12 flex items-center justify-center bg-muted rounded-md">
+                        <Car className="w-8 h-8 text-foreground" />
+                    </div>
+                ) : (
+                    <Image src="https://placehold.co/64x64.png" alt="Car" width={48} height={48} data-ai-hint="luxury car" />
+                )}
                 <div>
                     <h3 className="font-bold text-lg text-foreground">{name}</h3>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">

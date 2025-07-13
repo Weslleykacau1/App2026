@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,12 +12,14 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical, Phone, Upload, Car, FileText } from "lucide-react";
+import { Menu, Home, BarChart2, Wallet, User, Star, Search, Zap, Pause, Play, Shield, MoreVertical, Phone, Upload, Car, FileText, Camera, CheckSquare } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 
 const surgeZones = [
@@ -39,7 +41,7 @@ const weeklyEarningsData = [
     { day: "Dom", earnings: 245 },
 ];
 
-type DriverView = 'profile' | 'stats' | 'edit-profile';
+type DriverView = 'profile' | 'stats' | 'edit-profile' | 'vehicle-management' | 'document-upload' | 'upload-photo';
 
 function DriverDashboard() {
   const { resolvedTheme } = useTheme();
@@ -48,6 +50,60 @@ function DriverDashboard() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeView, setActiveView] = useState<DriverView>('profile');
   const router = useRouter();
+  const { toast } = useToast();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const photoRef = useRef<HTMLCanvasElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+
+   useEffect(() => {
+    if (activeView === 'upload-photo') {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({video: true});
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to use this feature.',
+          });
+        }
+      };
+      getCameraPermission();
+    } else {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+    }
+  }, [activeView, toast]);
+
+  const takePhoto = () => {
+    const video = videoRef.current;
+    const photo = photoRef.current;
+
+    if (video && photo) {
+      const width = 300;
+      const height = video.videoHeight / (video.videoWidth / width);
+      
+      photo.width = width;
+      photo.height = height;
+
+      const context = photo.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, width, height);
+        setPhotoDataUrl(photo.toDataURL('image/png'));
+      }
+    }
+  };
+
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -141,13 +197,13 @@ function DriverDashboard() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                             <Button variant="outline" className="w-full justify-start gap-2">
+                             <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setActiveView('upload-photo')}>
                                 <Upload /> Alterar Foto de Perfil
                             </Button>
-                            <Button variant="outline" className="w-full justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setActiveView('vehicle-management')}>
                                 <Car /> Gerenciar Veículo
                             </Button>
-                            <Button variant="outline" className="w-full justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setActiveView('document-upload')}>
                                 <FileText /> Atualizar Documentos
                             </Button>
                         </div>
@@ -158,6 +214,110 @@ function DriverDashboard() {
                     </div>
                 </div>
             );
+        case 'vehicle-management':
+            return (
+                <div className="p-4 flex flex-col h-full bg-background">
+                    <SheetHeader className="mb-4">
+                        <SheetTitle className="text-2xl">Gerenciar Veículo</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto space-y-4">
+                        <div>
+                            <Label htmlFor="model">Modelo do Veículo</Label>
+                            <Input id="model" defaultValue="Toyota Corolla" />
+                        </div>
+                        <div>
+                            <Label htmlFor="license-plate">Placa</Label>
+                            <Input id="license-plate" defaultValue="BRA2E19" />
+                        </div>
+                        <div>
+                            <Label htmlFor="color">Cor</Label>
+                            <Input id="color" defaultValue="Prata" />
+                        </div>
+                        <div>
+                            <Label htmlFor="year">Ano</Label>
+                            <Input id="year" type="number" defaultValue="2022" />
+                        </div>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                         <Button>Salvar Informações</Button>
+                         <Button variant="ghost" onClick={() => setActiveView('edit-profile')}>Voltar</Button>
+                    </div>
+                </div>
+            );
+        case 'document-upload':
+            return (
+                <div className="p-4 flex flex-col h-full bg-background">
+                    <SheetHeader className="mb-4">
+                        <SheetTitle className="text-2xl">Atualizar Documentos</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto space-y-6">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">CNH</p>
+                                        <p className="text-sm text-muted-foreground">Carteira de Motorista</p>
+                                    </div>
+                                    <Badge variant="secondary" className="gap-1.5"><CheckSquare className="h-4 w-4"/> Verificado</Badge>
+                                </div>
+                                <Button variant="outline" className="w-full mt-4">Enviar novo arquivo</Button>
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">CRLV</p>
+                                        <p className="text-sm text-muted-foreground">Documento do Veículo</p>
+                                    </div>
+                                    <Badge variant="secondary" className="gap-1.5"><CheckSquare className="h-4 w-4"/> Verificado</Badge>
+                                </div>
+                                <Button variant="outline" className="w-full mt-4">Enviar novo arquivo</Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                         <Button>Salvar</Button>
+                         <Button variant="ghost" onClick={() => setActiveView('edit-profile')}>Voltar</Button>
+                    </div>
+                </div>
+            );
+        case 'upload-photo':
+            return (
+                 <div className="p-4 flex flex-col h-full bg-background">
+                    <SheetHeader className="mb-4">
+                        <SheetTitle className="text-2xl">Alterar Foto de Perfil</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto space-y-4 flex flex-col items-center">
+                        <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                            {hasCameraPermission === false ? (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Câmera Indisponível</AlertTitle>
+                                    <AlertDescription>
+                                        Permita o acesso à câmera para continuar.
+                                    </AlertDescription>
+                                </Alert>
+                            ) : photoDataUrl ? (
+                                <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
+                            ) : (
+                                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            )}
+                        </div>
+                        <canvas ref={photoRef} className="hidden"></canvas>
+                        
+                        {!photoDataUrl && (
+                          <Button onClick={takePhoto} disabled={!hasCameraPermission}>
+                            <Camera className="mr-2"/> Tirar Foto
+                          </Button>
+                        )}
+                        
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                         <Button disabled={!photoDataUrl}>Salvar Foto</Button>
+                         <Button variant="ghost" onClick={() => setActiveView('edit-profile')}>Voltar</Button>
+                    </div>
+                </div>
+            )
         case 'profile':
         default:
             return (
@@ -205,7 +365,7 @@ function DriverDashboard() {
   }
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={() => setActiveView('profile')}>
       <div className="h-screen w-screen relative">
           <MapGL
               mapboxAccessToken={mapboxToken}
@@ -301,3 +461,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

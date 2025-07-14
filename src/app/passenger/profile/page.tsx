@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -208,7 +208,7 @@ function ProfilePage() {
                     <TabsList className="grid w-full grid-cols-3 bg-muted/60 rounded-lg p-1">
                         <TabsTrigger value="profile">Perfil</TabsTrigger>
                         <TabsTrigger value="documents">Documentos</TabsTrigger>
-                        <TabsTrigger value="settings">Configurações</TabsTrigger>
+                        <TabsTrigger value="settings"><Settings/></TabsTrigger>
                     </TabsList>
                     <TabsContent value="profile" className="mt-6">
                         <div className="flex flex-col items-center text-center">
@@ -314,7 +314,7 @@ function ProfilePage() {
                        <div className="space-y-6 mt-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Configurações</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Settings/> Configurações</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
@@ -415,5 +415,7 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
+
+    
 
     

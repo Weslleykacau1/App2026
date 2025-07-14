@@ -23,6 +23,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MapGL, { Marker } from 'react-map-gl';
+import { useTheme } from 'next-themes';
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -72,6 +74,14 @@ const initialRevenueData = [
   { name: "Dez", total: 0 },
 ];
 
+const onlineDrivers = [
+    { id: 1, lat: -23.5505, lng: -46.6333 },
+    { id: 2, lat: -23.5610, lng: -46.6555 },
+    { id: 3, lat: -23.5465, lng: -46.6280 },
+    { id: 4, lat: -23.5580, lng: -46.6420 },
+    { id: 5, lat: -23.5420, lng: -46.6380 },
+];
+
 const roleTranslations: { [key in UserRole]: string } = {
   passageiro: "Passageiro",
   motorista: "Motorista",
@@ -92,6 +102,8 @@ function AdminDashboard() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   const form = useForm<z.infer<typeof addUserFormSchema>>({
     resolver: zodResolver(addUserFormSchema),
@@ -164,6 +176,10 @@ function AdminDashboard() {
     });
   };
 
+  const mapStyle = resolvedTheme === 'dark' 
+    ? 'mapbox://styles/mapbox/dark-v11' 
+    : 'mapbox://styles/mapbox/streets-v12';
+
   return (
     <AppLayout>
       <TooltipProvider>
@@ -183,12 +199,12 @@ function AdminDashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Motoristas Ativos</CardTitle>
+              <CardTitle className="text-sm font-medium">Motoristas Online</CardTitle>
               <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">342</div>
-              <p className="text-xs text-muted-foreground">+15 online agora</p>
+              <div className="text-2xl font-bold">{onlineDrivers.length}</div>
+              <p className="text-xs text-muted-foreground">Em tempo real</p>
             </CardContent>
           </Card>
           <Card>
@@ -213,8 +229,8 @@ function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <Card className="lg:col-span-1">
               <CardHeader>
                 <div className="flex justify-between items-center">
                     <div>
@@ -380,59 +396,95 @@ function AdminDashboard() {
                 </Table>
               </CardContent>
             </Card>
-            <div className="space-y-6">
-                <Card>
-                     <CardHeader>
-                        <CardTitle>Receita Mensal</CardTitle>
-                        <CardDescription>Visão geral da receita nos últimos meses.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={revenueData}>
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="hsl(var(--muted-foreground))"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    stroke="hsl(var(--muted-foreground))"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `R$${value / 1000}k`}
-                                />
-                                <RechartsTooltip
-                                    cursor={{ fill: 'hsl(var(--muted))' }}
-                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                                     formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-                                />
-                                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Tarifas por Categoria</CardTitle>
-                        <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
-                            <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
-                        </div>
-                        <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="executive-fare">Executive (R$/km)</Label>
-                            <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
-                        </div>
-                         <Button onClick={handleSaveFares} className="w-full">
-                            <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Motoristas Online</CardTitle>
+                    <CardDescription>Localização dos motoristas em tempo real.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="h-[460px] w-full">
+                         {mapboxToken ? (
+                            <MapGL
+                                mapboxAccessToken={mapboxToken}
+                                initialViewState={{
+                                longitude: -46.6333,
+                                latitude: -23.5505,
+                                zoom: 12
+                                }}
+                                style={{ width: '100%', height: '100%' }}
+                                mapStyle={mapStyle}
+                            >
+                                {onlineDrivers.map(driver => (
+                                    <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat}>
+                                        <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                                             <Car className="h-5 w-5 text-primary"/>
+                                        </div>
+                                    </Marker>
+                                ))}
+                            </MapGL>
+                        ) : (
+                           <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <p className="text-muted-foreground text-center p-4">
+                                O token do Mapbox não está configurado.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Receita Mensal</CardTitle>
+                    <CardDescription>Visão geral da receita nos últimos meses.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={revenueData}>
+                            <XAxis
+                                dataKey="name"
+                                stroke="hsl(var(--muted-foreground))"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <YAxis
+                                stroke="hsl(var(--muted-foreground))"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(value) => `R$${value / 1000}k`}
+                            />
+                            <RechartsTooltip
+                                cursor={{ fill: 'hsl(var(--muted))' }}
+                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                                    formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                            />
+                            <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Tarifas por Categoria</CardTitle>
+                    <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 items-center gap-4">
+                        <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
+                        <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
+                    </div>
+                    <div className="grid grid-cols-2 items-center gap-4">
+                        <Label htmlFor="executive-fare">Executive (R$/km)</Label>
+                        <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
+                    </div>
+                        <Button onClick={handleSaveFares} className="w-full">
+                        <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
       </div>
        {selectedUser && (

@@ -68,10 +68,10 @@ function PassengerDashboard() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   useEffect(() => {
-    handleLocateUser();
     // Set initial pickup location to user's current location after a delay
     navigator.geolocation.getCurrentPosition(async (position) => {
       const { longitude, latitude } = position.coords;
+      handleLocateUser(true);
       const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&limit=1&language=pt`);
       const data = await response.json();
       if (data.features.length > 0) {
@@ -82,7 +82,7 @@ function PassengerDashboard() {
         setPickupInput("Localização atual");
       }
     });
-  }, []);
+  }, [mapboxToken]);
 
   const debounce = (func: Function, delay: number) => {
     let timeout: NodeJS.Timeout;
@@ -116,6 +116,8 @@ function PassengerDashboard() {
     const value = e.target.value;
     setPickupInput(value);
     setSelectedPickup(null);
+    setRoute(null);
+    setPromoApplied(false);
     debouncedFetchPickupSuggestions(value);
   };
   
@@ -123,6 +125,8 @@ function PassengerDashboard() {
     const value = e.target.value;
     setDestinationInput(value);
     setSelectedDestination(null);
+    setRoute(null);
+    setPromoApplied(false);
     debouncedFetchDestinationSuggestions(value);
   };
 
@@ -163,7 +167,9 @@ function PassengerDashboard() {
             setPromoApplied(true);
 
             // Fit map to route bounds
-             mapRef.current?.fitBounds([selectedPickup.center, selectedDestination.center], { padding: 80, duration: 1000 });
+            if(mapRef.current) {
+                mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
+            }
         }
       } else {
         setRoute(null);
@@ -175,13 +181,16 @@ function PassengerDashboard() {
 
   if (!user) return null;
 
-  const handleLocateUser = () => {
+  const handleLocateUser = (initial: boolean = false) => {
     navigator.geolocation.getCurrentPosition((position) => {
-      mapRef.current?.flyTo({
-        center: [position.coords.longitude, position.coords.latitude],
-        zoom: 15,
-        essential: true,
-      });
+        const { longitude, latitude } = position.coords;
+        if(mapRef.current) {
+            mapRef.current.flyTo({
+                center: [longitude, latitude],
+                zoom: 15,
+                essential: true,
+            });
+        }
     });
   };
 
@@ -210,11 +219,10 @@ function PassengerDashboard() {
    const handleCancelRide = () => {
         setFoundDriver(null);
         setSelectedDestination(null);
-        setSelectedPickup(null);
-        setPromoApplied(false);
         setDestinationInput("");
-        setPickupInput("");
         setRoute(null);
+        setPromoApplied(false);
+        // Do not reset pickup, keep current location as default
         toast({
             title: "Corrida cancelada.",
             description: "Você pode solicitar uma nova corrida quando quiser.",
@@ -281,7 +289,7 @@ function PassengerDashboard() {
             variant="outline"
             size="icon"
             className="h-11 w-11 rounded-lg bg-background shadow-lg pointer-events-auto"
-            onClick={handleLocateUser}
+            onClick={() => handleLocateUser()}
         >
             <LocateFixed className="h-5 w-5" />
         </Button>
@@ -385,7 +393,7 @@ function PassengerDashboard() {
                     </Popover>
                   </div>
                   
-                  {selectedDestination && selectedPickup && (
+                  {selectedDestination && selectedPickup && route && (
                       <div className="space-y-2">
                           <RideOption 
                               type="comfort"
@@ -434,7 +442,7 @@ function PassengerDashboard() {
                     />
                   </div>
 
-                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!selectedDestination || !selectedPickup} onClick={handleConfirmRide}>
+                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!route} onClick={handleConfirmRide}>
                     <span>Confirmar Corrida</span>
                     <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice * 0.9 : executivePrice * 0.9)}</span>
                   </Button>
@@ -468,3 +476,5 @@ function PassengerDashboard() {
 }
 
 export default withAuth(PassengerDashboard, ["passenger"]);
+
+    

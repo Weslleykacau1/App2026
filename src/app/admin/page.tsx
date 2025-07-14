@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -26,6 +26,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { getItem, setItem } from "@/lib/storage";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -114,7 +116,8 @@ function AdminDashboard() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
-  const { resolvedTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   const form = useForm<z.infer<typeof addUserFormSchema>>({
@@ -128,6 +131,7 @@ function AdminDashboard() {
   });
   
   useEffect(() => {
+    setIsDarkMode(theme === 'dark');
     const savedUsers = getItem<User[]>(ADMIN_USERS_KEY);
     if (savedUsers) {
         setUsers(savedUsers);
@@ -136,7 +140,7 @@ function AdminDashboard() {
     if (savedFares) {
         setFares(savedFares);
     }
-  }, []);
+  }, [theme]);
 
   useEffect(() => {
     const generatedData = initialRevenueData.map(item => ({
@@ -159,6 +163,12 @@ function AdminDashboard() {
     return () => clearInterval(interval);
 
   }, []);
+
+  const handleThemeChange = (checked: boolean) => {
+    const newTheme = checked ? 'dark' : 'light';
+    setTheme(newTheme);
+    setIsDarkMode(checked);
+  };
 
   const handleOpenDocuments = (user: User) => {
     if (user.role === 'admin') {
@@ -512,25 +522,45 @@ function AdminDashboard() {
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Tarifas por Categoria</CardTitle>
-                    <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 items-center gap-4">
-                        <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
-                        <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
-                    </div>
-                    <div className="grid grid-cols-2 items-center gap-4">
-                        <Label htmlFor="executive-fare">Executive (R$/km)</Label>
-                        <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
-                    </div>
-                        <Button onClick={handleSaveFares} className="w-full">
-                        <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
-                    </Button>
-                </CardContent>
-            </Card>
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tarifas por Categoria</CardTitle>
+                        <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 items-center gap-4">
+                            <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
+                            <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
+                        </div>
+                        <div className="grid grid-cols-2 items-center gap-4">
+                            <Label htmlFor="executive-fare">Executive (R$/km)</Label>
+                            <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
+                        </div>
+                            <Button onClick={handleSaveFares} className="w-full">
+                            <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
+                        </Button>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Configurações do Painel</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-start justify-between gap-4">
+                            <Moon className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">Modo Escuro</p>
+                                <p className="text-sm text-muted-foreground">Alterne entre o tema claro e escuro</p>
+                            </div>
+                            <Switch
+                                checked={isDarkMode}
+                                onCheckedChange={handleThemeChange}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       </div>
        {selectedUser && (
@@ -599,4 +629,5 @@ export default withAuth(AdminDashboard, ["admin"]);
     
 
     
+
 

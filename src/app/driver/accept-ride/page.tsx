@@ -53,7 +53,15 @@ const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
     }
 };
 
-const routeLayer: LineLayer = {
+
+function AcceptRidePage() {
+  const { resolvedTheme } = useTheme();
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const router = useRouter();
+  const [timeLeft, setTimeLeft] = useState(15);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const routeLayer: LineLayer = {
     id: 'route',
     type: 'line',
     source: 'route',
@@ -62,18 +70,10 @@ const routeLayer: LineLayer = {
         'line-cap': 'round'
     },
     paint: {
-        'line-color': 'hsl(var(--foreground))',
+        'line-color': resolvedTheme === 'dark' ? '#FFFFFF' : '#000000',
         'line-width': 4
     }
-};
-
-
-function AcceptRidePage() {
-  const { resolvedTheme } = useTheme();
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(15);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  };
 
   useEffect(() => {
     if (audioRef.current) {

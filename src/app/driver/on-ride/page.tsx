@@ -11,6 +11,7 @@ import type {LineLayer} from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { MapPin, MessageCircle, Phone, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface RideData {
   fare: number;
@@ -191,9 +192,27 @@ function OnRidePage() {
                     Maps
                 </Button>
             </div>
-            <Button onClick={handleFinishRide} variant="destructive" className="w-full h-12 text-base">
-              Finalizar Corrida
-            </Button>
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full h-12 text-base">
+                        Finalizar Corrida
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Recebimento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Você recebeu o valor de <strong>{rideData.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> do passageiro?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleFinishRide}>
+                            Confirmar Recebimento
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </div>

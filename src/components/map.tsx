@@ -9,6 +9,7 @@ import { Car, Flag, MapPin } from 'lucide-react';
 export function Map({ mapRef, showMovingCar, pickup, destination, route }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean, pickup?: LngLatLike, destination?: LngLatLike, route?: LngLatLike[] | null }) {
   const { resolvedTheme } = useTheme();
   const [driverLocation, setDriverLocation] = useState({ longitude: -38.495, latitude: -3.735 });
+  const [lineColor, setLineColor] = useState('#000000');
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -26,6 +27,18 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
       }
     };
   }, [showMovingCar]);
+
+  useEffect(() => {
+    // We need to get the computed style of the primary color because Mapbox can't parse CSS variables.
+    if (typeof window !== 'undefined') {
+      const primaryColorHsl = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+      if (primaryColorHsl) {
+        // Convert HSL string "234.9 91.5% 67.5%" to a usable color for Mapbox
+        const [h, s, l] = primaryColorHsl.split(' ').map(parseFloat);
+        setLineColor(`hsl(${h}, ${s}%, ${l}%)`);
+      }
+    }
+  }, [resolvedTheme]);
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -60,7 +73,7 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
       'line-cap': 'round'
     },
     paint: {
-      'line-color': 'hsl(var(--primary))',
+      'line-color': lineColor,
       'line-width': 6,
       'line-opacity': 0.8
     }

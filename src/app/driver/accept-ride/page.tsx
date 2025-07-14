@@ -97,6 +97,12 @@ function AcceptRidePage() {
     return () => clearInterval(timer);
   }, [timeLeft, router]);
 
+  const handleAcceptRide = () => {
+    // In a real app, you would save the ride state.
+    // For this prototype, we just navigate to the 'on-ride' page.
+    router.push('/driver/on-ride');
+  }
+
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -130,7 +136,7 @@ function AcceptRidePage() {
             <MapPin className="text-primary h-8 w-8" fill="hsl(var(--primary))"/>
         </Marker>
          <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
-            <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+             <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
                 </svg>
@@ -180,7 +186,7 @@ function AcceptRidePage() {
                     </div>
                 </div>
             </div>
-            <Button size="lg" className="h-16 w-32 bg-primary hover:bg-primary/90 text-lg font-bold" onClick={() => router.back()}>
+            <Button size="lg" className="h-16 w-32 bg-primary hover:bg-primary/90 text-lg font-bold" onClick={handleAcceptRide}>
                 Aceitar
             </Button>
           </div>

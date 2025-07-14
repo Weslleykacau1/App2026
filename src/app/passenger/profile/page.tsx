@@ -210,7 +210,9 @@ function ProfilePage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-lg font-semibold">Perfil</h1>
-                    <div className="w-9 h-9"></div>
+                    <Button variant="ghost" size="icon" onClick={logout}>
+                        <LogOut className="h-5 w-5" />
+                    </Button>
                 </div>
             </header>
             
@@ -406,18 +408,6 @@ function ProfilePage() {
                                             <Switch />
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Conta</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Button variant="destructive" className="w-full" onClick={logout}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Sair da Conta
-                                    </Button>
                                 </CardContent>
                             </Card>
                        </div>

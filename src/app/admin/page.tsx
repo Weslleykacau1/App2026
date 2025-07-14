@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,19 +7,35 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
-const users = [
-  { id: 1, name: "João Passageiro", email: "john.p@example.com", role: "passageiro", status: "Ativo", joined: "2023-01-15" },
-  { id: 2, name: "Joana Motorista", email: "jane.d@example.com", role: "motorista", status: "Ativo", joined: "2023-02-20" },
-  { id: 3, name: "Miguel Admin", email: "mike.a@example.com", role: "admin", status: "Ativo", joined: "2023-01-01" },
-  { id: 4, name: "Sara Passageiro", email: "sarah.p@example.com", role: "passageiro", status: "Suspenso", joined: "2023-03-10" },
-  { id: 5, name: "Davi Motorista", email: "david.d@example.com", role: "motorista", status: "Ativo", joined: "2023-04-05" },
+type UserRole = "passageiro" | "motorista" | "admin";
+type UserStatus = "Ativo" | "Suspenso";
+type VerificationStatus = "Verificado" | "Pendente" | "Rejeitado";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  joined: string;
+  verification: VerificationStatus;
+}
+
+const initialUsers: User[] = [
+  { id: 1, name: "João Passageiro", email: "john.p@example.com", role: "passageiro", status: "Ativo", joined: "2023-01-15", verification: "Verificado" },
+  { id: 2, name: "Joana Motorista", email: "jane.d@example.com", role: "motorista", status: "Ativo", joined: "2023-02-20", verification: "Pendente" },
+  { id: 3, name: "Miguel Admin", email: "mike.a@example.com", role: "admin", status: "Ativo", joined: "2023-01-01", verification: "Verificado" },
+  { id: 4, name: "Sara Passageiro", email: "sarah.p@example.com", role: "passageiro", status: "Suspenso", joined: "2023-03-10", verification: "Verificado" },
+  { id: 5, name: "Davi Motorista", email: "david.d@example.com", role: "motorista", status: "Ativo", joined: "2023-04-05", verification: "Rejeitado" },
 ];
 
 const initialRevenueData = [
@@ -36,23 +53,54 @@ const initialRevenueData = [
   { name: "Dez", total: 0 },
 ];
 
-const roleTranslations: { [key: string]: string } = {
+const roleTranslations: { [key in UserRole]: string } = {
   passageiro: "Passageiro",
   motorista: "Motorista",
   admin: "Admin",
 };
 
+const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
+    "Verificado": <FileCheck2 className="h-5 w-5 text-green-500" />,
+    "Pendente": <AlertCircle className="h-5 w-5 text-yellow-500" />,
+    "Rejeitado": <AlertCircle className="h-5 w-5 text-red-500" />,
+};
+
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
+  const [users, setUsers] = useState(initialUsers);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Generate random data on client-side to avoid hydration mismatch
     const generatedData = initialRevenueData.map(item => ({
       ...item,
       total: Math.floor(Math.random() * 5000) + 1000
     }));
     setRevenueData(generatedData);
   }, []);
+
+  const handleOpenDocuments = (user: User) => {
+    if (user.role === 'admin') {
+         toast({
+            variant: "default",
+            title: "Não aplicável",
+            description: "Administradores não possuem documentos para verificação.",
+        });
+        return;
+    }
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+  
+  const handleVerification = (userId: number, newStatus: VerificationStatus) => {
+    setUsers(users.map(user => user.id === userId ? { ...user, verification: newStatus } : user));
+    setIsModalOpen(false);
+    toast({
+        title: "Status de verificação atualizado!",
+        description: `O usuário foi marcado como ${newStatus.toLowerCase()}.`,
+    });
+  };
 
   return (
     <AppLayout>
@@ -115,7 +163,7 @@ function AdminDashboard() {
                       <TableHead>Usuário</TableHead>
                       <TableHead>Função</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Data de Inscrição</TableHead>
+                      <TableHead>Verificação</TableHead>
                       <TableHead><span className="sr-only">Ações</span></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -142,7 +190,15 @@ function AdminDashboard() {
                         <TableCell>
                           <Badge variant={user.status === 'Ativo' ? 'secondary' : 'destructive'}>{user.status}</Badge>
                         </TableCell>
-                        <TableCell>{user.joined}</TableCell>
+                         <TableCell>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                     <div className="flex items-center gap-2">
+                                        {verificationIcons[user.verification]}
+                                    </div>
+                                </TooltipTrigger>
+                            </Tooltip>
+                        </TableCell>
                         <TableCell>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -152,6 +208,9 @@ function AdminDashboard() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                        Ver Documentos
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem>Editar</DropdownMenuItem>
                                     <DropdownMenuItem>Suspender</DropdownMenuItem>
                                     <DropdownMenuItem className="text-destructive">Excluir</DropdownMenuItem>
@@ -198,6 +257,62 @@ function AdminDashboard() {
             </Card>
         </div>
       </div>
+       {selectedUser && (
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Documentos de {selectedUser.name}</DialogTitle>
+                        <CardDescription>
+                            Verifique os documentos enviados pelo usuário.
+                             <Badge variant={selectedUser.verification === 'Verificado' ? 'secondary' : selectedUser.verification === 'Pendente' ? 'default' : 'destructive'} className="ml-2">
+                                {selectedUser.verification}
+                            </Badge>
+                        </CardDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 py-4">
+                        {selectedUser.role === 'motorista' && (
+                            <>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold">CNH (Carteira de Motorista)</h4>
+                                     <a href="https://placehold.co/800x600.png" target="_blank" rel="noopener noreferrer">
+                                        <Image src="https://placehold.co/800x600.png" data-ai-hint="document license" alt="CNH" width={800} height={600} className="rounded-lg border aspect-[4/3] object-cover" />
+                                     </a>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold">CRLV (Documento do Veículo)</h4>
+                                    <a href="https://placehold.co/800x600.png" target="_blank" rel="noopener noreferrer">
+                                        <Image src="https://placehold.co/800x600.png" data-ai-hint="document registration" alt="CRLV" width={800} height={600} className="rounded-lg border aspect-[4/3] object-cover" />
+                                    </a>
+                                </div>
+                            </>
+                        )}
+                        {selectedUser.role === 'passageiro' && (
+                            <div className="space-y-2">
+                                <h4 className="font-semibold">Documento de Identidade</h4>
+                                 <a href="https://placehold.co/800x600.png" target="_blank" rel="noopener noreferrer">
+                                     <Image src="https://placehold.co/800x600.png" data-ai-hint="document id" alt="Documento" width={800} height={600} className="rounded-lg border aspect-[4/3] object-cover" />
+                                 </a>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
+                         <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                Fechar
+                            </Button>
+                        </DialogClose>
+                       <div className="flex gap-2">
+                             <Button type="button" variant="destructive" onClick={() => handleVerification(selectedUser.id, 'Rejeitado')}>
+                                <X className="mr-2 h-4 w-4" /> Rejeitar
+                            </Button>
+                            <Button type="button" variant="secondary" onClick={() => handleVerification(selectedUser.id, 'Verificado')}>
+                                <Check className="mr-2 h-4 w-4" /> Aprovar
+                            </Button>
+                       </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        )}
     </AppLayout>
   );
 }

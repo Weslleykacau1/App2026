@@ -78,11 +78,14 @@ function OnRidePage() {
   };
 
   const handleFinishRide = () => {
-    // In a real app, you would update ride status to completed.
-    // For this prototype, we store the earnings in session storage.
     const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
     const newEarnings = currentEarnings + rideData.fare;
     sessionStorage.setItem('today_earnings', newEarnings.toString());
+    
+    const currentRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
+    const newRides = currentRides + 1;
+    sessionStorage.setItem('today_rides', newRides.toString());
+
     router.push('/driver');
   };
 

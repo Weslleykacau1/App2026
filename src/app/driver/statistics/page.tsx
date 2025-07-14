@@ -25,25 +25,38 @@ function StatisticsPage() {
   const router = useRouter();
   const [weeklyData, setWeeklyData] = useState(initialWeeklyData);
   const [todayEarnings, setTodayEarnings] = useState(0);
+  const [todayRides, setTodayRides] = useState(0);
   const [acceptanceRate, setAcceptanceRate] = useState(0);
   const [cancellationRate, setCancellationRate] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Generate random data on client-side to avoid hydration mismatch
-    const generatedData = initialWeeklyData.map(item => ({
-      ...item,
-      total: Math.floor(Math.random() * 300) + 50
-    }));
-    setWeeklyData(generatedData);
-
     // Get earnings from session storage
     const storedEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
     setTodayEarnings(storedEarnings);
+    
+    const storedRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
+    setTodayRides(storedRides);
 
     // Generate random performance metrics
     setAcceptanceRate(Math.floor(Math.random() * (100 - 80 + 1)) + 80); // between 80 and 100
     setCancellationRate(Math.floor(Math.random() * 10) + 1); // between 1 and 10
+
+    // Generate weekly data, setting today's earnings
+    const dayIndex = new Date().getDay(); // Sunday = 0, Monday = 1, etc.
+    const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Adjust to Seg=0, Dom=6
+
+    const generatedData = initialWeeklyData.map((item, index) => {
+        if (index === adjustedDayIndex) {
+            return { ...item, total: storedEarnings };
+        }
+        return {
+          ...item,
+          total: Math.floor(Math.random() * 300) + 50
+        };
+    });
+    setWeeklyData(generatedData);
+
   }, []);
 
   const formatCurrency = (value: number) => {
@@ -79,7 +92,7 @@ function StatisticsPage() {
               <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">{todayRides}</div>
               <p className="text-xs text-muted-foreground">Corridas</p>
             </CardContent>
           </Card>

@@ -34,7 +34,7 @@ export default function LoginPage() {
           <Input type="email" placeholder="Email" className="h-12" required />
           <Input type="password" placeholder="Senha" className="h-12" required />
           <div className="text-right">
-            <Link href="#" className="text-sm text-primary hover:underline">
+            <Link href="https://wa.me/5511912345678" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
               Esqueceu a senha?
             </Link>
           </div>

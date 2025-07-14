@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff, Wallet } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { getItem } from '@/lib/storage';
 
 const surgeZones = [
   { lat: -3.722, lng: -38.489, color: "bg-red-500/20 border-red-700/0" }, // Meireles
@@ -21,6 +22,8 @@ const surgeZones = [
   { lat: -3.755, lng: -38.485, color: "bg-orange-400/20 border-orange-600/0" }, // Edson Queiroz
   { lat: -3.788, lng: -38.533, color: "bg-red-600/20 border-red-800/0" }, // Parquelândia
 ];
+
+const RIDE_REQUEST_KEY = 'pending_ride_request';
 
 
 function DriverDashboard() {
@@ -78,6 +81,22 @@ function DriverDashboard() {
           maximumAge: 0,
         }
       );
+
+       const rideCheckInterval = setInterval(() => {
+        const rideRequest = getItem(RIDE_REQUEST_KEY);
+        if (rideRequest) {
+            console.log("Found ride request, navigating...");
+            router.push('/driver/accept-ride');
+        }
+      }, 3000); // Check for rides every 3 seconds
+
+      return () => {
+        if (watchIdRef.current !== null) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+        }
+        clearInterval(rideCheckInterval);
+      }
+
     } else {
       // Stop watching when driver goes offline
       if (watchIdRef.current !== null) {
@@ -92,7 +111,7 @@ function DriverDashboard() {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [isOnline]);
+  }, [isOnline, router]);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -221,8 +240,8 @@ function DriverDashboard() {
 
               <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-1">
-                     <Button onClick={() => router.push('/driver/accept-ride')} variant="ghost" className="rounded-full px-4">
-                        Ver Corrida
+                     <Button variant="ghost" className="rounded-full px-4" disabled>
+                        Nenhuma corrida
                       </Button>
                   </div>
                   

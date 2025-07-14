@@ -13,45 +13,28 @@ import { useTheme } from 'next-themes';
 import { User, Star, X, Check, MapPin, Zap } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
+import { getItem, removeItem } from "@/lib/storage";
 
-const rideData = {
-  fare: 28.50,
-  bonus: 8.00,
-  passengerRating: 4.9,
-  pickupDistance: 1.5,
-  pickupTime: 6,
-  pickupAddress: "Av. Beira Mar, 3470, Meireles",
-  tripDistance: 12.3,
-  tripTime: 25,
-  destination: "Shopping Iguatemi, Edson Queiroz",
-  rideCategory: "Comfort",
+interface RideRequest {
+  fare: number;
+  pickupAddress: string;
+  destination: string;
+  tripDistance: number;
+  tripTime: number;
+  rideCategory: string;
   passenger: {
-    name: "Lúcia S.",
-    avatarUrl: "https://placehold.co/80x80.png"
+    name: string;
+    avatarUrl: string;
+    rating: number;
   },
   route: {
-    pickup: { lat: -3.722, lng: -38.489 },
-    destination: { lat: -3.755, lng: -38.485 }
+    pickup: { lat: number, lng: number };
+    destination: { lat: number, lng: number };
+    coordinates: LngLatLike[];
   }
-};
+}
 
-const routeCoordinates: LngLatLike[] = [
-  [-38.489, -3.722],
-  [-38.495, -3.730],
-  [-38.490, -3.745],
-  [-38.485, -3.755]
-];
-
-const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
-    type: 'Feature',
-    properties: {},
-    geometry: {
-        type: 'LineString',
-        coordinates: routeCoordinates
-    }
-};
-
+const RIDE_REQUEST_KEY = 'pending_ride_request';
 
 function AcceptRidePage() {
   const { resolvedTheme } = useTheme();
@@ -59,10 +42,21 @@ function AcceptRidePage() {
   const router = useRouter();
   const [timeLeft, setTimeLeft] = useState(15);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [rideData, setRideData] = useState<RideRequest | null>(null);
+
+  useEffect(() => {
+    const request = getItem<RideRequest>(RIDE_REQUEST_KEY);
+    if (!request) {
+        // No ride request found, maybe the passenger cancelled.
+        router.back();
+    } else {
+        setRideData(request);
+    }
+  }, [router]);
 
   const lineColor = resolvedTheme === 'dark' ? '#FFFFFF' : '#000000';
 
-  const routeLayer: LineLayer = {
+  const routeLayer: LineLayer | null = rideData ? {
     id: 'route',
     type: 'line',
     source: 'route',
@@ -74,13 +68,22 @@ function AcceptRidePage() {
         'line-color': lineColor,
         'line-width': 4
     }
-  };
+  } : null;
+
+  const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> | null = rideData ? {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+        type: 'LineString',
+        coordinates: rideData.route.coordinates
+    }
+} : null;
+
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.play().catch(error => {
         console.log("A reprodução automática foi bloqueada pelo navegador:", error);
-        // A interação do usuário é geralmente necessária para reproduzir áudio.
       });
     }
 
@@ -102,12 +105,15 @@ function AcceptRidePage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, router]);
+  }, [timeLeft]);
 
   const handleAcceptRide = () => {
     if (audioRef.current) {
       audioRef.current.pause();
     }
+    // Set ride data for the next page
+    sessionStorage.setItem('current_ride_data', JSON.stringify(rideData));
+    removeItem(RIDE_REQUEST_KEY); // Clear the request
     router.push('/driver/on-ride');
   }
 
@@ -115,6 +121,7 @@ function AcceptRidePage() {
     if (audioRef.current) {
       audioRef.current.pause();
     }
+    removeItem(RIDE_REQUEST_KEY); // Clear the request
     router.back();
   }
 
@@ -123,11 +130,11 @@ function AcceptRidePage() {
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
 
-  if (!mapboxToken) {
+  if (!mapboxToken || !rideData) {
     return (
       <div className="w-full h-screen bg-muted flex items-center justify-center">
         <p className="text-muted-foreground text-center p-4">
-          O token do Mapbox não está configurado. Por favor, adicione-o às suas variáveis de ambiente.
+          Carregando dados da corrida...
         </p>
       </div>
     );
@@ -158,9 +165,11 @@ function AcceptRidePage() {
             </div>
         </Marker>
         
-        <Source id="route" type="geojson" data={routeGeoJSON}>
-            <Layer {...routeLayer} />
-        </Source>
+        {routeGeoJSON && routeLayer && (
+            <Source id="route" type="geojson" data={routeGeoJSON}>
+                <Layer {...routeLayer} />
+            </Source>
+        )}
       </MapGL>
 
         <div className="absolute top-4 right-4 z-10">
@@ -182,7 +191,7 @@ function AcceptRidePage() {
                   <h2 className="text-4xl font-bold mt-1">R${rideData.fare.toFixed(2)}</h2>
                 </div>
                 <div className="text-right">
-                    <p className="font-semibold">{rideData.tripDistance} km</p>
+                    <p className="font-semibold">{rideData.tripDistance.toFixed(1)} km</p>
                     <p className="text-sm opacity-90">{rideData.tripTime} min</p>
                 </div>
              </div>
@@ -197,7 +206,7 @@ function AcceptRidePage() {
                     <h3 className="text-lg font-bold">{rideData.passenger.name}</h3>
                     <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-400" fill="currentColor" />
-                        <p className="font-semibold">{rideData.passengerRating.toFixed(1)}</p>
+                        <p className="font-semibold">{rideData.passenger.rating.toFixed(1)}</p>
                     </div>
                 </div>
             </div>
@@ -213,7 +222,7 @@ function AcceptRidePage() {
                   <MapPin className="h-5 w-5 text-red-500" />
                 </div>
                 <div>
-                  <p className="font-medium">{rideData.pickupTime} min ({rideData.pickupDistance} km) · <span className="text-muted-foreground">{rideData.pickupAddress}</span></p>
+                  <p className="font-medium">1.5 km de distância · <span className="text-muted-foreground">{rideData.pickupAddress}</span></p>
                   <p className="font-medium mt-2">{rideData.destination}</p>
                 </div>
               </div>

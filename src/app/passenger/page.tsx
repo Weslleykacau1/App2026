@@ -16,6 +16,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
+import { setItem, getItem, removeItem } from "@/lib/storage";
 
 
 type RideCategory = "comfort" | "executive";
@@ -37,6 +38,9 @@ interface Suggestion {
   place_name: string;
   center: [number, number];
 }
+
+const RIDE_REQUEST_KEY = 'pending_ride_request';
+
 
 function PassengerDashboard() {
   const { user } = useAuth();
@@ -61,11 +65,21 @@ function PassengerDashboard() {
   const [selectedPickup, setSelectedPickup] = useState<Suggestion | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Suggestion | null>(null);
   const [route, setRoute] = useState<LngLatLike[] | null>(null);
+  const [tripDistance, setTripDistance] = useState(0);
+  const [tripTime, setTripTime] = useState(0);
 
   const [isSearching, setIsSearching] = useState(false);
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+  useEffect(() => {
+    // Check if there's a ride request on load (e.g. page refresh)
+    const pendingRequest = getItem(RIDE_REQUEST_KEY);
+    if(pendingRequest) {
+      setIsSearching(true);
+    }
+  }, []);
 
   useEffect(() => {
     // Set initial pickup location to user's current location after a delay
@@ -152,21 +166,24 @@ function PassengerDashboard() {
         
         // Fetch route from Mapbox Directions API
         const coords = `${selectedPickup.center[0]},${selectedPickup.center[1]};${selectedDestination.center[0]},${selectedDestination.center[1]}`;
-        const routeResponse = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?access_token=${mapboxToken}&geometries=geojson`);
+        const routeResponse = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?access_token=${mapboxToken}&geometries=geojson&language=pt`);
         const routeData = await routeResponse.json();
 
         if (routeData.routes && routeData.routes.length > 0) {
-            const routeGeom = routeData.routes[0].geometry.coordinates;
+            const currentRoute = routeData.routes[0];
+            const routeGeom = currentRoute.geometry.coordinates;
             setRoute(routeGeom);
-            const distanceInKm = routeData.routes[0].distance / 1000;
+            const distanceInKm = currentRoute.distance / 1000;
+            const timeInMinutes = Math.round(currentRoute.duration / 60);
+            setTripDistance(distanceInKm);
+            setTripTime(timeInMinutes);
 
-            const comfortFare = Math.max(7.00, distanceInKm * 1.80); // Base fare R$7.00
-            const executiveFare = Math.max(10.00, distanceInKm * 2.20); // Base fare R$10.00
+            const comfortFare = Math.max(7.00, distanceInKm * 1.80);
+            const executiveFare = Math.max(10.00, distanceInKm * 2.20);
             setComfortPrice(comfortFare);
             setExecutivePrice(executiveFare);
             setPromoApplied(true);
 
-            // Fit map to route bounds
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
             }
@@ -195,8 +212,32 @@ function PassengerDashboard() {
   };
 
   const handleConfirmRide = () => {
-    if (!selectedDestination || !selectedPickup) return;
+    if (!selectedDestination || !selectedPickup || !route || !user) return;
+    
+    const rideRequest = {
+        fare: rideCategory === 'comfort' ? comfortPrice : executivePrice,
+        pickupAddress: selectedPickup.place_name,
+        destination: selectedDestination.place_name,
+        tripDistance: tripDistance,
+        tripTime: tripTime,
+        rideCategory: rideCategory,
+        passenger: {
+            name: user.name,
+            avatarUrl: `https://avatar.vercel.sh/${user.email}.png`,
+            rating: 4.8
+        },
+        route: {
+            pickup: { lat: selectedPickup.center[1], lng: selectedPickup.center[0] },
+            destination: { lat: selectedDestination.center[1], lng: selectedDestination.center[0] },
+            coordinates: route
+        }
+    };
+
+    setItem(RIDE_REQUEST_KEY, rideRequest);
+    
     setIsSearching(true);
+    
+    // This part would be replaced by a real-time listener in a real app
     setTimeout(() => {
         setIsSearching(false);
         setFoundDriver({
@@ -213,7 +254,7 @@ function PassengerDashboard() {
             title: "Motorista encontrado!",
             description: "Joana M. está a caminho.",
         });
-    }, 5000);
+    }, 15000); // Simulate a longer search time
   };
   
    const handleCancelRide = () => {
@@ -228,6 +269,11 @@ function PassengerDashboard() {
             description: "Você pode solicitar uma nova corrida quando quiser.",
         });
     };
+
+  const handleCancelSearch = () => {
+    setIsSearching(false);
+    removeItem(RIDE_REQUEST_KEY);
+  };
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -399,7 +445,7 @@ function PassengerDashboard() {
                           <RideOption 
                               type="comfort"
                               name="Comfort"
-                              time={6}
+                              time={tripTime}
                               seats={4}
                               originalPrice={comfortPrice}
                               discountedPrice={comfortPrice * 0.9}
@@ -409,7 +455,7 @@ function PassengerDashboard() {
                           <RideOption 
                               type="executive"
                               name="Executive"
-                              time={5}
+                              time={tripTime}
                               seats={4}
                               originalPrice={executivePrice}
                               discountedPrice={executivePrice * 0.9}
@@ -465,7 +511,7 @@ function PassengerDashboard() {
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
           </div>
           <AlertDialogFooter>
-             <Button variant="outline" className="w-full" onClick={() => setIsSearching(false)}>
+             <Button variant="outline" className="w-full" onClick={handleCancelSearch}>
                 Cancelar Busca
              </Button>
           </AlertDialogFooter>

@@ -12,44 +12,45 @@ import { useTheme } from 'next-themes';
 import { MapPin, MessageCircle, Phone, Navigation, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
-// Mock data, in a real app this would come from the accepted ride
-const rideData = {
-  fare: 28.50,
+interface RideData {
+  fare: number;
   passenger: {
-    name: "Lúcia S.",
-    avatarUrl: "https://placehold.co/80x80.png"
-  },
-  pickupAddress: "Av. Beira Mar, 3470, Meireles",
-  destination: "Shopping Iguatemi, Edson Queiroz",
+    name: string;
+    avatarUrl: string;
+    rating: number;
+  };
+  pickupAddress: string;
+  destination: string;
   route: {
-    driver: { lat: -3.7327, lng: -38.5267 },
-    pickup: { lat: -3.722, lng: -38.489 },
-    destination: { lat: -3.755, lng: -38.485 }
-  }
-};
+    driver: { lat: number; lng: number };
+    pickup: { lat: number; lng: number };
+    destination: { lat: number; lng: number };
+    coordinates: LngLatLike[];
+  };
+}
 
-const routeToPickupCoordinates: LngLatLike[] = [
-  [-38.5267, -3.7327], // Driver start
-  [-38.510, -3.728],
-  [-38.489, -3.722],  // Pickup
-];
-
-const routeToPickupGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
-    type: 'Feature',
-    properties: {},
-    geometry: {
-        type: 'LineString',
-        coordinates: routeToPickupCoordinates
-    }
-};
+const mockDriverLocation = { lat: -3.7327, lng: -38.5267 };
 
 function OnRidePage() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
+  const [rideData, setRideData] = useState<RideData | null>(null);
 
-  const routeLayer: LineLayer = {
+  useEffect(() => {
+    const data = sessionStorage.getItem('current_ride_data');
+    if (data) {
+        const parsedData: RideData = JSON.parse(data);
+        // Add current driver location to the route for display
+        parsedData.route.coordinates.unshift([mockDriverLocation.lng, mockDriverLocation.lat]);
+        setRideData(parsedData);
+    } else {
+        router.push('/driver'); // No ride data, go back to dash
+    }
+  }, [router]);
+
+  const routeLayer: LineLayer | null = rideData ? {
     id: 'route',
     type: 'line',
     source: 'route',
@@ -61,23 +62,35 @@ function OnRidePage() {
         'line-color': resolvedTheme === 'dark' ? '#FFFFFF' : '#000000',
         'line-width': 5
     }
-  };
+  } : null;
+
+  const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> | null = rideData ? {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+          type: 'LineString',
+          coordinates: rideData.route.coordinates
+      }
+  } : null;
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
 
   const handleOpenWaze = () => {
+    if (!rideData) return;
     const { lat, lng } = rideData.route.pickup;
     window.open(`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`, '_blank');
   };
 
   const handleOpenGoogleMaps = () => {
+    if (!rideData) return;
     const { lat, lng } = rideData.route.pickup;
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
 
   const handleFinishRide = () => {
+    if (!rideData) return;
     const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
     const newEarnings = currentEarnings + rideData.fare;
     sessionStorage.setItem('today_earnings', newEarnings.toString());
@@ -86,14 +99,15 @@ function OnRidePage() {
     const newRides = currentRides + 1;
     sessionStorage.setItem('today_rides', newRides.toString());
 
+    sessionStorage.removeItem('current_ride_data');
     router.push('/driver');
   };
 
-  if (!mapboxToken) {
+  if (!mapboxToken || !rideData) {
     return (
       <div className="w-full h-screen bg-muted flex items-center justify-center">
         <p className="text-muted-foreground text-center p-4">
-          O token do Mapbox não está configurado.
+          Carregando dados...
         </p>
       </div>
     );
@@ -105,15 +119,15 @@ function OnRidePage() {
         ref={mapRef}
         mapboxAccessToken={mapboxToken}
         initialViewState={{
-          longitude: rideData.route.driver.lng,
-          latitude: rideData.route.driver.lat,
+          longitude: mockDriverLocation.lng,
+          latitude: mockDriverLocation.lat,
           zoom: 13
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
         interactive={true}
       >
-        <Marker longitude={rideData.route.driver.lng} latitude={rideData.route.driver.lat} anchor="center">
+        <Marker longitude={mockDriverLocation.lng} latitude={mockDriverLocation.lat} anchor="center">
             <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                  <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 3L4 29L16 24L28 29L16 3Z" fill="hsl(var(--primary))"/>
@@ -127,9 +141,11 @@ function OnRidePage() {
             <Flag className="text-green-500 h-10 w-10" fill="currentColor"/>
         </Marker>
         
-        <Source id="route" type="geojson" data={routeToPickupGeoJSON}>
-            <Layer {...routeLayer} />
-        </Source>
+        {routeGeoJSON && routeLayer && (
+            <Source id="route" type="geojson" data={routeGeoJSON}>
+                <Layer {...routeLayer} />
+            </Source>
+        )}
       </MapGL>
 
       <div className="absolute top-0 left-0 right-0 p-4 space-y-2">
@@ -144,7 +160,7 @@ function OnRidePage() {
                 <p className="font-bold">{rideData.passenger.name}</p>
                 <div className="flex items-center gap-1 text-sm">
                     <Star className="h-4 w-4 text-yellow-400 fill-current"/>
-                    <span>4.9</span>
+                    <span>{rideData.passenger.rating.toFixed(1)}</span>
                 </div>
               </div>
             </div>

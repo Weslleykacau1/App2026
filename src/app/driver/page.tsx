@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
@@ -29,6 +29,25 @@ function DriverDashboard() {
   const [isOnline, setIsOnline] = useState(false);
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
+  const [viewState, setViewState] = useState({
+    longitude: -46.6333,
+    latitude: -23.5505,
+    zoom: 12
+  });
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+        const newViewState = {
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+            zoom: 15
+        };
+        setViewState(newViewState);
+        if (mapRef.current) {
+            mapRef.current.flyTo({ center: [newViewState.longitude, newViewState.latitude], zoom: 15 });
+        }
+    });
+  }, []);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -59,16 +78,13 @@ function DriverDashboard() {
           <MapGL
               ref={mapRef}
               mapboxAccessToken={mapboxToken}
-              initialViewState={{
-                  longitude: -46.6333,
-                  latitude: -23.5505,
-                  zoom: 12
-              }}
+              initialViewState={viewState}
+              onMove={evt => setViewState(evt.viewState)}
               style={{width: '100%', height: '100%'}}
               mapStyle={mapStyle}
           >
               <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
-              <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
+              <Marker longitude={viewState.longitude} latitude={viewState.latitude} anchor="center">
                   <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>

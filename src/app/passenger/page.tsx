@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,10 @@ function PassengerDashboard() {
   const [executivePrice, setExecutivePrice] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const mapRef = useRef<MapRef>(null);
+
+  useEffect(() => {
+    handleLocateUser();
+  }, []);
 
   if (!user) return null;
 

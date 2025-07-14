@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -298,7 +298,8 @@ function PassengerDashboard() {
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
          {promoApplied && !foundDriver && selectedDestination && (
             <div className="bg-primary text-primary-foreground rounded-lg p-2 text-center text-sm font-medium flex items-center justify-center gap-2">
-                <span>10% de promoção aplicada</span>
+                <ShieldCheck className="h-4 w-4" />
+                <span>Use o cinto de segurança</span>
             </div>
          )}
          
@@ -476,5 +477,3 @@ function PassengerDashboard() {
 }
 
 export default withAuth(PassengerDashboard, ["passenger"]);
-
-    

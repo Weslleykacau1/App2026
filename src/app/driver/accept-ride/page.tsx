@@ -82,11 +82,17 @@ function AcceptRidePage() {
         // A interação do usuário é geralmente necessária para reproduzir áudio.
       });
     }
+
+    return () => {
+        if(audioRef.current) {
+            audioRef.current.pause();
+        }
+    }
   }, []);
 
   useEffect(() => {
     if (timeLeft === 0) {
-      router.back();
+      handleRejectRide();
       return;
     }
 
@@ -98,9 +104,17 @@ function AcceptRidePage() {
   }, [timeLeft, router]);
 
   const handleAcceptRide = () => {
-    // In a real app, you would save the ride state.
-    // For this prototype, we just navigate to the 'on-ride' page.
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
     router.push('/driver/on-ride');
+  }
+
+  const handleRejectRide = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    router.back();
   }
 
 
@@ -120,7 +134,7 @@ function AcceptRidePage() {
 
   return (
     <div className="h-screen w-screen relative">
-      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3" preload="auto" />
+      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3" preload="auto" loop />
       <MapGL
         mapboxAccessToken={mapboxToken}
         initialViewState={{
@@ -149,7 +163,7 @@ function AcceptRidePage() {
       </MapGL>
 
         <div className="absolute top-4 right-4 z-10">
-            <Button variant="ghost" size="icon" className="bg-background/80 backdrop-blur-sm rounded-full h-12 w-12" onClick={() => router.back()}>
+            <Button variant="ghost" size="icon" className="bg-background/80 backdrop-blur-sm rounded-full h-12 w-12" onClick={handleRejectRide}>
                 <X className="h-6 w-6"/>
             </Button>
         </div>
@@ -182,7 +196,7 @@ function AcceptRidePage() {
                     <h3 className="text-lg font-bold">{rideData.passenger.name}</h3>
                     <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-400" fill="currentColor" />
-                        <p className="font-semibold">{rideData.passengerRating.toFixed(1)}</p>
+                        <p className="font-semibold">{rideData.passenger.rating.toFixed(1)}</p>
                     </div>
                 </div>
             </div>

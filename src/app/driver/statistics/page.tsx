@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import { ArrowLeft, Car, DollarSign, RefreshCw } from "lucide-react";
+import { ArrowLeft, Car, DollarSign } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,6 +25,8 @@ function StatisticsPage() {
   const router = useRouter();
   const [weeklyData, setWeeklyData] = useState(initialWeeklyData);
   const [todayEarnings, setTodayEarnings] = useState(0);
+  const [acceptanceRate, setAcceptanceRate] = useState(0);
+  const [cancellationRate, setCancellationRate] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,16 +41,10 @@ function StatisticsPage() {
     const storedEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
     setTodayEarnings(storedEarnings);
 
+    // Generate random performance metrics
+    setAcceptanceRate(Math.floor(Math.random() * (100 - 80 + 1)) + 80); // between 80 and 100
+    setCancellationRate(Math.floor(Math.random() * 10) + 1); // between 1 and 10
   }, []);
-
-  const handleResetEarnings = () => {
-      sessionStorage.setItem('today_earnings', '0');
-      setTodayEarnings(0);
-      toast({
-          title: "Ganhos zerados!",
-          description: "Seus ganhos de hoje foram resetados."
-      })
-  }
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -62,9 +58,7 @@ function StatisticsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">Estatísticas</h1>
-          <Button variant="ghost" size="icon" onClick={handleResetEarnings}>
-            <RefreshCw className="h-5 w-5" />
-          </Button>
+          <div className="w-9 h-9"></div> {/* Placeholder for alignment */}
         </div>
       </header>
       <main className="flex-1 py-6 container mx-auto px-4">
@@ -131,16 +125,16 @@ function StatisticsPage() {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium text-muted-foreground">Taxa de Aceitação</span>
-                <span className="text-sm font-bold text-primary">92%</span>
+                <span className="text-sm font-bold text-primary">{acceptanceRate}%</span>
               </div>
-              <Progress value={92} />
+              <Progress value={acceptanceRate} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium text-muted-foreground">Taxa de Cancelamento</span>
-                <span className="text-sm font-bold text-destructive">5%</span>
+                <span className="text-sm font-bold text-destructive">{cancellationRate}%</span>
               </div>
-              <Progress value={5} className="[&>div]:bg-destructive" />
+              <Progress value={cancellationRate} className="[&>div]:bg-destructive" />
             </div>
           </CardContent>
         </Card>

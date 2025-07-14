@@ -23,12 +23,6 @@ export default function LoginPage() {
     router.push(`/${role}`);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // For now, let's log in as a passenger by default with the form
-    handleQuickLogin('passenger');
-  };
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background text-foreground">
       <div className="w-full max-w-sm flex flex-col items-center text-center">
@@ -36,7 +30,7 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h1>
         <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
 
-        <form onSubmit={handleLogin} className="w-full space-y-4 mt-8">
+        <div className="w-full space-y-4 mt-8">
           <Input type="email" placeholder="Email" className="h-12" required />
           <Input type="password" placeholder="Senha" className="h-12" required />
           <div className="text-right">
@@ -44,10 +38,15 @@ export default function LoginPage() {
               Esqueceu a senha?
             </Link>
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold">
-            Entrar
-          </Button>
-        </form>
+           <div className="space-y-2 !mt-6">
+              <Button onClick={() => handleQuickLogin('passenger')} className="w-full h-12 text-base font-semibold">
+                Entrar como Passageiro
+              </Button>
+              <Button onClick={() => handleQuickLogin('driver')} variant="secondary" className="w-full h-12 text-base font-semibold">
+                Entrar como Motorista
+              </Button>
+           </div>
+        </div>
 
         <div className="flex items-center w-full my-6">
           <div className="flex-grow border-t border-muted-foreground/20"></div>

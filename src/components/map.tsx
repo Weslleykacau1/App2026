@@ -4,9 +4,9 @@
 import React, { useEffect, useState } from 'react';
 import MapGL, { Marker, GeolocateControl, MapRef, Source, Layer, LngLatLike } from 'react-map-gl';
 import { useTheme } from "next-themes";
-import { Car, Flag } from 'lucide-react';
+import { Car, Flag, MapPin } from 'lucide-react';
 
-export function Map({ mapRef, showMovingCar, destination }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean, destination?: LngLatLike }) {
+export function Map({ mapRef, showMovingCar, pickup, destination, route }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean, pickup?: LngLatLike, destination?: LngLatLike, route?: LngLatLike[] | null }) {
   const { resolvedTheme } = useTheme();
   const [driverLocation, setDriverLocation] = useState({ longitude: -38.495, latitude: -3.735 });
 
@@ -43,6 +43,30 @@ export function Map({ mapRef, showMovingCar, destination }: { mapRef?: React.Ref
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
 
+  const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> | null = route ? {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: route
+    }
+  } : null;
+  
+  const routeLayer: Layer = {
+    id: 'route',
+    type: 'line',
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round'
+    },
+    paint: {
+      'line-color': 'hsl(var(--primary))',
+      'line-width': 6,
+      'line-opacity': 0.8
+    }
+  };
+
+
   return (
     <MapGL
       ref={mapRef}
@@ -56,15 +80,24 @@ export function Map({ mapRef, showMovingCar, destination }: { mapRef?: React.Ref
       mapStyle={mapStyle}
     >
       <GeolocateControl style={{display: 'none'}} position="top-left" trackUserLocation={true} />
-      {/* User's Location */}
-      <Marker longitude={-38.5267} latitude={-3.7327} anchor="center">
-         <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>
-      </Marker>
+      
+      {pickup && (
+         <Marker longitude={pickup[0]} latitude={pickup[1]} anchor="center">
+            <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>
+         </Marker>
+      )}
+
 
       {destination && (
         <Marker longitude={destination[0]} latitude={destination[1]} anchor="center">
             <Flag className="h-8 w-8 text-red-500" fill="currentColor" />
         </Marker>
+      )}
+
+      {routeGeoJSON && (
+        <Source type="geojson" data={routeGeoJSON}>
+            <Layer {...routeLayer} />
+        </Source>
       )}
 
       {showMovingCar ? (

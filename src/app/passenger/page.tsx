@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 
+
 type RideCategory = "comfort" | "executive";
 type PaymentMethod = "pix" | "cash" | "card_machine";
 
@@ -48,10 +49,18 @@ function PassengerDashboard() {
   const [promoApplied, setPromoApplied] = useState(false);
   const mapRef = useRef<MapRef>(null);
   
+  const [pickupInput, setPickupInput] = useState("");
   const [destinationInput, setDestinationInput] = useState("");
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  
+  const [pickupSuggestions, setPickupSuggestions] = useState<Suggestion[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<Suggestion[]>([]);
+  
+  const [isPickupSuggestionsOpen, setIsPickupSuggestionsOpen] = useState(false);
+  const [isDestinationSuggestionsOpen, setIsDestinationSuggestionsOpen] = useState(false);
+
+  const [selectedPickup, setSelectedPickup] = useState<Suggestion | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Suggestion | null>(null);
+  const [route, setRoute] = useState<LngLatLike[] | null>(null);
 
   const [isSearching, setIsSearching] = useState(false);
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
@@ -60,6 +69,19 @@ function PassengerDashboard() {
 
   useEffect(() => {
     handleLocateUser();
+    // Set initial pickup location to user's current location after a delay
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { longitude, latitude } = position.coords;
+      const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&limit=1&language=pt`);
+      const data = await response.json();
+      if (data.features.length > 0) {
+        const currentLocationSuggestion: Suggestion = data.features[0];
+        setPickupInput(currentLocationSuggestion.place_name);
+        setSelectedPickup(currentLocationSuggestion);
+      } else {
+        setPickupInput("Localização atual");
+      }
+    });
   }, []);
 
   const debounce = (func: Function, delay: number) => {
@@ -69,49 +91,87 @@ function PassengerDashboard() {
       timeout = setTimeout(() => func(...args), delay);
     };
   };
-  
-  const fetchSuggestions = async (query: string) => {
+
+  const fetchSuggestions = async (query: string, type: 'pickup' | 'destination') => {
     if (query.length < 3 || !mapboxToken) {
-        setSuggestions([]);
-        setIsSuggestionsOpen(false);
-        return;
+      if (type === 'pickup') setPickupSuggestions([]);
+      else setDestinationSuggestions([]);
+      return;
     }
     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&autocomplete=true&country=BR&language=pt&proximity=-38.5267,-3.7327`);
     const data = await response.json();
-    setSuggestions(data.features);
-    setIsSuggestionsOpen(data.features.length > 0);
+    if (type === 'pickup') {
+      setPickupSuggestions(data.features);
+      setIsPickupSuggestionsOpen(data.features.length > 0);
+    } else {
+      setDestinationSuggestions(data.features);
+      setIsDestinationSuggestionsOpen(data.features.length > 0);
+    }
   };
   
-  const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestions, 300), [mapboxToken]);
+  const debouncedFetchPickupSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'pickup'), 300), [mapboxToken]);
+  const debouncedFetchDestinationSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'destination'), 300), [mapboxToken]);
 
+  const handlePickupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPickupInput(value);
+    setSelectedPickup(null);
+    debouncedFetchPickupSuggestions(value);
+  };
+  
   const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setDestinationInput(value);
-    setSelectedDestination(null); // Clear selected destination if user types again
-    debouncedFetchSuggestions(value);
+    setSelectedDestination(null);
+    debouncedFetchDestinationSuggestions(value);
   };
 
-  const handleSelectSuggestion = (suggestion: Suggestion) => {
-    setDestinationInput(suggestion.place_name);
-    setSelectedDestination(suggestion);
-    setSuggestions([]);
-    setIsSuggestionsOpen(false);
-
-    // Center map on selected destination
-    mapRef.current?.flyTo({
-      center: suggestion.center as LngLatLike,
-      zoom: 15,
-    });
-    
-    // Calculate price
-    const distance = Math.random() * (30 - 1) + 1; // Random distance
-    const comfortFare = distance * 1.80;
-    const executiveFare = distance * 2.20;
-    setComfortPrice(comfortFare);
-    setExecutivePrice(executiveFare);
-    setPromoApplied(true);
+  const handleSelectSuggestion = (suggestion: Suggestion, type: 'pickup' | 'destination') => {
+    if (type === 'pickup') {
+      setPickupInput(suggestion.place_name);
+      setSelectedPickup(suggestion);
+      setPickupSuggestions([]);
+      setIsPickupSuggestionsOpen(false);
+      mapRef.current?.flyTo({ center: suggestion.center as LngLatLike, zoom: 15 });
+    } else {
+      setDestinationInput(suggestion.place_name);
+      setSelectedDestination(suggestion);
+      setDestinationSuggestions([]);
+      setIsDestinationSuggestionsOpen(false);
+      mapRef.current?.flyTo({ center: suggestion.center as LngLatLike, zoom: 15 });
+    }
   };
 
+  useEffect(() => {
+    const calculatePriceAndRoute = async () => {
+      if (selectedPickup && selectedDestination && mapboxToken) {
+        
+        // Fetch route from Mapbox Directions API
+        const coords = `${selectedPickup.center[0]},${selectedPickup.center[1]};${selectedDestination.center[0]},${selectedDestination.center[1]}`;
+        const routeResponse = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?access_token=${mapboxToken}&geometries=geojson`);
+        const routeData = await routeResponse.json();
+
+        if (routeData.routes && routeData.routes.length > 0) {
+            const routeGeom = routeData.routes[0].geometry.coordinates;
+            setRoute(routeGeom);
+            const distanceInKm = routeData.routes[0].distance / 1000;
+
+            const comfortFare = Math.max(7.00, distanceInKm * 1.80); // Base fare R$7.00
+            const executiveFare = Math.max(10.00, distanceInKm * 2.20); // Base fare R$10.00
+            setComfortPrice(comfortFare);
+            setExecutivePrice(executiveFare);
+            setPromoApplied(true);
+
+            // Fit map to route bounds
+             mapRef.current?.fitBounds([selectedPickup.center, selectedDestination.center], { padding: 80, duration: 1000 });
+        }
+      } else {
+        setRoute(null);
+        setPromoApplied(false);
+      }
+    }
+    calculatePriceAndRoute();
+  }, [selectedPickup, selectedDestination, mapboxToken]);
 
   if (!user) return null;
 
@@ -126,9 +186,8 @@ function PassengerDashboard() {
   };
 
   const handleConfirmRide = () => {
-    if (!selectedDestination) return;
+    if (!selectedDestination || !selectedPickup) return;
     setIsSearching(true);
-    // Simulate finding a driver
     setTimeout(() => {
         setIsSearching(false);
         setFoundDriver({
@@ -151,14 +210,16 @@ function PassengerDashboard() {
    const handleCancelRide = () => {
         setFoundDriver(null);
         setSelectedDestination(null);
+        setSelectedPickup(null);
         setPromoApplied(false);
         setDestinationInput("");
+        setPickupInput("");
+        setRoute(null);
         toast({
             title: "Corrida cancelada.",
             description: "Você pode solicitar uma nova corrida quando quiser.",
         });
     };
-
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -204,7 +265,7 @@ function PassengerDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
        <div className="absolute inset-0 h-full w-full z-0">
-         <Map mapRef={mapRef} showMovingCar={!!foundDriver} destination={selectedDestination?.center as LngLatLike | undefined} />
+         <Map mapRef={mapRef} showMovingCar={!!foundDriver} destination={selectedDestination?.center as LngLatLike | undefined} pickup={selectedPickup?.center as LngLatLike | undefined} route={route}/>
        </div>
 
       <header className="absolute top-0 left-0 right-0 z-10 p-6 flex justify-between items-center pointer-events-none">
@@ -266,16 +327,35 @@ function PassengerDashboard() {
             <Card className="shadow-2xl rounded-2xl">
                 <CardContent className="p-4 space-y-4">
                    <div className="space-y-2">
-                    <div className="relative flex items-center">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
-                      <Input
-                        id="pickup"
-                        placeholder="Local de embarque"
-                        className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                        defaultValue="Localização atual"
-                      />
-                    </div>
-                    <Popover open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
+                    <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
+                        <PopoverAnchor asChild>
+                            <div className="relative flex items-center">
+                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
+                              <Input
+                                id="pickup"
+                                placeholder="Local de embarque"
+                                className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                                value={pickupInput}
+                                onChange={handlePickupChange}
+                                autoComplete="off"
+                              />
+                            </div>
+                        </PopoverAnchor>
+                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                            {pickupSuggestions.map((suggestion) => (
+                                <Button
+                                key={suggestion.id}
+                                variant="ghost"
+                                className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal"
+                                onClick={() => handleSelectSuggestion(suggestion, 'pickup')}
+                                >
+                                {suggestion.place_name}
+                                </Button>
+                            ))}
+                        </PopoverContent>
+                    </Popover>
+
+                    <Popover open={isDestinationSuggestionsOpen} onOpenChange={setIsDestinationSuggestionsOpen}>
                         <PopoverAnchor asChild>
                             <div className="relative flex items-center">
                               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
@@ -291,12 +371,12 @@ function PassengerDashboard() {
                             </div>
                         </PopoverAnchor>
                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                            {suggestions.map((suggestion) => (
+                            {destinationSuggestions.map((suggestion) => (
                                 <Button
                                 key={suggestion.id}
                                 variant="ghost"
                                 className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal"
-                                onClick={() => handleSelectSuggestion(suggestion)}
+                                onClick={() => handleSelectSuggestion(suggestion, 'destination')}
                                 >
                                 {suggestion.place_name}
                                 </Button>
@@ -305,7 +385,7 @@ function PassengerDashboard() {
                     </Popover>
                   </div>
                   
-                  {selectedDestination && (
+                  {selectedDestination && selectedPickup && (
                       <div className="space-y-2">
                           <RideOption 
                               type="comfort"
@@ -354,7 +434,7 @@ function PassengerDashboard() {
                     />
                   </div>
 
-                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!selectedDestination} onClick={handleConfirmRide}>
+                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!selectedDestination || !selectedPickup} onClick={handleConfirmRide}>
                     <span>Confirmar Corrida</span>
                     <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice * 0.9 : executivePrice * 0.9)}</span>
                   </Button>

@@ -43,6 +43,7 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
     "genkit": "^1.13.0",
+    "geolib": "^3.3.4",
     "lucide-react": "^0.475.0",
     "mapbox-gl": "^3.5.1",
     "next": "15.3.3",

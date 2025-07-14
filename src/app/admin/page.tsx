@@ -114,7 +114,6 @@ function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -463,58 +462,39 @@ function AdminDashboard() {
             </Card>
              <Card>
                 <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <CardTitle>Motoristas Online</CardTitle>
-                            <CardDescription>Localização dos motoristas em tempo real.</CardDescription>
-                        </div>
-                        <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-                            <DialogTrigger asChild>
-                                 <Button variant="outline" onClick={() => setIsMapModalOpen(true)}>Visualizar</Button>
-                            </DialogTrigger>
-                             <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
-                                <DialogHeader className="p-4 border-b">
-                                    <DialogTitle>Mapa de Motoristas Online</DialogTitle>
-                                </DialogHeader>
-                                 <div className="flex-1">
-                                    {mapboxToken ? (
-                                        <MapGL
-                                            mapboxAccessToken={mapboxToken}
-                                            initialViewState={{
-                                            longitude: -38.5267,
-                                            latitude: -3.7327,
-                                            zoom: 12
-                                            }}
-                                            style={{ width: '100%', height: '100%' }}
-                                            mapStyle={mapStyle}
-                                        >
-                                            {onlineDrivers.map(driver => (
-                                                <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat}>
-                                                    <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                                                        <Car className="h-5 w-5 text-primary"/>
-                                                    </div>
-                                                </Marker>
-                                            ))}
-                                        </MapGL>
-                                    ) : (
-                                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                                            <p className="text-muted-foreground text-center p-4">
-                                            O token do Mapbox não está configurado.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                             </DialogContent>
-                        </Dialog>
+                    <div>
+                        <CardTitle>Motoristas Online</CardTitle>
+                        <CardDescription>Localização dos motoristas em tempo real.</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="h-[460px] w-full relative">
-                         <Image src="https://placehold.co/800x600.png" data-ai-hint="map screenshot" alt="Mapa placeholder" layout="fill" objectFit="cover" className="rounded-b-lg"/>
-                         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
-                         <div className="absolute bottom-4 left-4 right-4 text-center">
-                            <p className="text-foreground font-semibold">Clique em "Visualizar" para ver o mapa em tempo real.</p>
-                         </div>
+                    <div className="h-[460px] w-full relative rounded-b-lg overflow-hidden">
+                        {mapboxToken ? (
+                            <MapGL
+                                mapboxAccessToken={mapboxToken}
+                                initialViewState={{
+                                longitude: -38.5267,
+                                latitude: -3.7327,
+                                zoom: 12
+                                }}
+                                style={{ width: '100%', height: '100%' }}
+                                mapStyle={mapStyle}
+                            >
+                                {onlineDrivers.map(driver => (
+                                    <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat}>
+                                        <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                                            <Car className="h-5 w-5 text-primary"/>
+                                        </div>
+                                    </Marker>
+                                ))}
+                            </MapGL>
+                        ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <p className="text-muted-foreground text-center p-4">
+                                O token do Mapbox não está configurado.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>

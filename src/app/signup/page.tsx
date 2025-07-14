@@ -1,12 +1,13 @@
 
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Car, User, ArrowLeft } from "lucide-react";
+import { Car, User, ArrowLeft, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -33,6 +35,7 @@ const formSchema = z.object({
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,19 +43,64 @@ export default function SignupPage() {
       name: "",
       email: "",
       password: "",
-      // O role não terá um valor padrão para forçar a seleção
     },
     mode: "onChange",
   });
 
   const role = form.watch("role");
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    toast({
-      title: "Cadastro Inicial Realizado!",
-      description: "Agora, por favor, envie seus documentos.",
-    });
-    router.push(`/signup/documents?role=${values.role}`);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            name: values.name,
+            role: values.role,
+          },
+        },
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+      
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({ 
+            id: data.user.id, 
+            name: values.name, 
+            email: values.email, 
+            role: values.role,
+            status: 'Ativo',
+            verification: 'Pendente'
+          });
+
+        if (profileError) {
+          // TODO: Handle potential case where auth user is created but profile fails.
+          // For now, we'll just log the error.
+           console.error("Profile creation failed:", profileError)
+           throw profileError;
+        }
+
+        toast({
+          title: "Cadastro Inicial Realizado!",
+          description: "Agora, por favor, envie seus documentos.",
+        });
+        router.push(`/signup/documents?role=${values.role}`);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro no Cadastro",
+        description: error.message || "Ocorreu um erro. Por favor, tente novamente.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,8 +188,9 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-                   <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid}>
-                    Continuar
+                   <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid || isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSubmitting ? 'Cadastrando...' : 'Continuar'}
                   </Button>
                 </div>
               )}

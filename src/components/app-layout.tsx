@@ -1,12 +1,14 @@
 import { ReactNode } from "react";
-import { UserNav } from "@/components/user-nav";
-import { Car } from "lucide-react";
+import { Car, LogOut } from "lucide-react";
+import { Button } from "./ui/button";
+import { useAuth } from "@/context/auth-context";
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const { logout } = useAuth();
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -17,7 +19,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-1">
-              <UserNav />
+               <Button variant="ghost" size="icon" onClick={logout}>
+                  <LogOut className="h-5 w-5" />
+              </Button>
             </nav>
           </div>
         </div>

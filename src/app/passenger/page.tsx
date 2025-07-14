@@ -50,7 +50,7 @@ function PassengerDashboard() {
   
   const [comfortPrice, setComfortPrice] = useState(0);
   const [executivePrice, setExecutivePrice] = useState(0);
-  const [promoApplied, setPromoApplied] = useState(false);
+  
   const mapRef = useRef<MapRef>(null);
   
   const [pickupInput, setPickupInput] = useState("");
@@ -131,7 +131,7 @@ function PassengerDashboard() {
     setPickupInput(value);
     setSelectedPickup(null);
     setRoute(null);
-    setPromoApplied(false);
+    
     debouncedFetchPickupSuggestions(value);
   };
   
@@ -140,7 +140,7 @@ function PassengerDashboard() {
     setDestinationInput(value);
     setSelectedDestination(null);
     setRoute(null);
-    setPromoApplied(false);
+    
     debouncedFetchDestinationSuggestions(value);
   };
 
@@ -182,7 +182,7 @@ function PassengerDashboard() {
             const executiveFare = Math.max(10.00, distanceInKm * 2.20);
             setComfortPrice(comfortFare);
             setExecutivePrice(executiveFare);
-            setPromoApplied(true);
+            
 
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
@@ -190,7 +190,7 @@ function PassengerDashboard() {
         }
       } else {
         setRoute(null);
-        setPromoApplied(false);
+        
       }
     }
     calculatePriceAndRoute();
@@ -220,10 +220,10 @@ function PassengerDashboard() {
         destination: selectedDestination.place_name,
         tripDistance: tripDistance,
         tripTime: tripTime,
-        rideCategory: rideCategory,
+        rideCategory: rideCategory === 'comfort' ? 'Comfort' : 'Executive',
         passenger: {
             name: user.name,
-            avatarUrl: `https://avatar.vercel.sh/${user.email}.png`,
+            avatarUrl: `https://placehold.co/80x80.png`,
             rating: 4.8
         },
         route: {
@@ -237,7 +237,7 @@ function PassengerDashboard() {
     
     setIsSearching(true);
     
-    // This part would be replaced by a real-time listener in a real app
+    // This part simulates finding a driver. In a real app, this would be a real-time listener.
     setTimeout(() => {
         setIsSearching(false);
         setFoundDriver({
@@ -262,7 +262,7 @@ function PassengerDashboard() {
         setSelectedDestination(null);
         setDestinationInput("");
         setRoute(null);
-        setPromoApplied(false);
+        
         // Do not reset pickup, keep current location as default
         toast({
             title: "Corrida cancelada.",
@@ -279,7 +279,7 @@ function PassengerDashboard() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  const RideOption = ({ type, name, time, seats, originalPrice, discountedPrice, isSelected, onSelect }: { type: RideCategory, name: string, time: number, seats: number, originalPrice: number, discountedPrice: number, isSelected: boolean, onSelect: () => void }) => (
+  const RideOption = ({ type, name, time, seats, price, isSelected, onSelect }: { type: RideCategory, name: string, time: number, seats: number, price: number, isSelected: boolean, onSelect: () => void }) => (
     <div 
         onClick={onSelect}
         className={cn(
@@ -296,8 +296,7 @@ function PassengerDashboard() {
             </div>
         </div>
         <div className="text-right">
-            <p className="font-bold text-lg text-foreground">{formatCurrency(discountedPrice)}</p>
-            <p className="text-sm text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+            <p className="font-bold text-lg text-foreground">{formatCurrency(price)}</p>
         </div>
     </div>
   );
@@ -342,7 +341,7 @@ function PassengerDashboard() {
       </header>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
-         {promoApplied && !foundDriver && selectedDestination && (
+         {route && !foundDriver && selectedDestination && (
             <div className="bg-primary text-primary-foreground rounded-lg p-2 text-center text-sm font-medium flex items-center justify-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Use o cinto de segurança</span>
@@ -447,8 +446,7 @@ function PassengerDashboard() {
                               name="Comfort"
                               time={tripTime}
                               seats={4}
-                              originalPrice={comfortPrice}
-                              discountedPrice={comfortPrice * 0.9}
+                              price={comfortPrice}
                               isSelected={rideCategory === 'comfort'}
                               onSelect={() => setRideCategory('comfort')}
                           />
@@ -457,8 +455,7 @@ function PassengerDashboard() {
                               name="Executive"
                               time={tripTime}
                               seats={4}
-                              originalPrice={executivePrice}
-                              discountedPrice={executivePrice * 0.9}
+                              price={executivePrice}
                               isSelected={rideCategory === 'executive'}
                               onSelect={() => setRideCategory('executive')}
                           />
@@ -491,7 +488,7 @@ function PassengerDashboard() {
 
                   <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!route} onClick={handleConfirmRide}>
                     <span>Confirmar Corrida</span>
-                    <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice * 0.9 : executivePrice * 0.9)}</span>
+                    <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice : executivePrice)}</span>
                   </Button>
 
                 </CardContent>

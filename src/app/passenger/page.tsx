@@ -6,13 +6,14 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
-import Image from "next/image";
 import type { MapRef } from "react-map-gl";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 
 type RideCategory = "comfort" | "executive";
@@ -28,6 +29,8 @@ function PassengerDashboard() {
   const [executivePrice, setExecutivePrice] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const mapRef = useRef<MapRef>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     handleLocateUser();
@@ -52,7 +55,7 @@ function PassengerDashboard() {
       
       // Calculate price based on distance
       const comfortFare = distance * 1.80;
-      const executiveFare = distance * 1.20;
+      const executiveFare = distance * 2.20;
 
       setComfortPrice(comfortFare);
       setExecutivePrice(executiveFare);
@@ -66,6 +69,22 @@ function PassengerDashboard() {
     }
   };
 
+  const handleConfirmRide = () => {
+    if (!showPrice) return;
+    setIsSearching(true);
+    // Simulate finding a driver
+    setTimeout(() => {
+        setIsSearching(false);
+        toast({
+            title: "Motorista encontrado!",
+            description: "Seu motorista está a caminho.",
+        });
+        // Here you would typically navigate to a 'trip status' page
+        // For now, we'll just close the modal.
+    }, 5000);
+  };
+
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
@@ -74,27 +93,25 @@ function PassengerDashboard() {
     <div 
         onClick={onSelect}
         className={cn(
-            "p-3 rounded-lg border-2 cursor-pointer transition-all bg-green-500/10",
-            isSelected ? 'border-green-600' : 'border-transparent hover:border-green-400'
+            "p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center justify-between gap-4",
+            isSelected ? 'border-primary bg-primary/10' : 'border-transparent bg-muted/50 hover:border-primary/50'
         )}
     >
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-                <div>
-                    <h3 className="font-bold text-lg text-foreground">{name}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{time} min</span>
-                        <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            <span>{seats}</span>
-                        </div>
+        <div className="flex items-center gap-4">
+            <div>
+                <h3 className="font-bold text-lg text-foreground">{name}</h3>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{time} min</span>
+                    <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{seats}</span>
                     </div>
                 </div>
             </div>
-            <div className="text-right">
-                <p className="font-bold text-lg text-foreground">{formatCurrency(discountedPrice)}</p>
-                <p className="text-sm text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
-            </div>
+        </div>
+        <div className="text-right">
+            <p className="font-bold text-lg text-foreground">{formatCurrency(discountedPrice)}</p>
+            <p className="text-sm text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
         </div>
     </div>
   );
@@ -218,7 +235,7 @@ function PassengerDashboard() {
                 />
               </div>
 
-              <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice}>
+              <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice} onClick={handleConfirmRide}>
                 <span>Confirmar Corrida</span>
                 <ArrowRight className="h-5 w-5"/>
               </Button>
@@ -226,6 +243,26 @@ function PassengerDashboard() {
             </CardContent>
           </Card>
       </div>
+
+       <AlertDialog open={isSearching}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">Procurando por um motorista</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Aguarde enquanto encontramos o motorista mais próximo para você.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+          </div>
+          <AlertDialogFooter>
+             <Button variant="outline" className="w-full" onClick={() => setIsSearching(false)}>
+                Cancelar Busca
+             </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }

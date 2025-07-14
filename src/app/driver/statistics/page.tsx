@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import { ArrowLeft, Car, DollarSign } from "lucide-react";
+import { ArrowLeft, Car, DollarSign, RefreshCw } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 
 const initialWeeklyData = [
   { name: "Seg", total: 0 },
@@ -23,6 +24,8 @@ const initialWeeklyData = [
 function StatisticsPage() {
   const router = useRouter();
   const [weeklyData, setWeeklyData] = useState(initialWeeklyData);
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Generate random data on client-side to avoid hydration mismatch
@@ -31,7 +34,25 @@ function StatisticsPage() {
       total: Math.floor(Math.random() * 300) + 50
     }));
     setWeeklyData(generatedData);
+
+    // Get earnings from session storage
+    const storedEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
+    setTodayEarnings(storedEarnings);
+
   }, []);
+
+  const handleResetEarnings = () => {
+      sessionStorage.setItem('today_earnings', '0');
+      setTodayEarnings(0);
+      toast({
+          title: "Ganhos zerados!",
+          description: "Seus ganhos de hoje foram resetados."
+      })
+  }
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
@@ -41,7 +62,9 @@ function StatisticsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">Estatísticas</h1>
-          <div className="w-9 h-9"></div>
+          <Button variant="ghost" size="icon" onClick={handleResetEarnings}>
+            <RefreshCw className="h-5 w-5" />
+          </Button>
         </div>
       </header>
       <main className="flex-1 py-6 container mx-auto px-4">
@@ -52,7 +75,7 @@ function StatisticsPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$156,50</div>
+              <div className="text-2xl font-bold">{formatCurrency(todayEarnings)}</div>
               <p className="text-xs text-muted-foreground">Ganhos</p>
             </CardContent>
           </Card>

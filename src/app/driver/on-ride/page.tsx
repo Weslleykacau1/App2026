@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 
 // Mock data, in a real app this would come from the accepted ride
 const rideData = {
+  fare: 32.96,
   passenger: {
     name: "Ana P.",
     avatarUrl: "https://placehold.co/80x80.png"
@@ -78,6 +79,10 @@ function OnRidePage() {
 
   const handleFinishRide = () => {
     // In a real app, you would update ride status to completed.
+    // For this prototype, we store the earnings in session storage.
+    const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
+    const newEarnings = currentEarnings + rideData.fare;
+    sessionStorage.setItem('today_earnings', newEarnings.toString());
     router.push('/driver');
   };
 

@@ -4,10 +4,10 @@
 import { useState, useEffect, useRef } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, MoreVertical, MessageCircle, AlertCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,36 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getItem, setItem } from "@/lib/storage";
 
 const PASSENGER_PROFILE_KEY = 'passenger_profile_data';
+
+const rideHistory = [
+    {
+        id: 1,
+        driver: { name: 'Carlos S.', avatarUrl: 'https://placehold.co/40x40.png' },
+        date: '2024-07-22',
+        pickup: 'Av. Paulista, 1578',
+        destination: 'Parque Ibirapuera',
+        fare: 22.50,
+        status: 'Concluída'
+    },
+    {
+        id: 2,
+        driver: { name: 'Ana L.', avatarUrl: 'https://placehold.co/40x40.png' },
+        date: '2024-07-20',
+        pickup: 'Rua Augusta, 900',
+        destination: 'Aeroporto de Congonhas',
+        fare: 45.80,
+        status: 'Concluída'
+    },
+    {
+        id: 3,
+        driver: { name: 'Ricardo P.', avatarUrl: 'https://placehold.co/40x40.png' },
+        date: '2024-07-19',
+        pickup: 'Shopping Morumbi',
+        destination: 'Estádio do Morumbi',
+        fare: 15.00,
+        status: 'Cancelada'
+    }
+];
 
 function ProfilePage() {
     const router = useRouter();
@@ -218,8 +248,9 @@ function ProfilePage() {
             
             <main className="flex-1 py-6 container mx-auto px-4">
                  <Tabs defaultValue="profile" className="w-full" onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-3 bg-muted/60 rounded-lg p-1">
+                    <TabsList className="grid w-full grid-cols-4 bg-muted/60 rounded-lg p-1">
                         <TabsTrigger value="profile">Perfil</TabsTrigger>
+                        <TabsTrigger value="history">Histórico</TabsTrigger>
                         <TabsTrigger value="documents">Documentos</TabsTrigger>
                         <TabsTrigger value="settings"><Settings/></TabsTrigger>
                     </TabsList>
@@ -289,6 +320,53 @@ function ProfilePage() {
                                 </div>
                             </CardContent>
                         </Card>
+                    </TabsContent>
+                    <TabsContent value="history">
+                        <div className="space-y-4 mt-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2"><History/> Histórico de Corridas</CardTitle>
+                                    <CardDescription>Veja os detalhes de suas viagens anteriores.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                     {rideHistory.length > 0 ? (
+                                        rideHistory.map((ride) => (
+                                            <div key={ride.id} className="border p-4 rounded-lg space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10">
+                                                            <AvatarImage src={ride.driver.avatarUrl} data-ai-hint="person avatar" />
+                                                            <AvatarFallback>{ride.driver.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">{ride.driver.name}</p>
+                                                            <p className="text-sm text-muted-foreground">{new Date(ride.date).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-lg">{ride.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                                         <Badge variant={ride.status === 'Concluída' ? 'secondary' : 'destructive'}>{ride.status}</Badge>
+                                                    </div>
+                                                </div>
+                                                <Separator/>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin className="h-4 w-4 mt-1 text-primary"/>
+                                                        <p><span className="font-medium text-muted-foreground">De:</span> {ride.pickup}</p>
+                                                    </div>
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin className="h-4 w-4 mt-1 text-red-500"/>
+                                                         <p><span className="font-medium text-muted-foreground">Para:</span> {ride.destination}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                     ) : (
+                                        <p className="text-muted-foreground text-center py-8">Nenhuma corrida no seu histórico ainda.</p>
+                                     )}
+                                </CardContent>
+                            </Card>
+                        </div>
                     </TabsContent>
                     <TabsContent value="documents">
                         <div className="space-y-6 mt-6">

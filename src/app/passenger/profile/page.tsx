@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, MoreVertical, MessageCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, MoreVertical, MessageCircle, AlertCircle, RefreshCcw } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -359,6 +359,15 @@ function ProfilePage() {
                                                          <p><span className="font-medium text-muted-foreground">Para:</span> {ride.destination}</p>
                                                     </div>
                                                 </div>
+                                                <Separator/>
+                                                 <Button 
+                                                    variant="outline" 
+                                                    className="w-full mt-2"
+                                                    onClick={() => toast({ title: "Funcionalidade em breve!", description: "Você poderá solicitar esta corrida novamente."})}
+                                                >
+                                                    <RefreshCcw className="mr-2 h-4 w-4"/>
+                                                    Solicitar Novamente
+                                                </Button>
                                             </div>
                                         ))
                                      ) : (

@@ -21,8 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getItem, setItem } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
-const PASSENGER_PROFILE_KEY = 'passenger_profile_data';
 const RERIDE_REQUEST_KEY = 'reride_request';
 
 const rideHistory = [
@@ -61,12 +61,13 @@ function ProfilePage() {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
 
-    const [profileData, setProfileData] = useState({ name: user?.name || '', email: user?.email || '', phone: '+55 11 99999-8888', cpf: '123.456.789-00' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '' });
     const [isDarkMode, setIsDarkMode] = useState(false);
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [language, setLanguage] = useState("pt-br");
+    const [isLoading, setIsLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState("profile");
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -77,11 +78,43 @@ function ProfilePage() {
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
-        const savedData = getItem(PASSENGER_PROFILE_KEY);
-        if (savedData) {
-            setProfileData(savedData);
-        }
     }, [theme]);
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            if (!user) return;
+            setIsLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+                
+                if (data) {
+                    setProfileData({
+                        name: data.name || '',
+                        email: data.email || '',
+                        phone: data.phone || '+55 11 99999-8888',
+                        cpf: data.cpf || '123.456.789-00'
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Erro ao carregar perfil",
+                    description: "Não foi possível carregar seus dados.",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, [user, toast]);
 
      useEffect(() => {
         if (activeTab === 'upload-photo') {
@@ -158,15 +191,25 @@ function ProfilePage() {
         }
     };
 
-    const handleEditToggle = () => {
-        if (isEditing) {
-            setItem(PASSENGER_PROFILE_KEY, profileData);
-            toast({
-                title: "Informações Salvas!",
-                description: "Seus dados foram atualizados com sucesso.",
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({
+                name: profileData.name,
+                email: profileData.email,
+                phone: profileData.phone,
+                cpf: profileData.cpf
             })
+            .eq('id', user.id);
+
+        if (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
+        } else {
+            toast({ title: "Informações Salvas!", description: "Seus dados foram atualizados com sucesso." });
         }
-        setIsEditing(!isEditing);
+        setIsEditing(false);
     }
     
     const handleRequestAgain = (ride: typeof rideHistory[0]) => {
@@ -182,8 +225,10 @@ function ProfilePage() {
         router.push('/passenger');
     }
 
+    if (!user || isLoading) {
+      return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
+    }
 
-    if (!user) return null;
 
     const getInitials = (name: string) => {
         if (!name) return '';
@@ -207,22 +252,19 @@ function ProfilePage() {
                 <main className="flex-1 py-6 container mx-auto px-4">
                      <div className="flex flex-col items-center space-y-4">
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                            {photoDataUrl ? (
+                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                            {photoDataUrl && (
                                 <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
-                            ) : (
-                                <>
-                                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                                    {hasCameraPermission === false && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
-                                            <Alert variant="destructive">
-                                                <AlertTitle>Câmera Indisponível</AlertTitle>
-                                                <AlertDescription>
-                                                    Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
-                                                </AlertDescription>
-                                            </Alert>
-                                        </div>
-                                    )}
-                                </>
+                            )}
+                            {hasCameraPermission === false && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
+                                    <Alert variant="destructive">
+                                        <AlertTitle>Câmera Indisponível</AlertTitle>
+                                        <AlertDescription>
+                                            Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
                             )}
                         </div>
                         <canvas ref={photoRef} className="hidden"></canvas>
@@ -301,7 +343,7 @@ function ProfilePage() {
                             <CardContent className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-lg font-semibold">Informações Pessoais</h3>
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleEditToggle}>
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}>
                                         {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
                                         {isEditing ? 'Salvar' : 'Editar'}
                                     </Button>

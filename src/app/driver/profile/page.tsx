@@ -20,10 +20,7 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { getItem, setItem } from "@/lib/storage";
-
-const DRIVER_PROFILE_KEY = 'driver_profile_data';
-const DRIVER_VEHICLE_KEY = 'driver_vehicle_data';
+import { supabase } from "@/lib/supabase";
 
 function DriverProfilePage() {
     const router = useRouter();
@@ -35,11 +32,12 @@ function DriverProfilePage() {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingVehicle, setIsEditingVehicle] = useState(false);
     const [language, setLanguage] = useState("pt-br");
+    const [isLoading, setIsLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState("profile");
 
-    const [profileData, setProfileData] = useState({ name: user?.name || '', email: user?.email || '', phone: '+55 11 98888-7777' });
-    const [vehicleData, setVehicleData] = useState({ model: 'Toyota Corolla', licensePlate: 'BRA2E19', color: 'Prata', year: '2022' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '' });
+    const [vehicleData, setVehicleData] = useState({ model: '', licensePlate: '', color: '', year: '' });
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
@@ -52,15 +50,49 @@ function DriverProfilePage() {
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
-        const savedProfile = getItem(DRIVER_PROFILE_KEY);
-        if (savedProfile) {
-            setProfileData(savedProfile);
-        }
-        const savedVehicle = getItem(DRIVER_VEHICLE_KEY);
-        if (savedVehicle) {
-            setVehicleData(savedVehicle);
-        }
     }, [theme]);
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            if (!user) return;
+            setIsLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    setProfileData({
+                        name: data.name || '',
+                        email: data.email || '',
+                        phone: data.phone || '+55 11 98888-7777',
+                    });
+                    setVehicleData({
+                        model: data.vehicle_model || 'Toyota Corolla',
+                        licensePlate: data.vehicle_license_plate || 'BRA2E19',
+                        color: data.vehicle_color || 'Prata',
+                        year: data.vehicle_year || '2022',
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Erro ao carregar perfil",
+                    description: "Não foi possível carregar seus dados.",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, [user, toast]);
+
 
      useEffect(() => {
         if (activeTab === 'upload-photo') {
@@ -137,29 +169,50 @@ function DriverProfilePage() {
         }
     };
 
-    const handleEditToggle = (editor: 'profile' | 'vehicle') => {
-        if (editor === 'profile') {
-            if (isEditingProfile) {
-                setItem(DRIVER_PROFILE_KEY, profileData);
-                 toast({
-                    title: "Informações Salvas!",
-                    description: "Seus dados foram atualizados com sucesso.",
-                })
-            }
-            setIsEditingProfile(!isEditingProfile);
-        } else if (editor === 'vehicle') {
-             if (isEditingVehicle) {
-                setItem(DRIVER_VEHICLE_KEY, vehicleData);
-                 toast({
-                    title: "Informações Salvas!",
-                    description: "Os dados do veículo foram atualizados.",
-                })
-            }
-            setIsEditingVehicle(!isEditingVehicle);
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                name: profileData.name,
+                email: profileData.email,
+                phone: profileData.phone,
+            })
+            .eq('id', user.id);
+
+        if (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
+        } else {
+            toast({ title: "Informações Salvas!", description: "Seus dados foram atualizados com sucesso." });
         }
+        setIsEditingProfile(false);
+    };
+
+    const handleSaveVehicle = async () => {
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                vehicle_model: vehicleData.model,
+                vehicle_license_plate: vehicleData.licensePlate,
+                vehicle_color: vehicleData.color,
+                vehicle_year: vehicleData.year,
+            })
+            .eq('id', user.id);
+        
+        if (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações do veículo." });
+        } else {
+            toast({ title: "Informações Salvas!", description: "Os dados do veículo foram atualizados." });
+        }
+        setIsEditingVehicle(false);
     }
 
-    if (!user) return null;
+    if (!user || isLoading) {
+         return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
+    }
 
     const getInitials = (name: string) => {
         const names = name.split(' ');
@@ -182,22 +235,19 @@ function DriverProfilePage() {
                 <main className="flex-1 py-6 container mx-auto px-4">
                      <div className="flex flex-col items-center space-y-4">
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                            {photoDataUrl ? (
+                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                            {photoDataUrl && (
                                 <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
-                            ) : (
-                                <>
-                                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                                    {hasCameraPermission === false && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
-                                            <Alert variant="destructive">
-                                                <AlertTitle>Câmera Indisponível</AlertTitle>
-                                                <AlertDescription>
-                                                    Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
-                                                </AlertDescription>
-                                            </Alert>
-                                        </div>
-                                    )}
-                                </>
+                            )}
+                            {hasCameraPermission === false && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
+                                    <Alert variant="destructive">
+                                        <AlertTitle>Câmera Indisponível</AlertTitle>
+                                        <AlertDescription>
+                                            Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
                             )}
                         </div>
                         <canvas ref={photoRef} className="hidden"></canvas>
@@ -272,7 +322,7 @@ function DriverProfilePage() {
                             <CardContent className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-lg font-semibold">Informações Pessoais</h3>
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => handleEditToggle('profile')}>
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingProfile ? handleSaveProfile() : setIsEditingProfile(true)}>
                                         {isEditingProfile ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
                                         {isEditingProfile ? 'Salvar' : 'Editar'}
                                     </Button>
@@ -310,7 +360,7 @@ function DriverProfilePage() {
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
                                         <CardTitle className="text-lg">Gerenciamento de Veículo</CardTitle>
-                                        <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => handleEditToggle('vehicle')}>
+                                        <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingVehicle ? handleSaveVehicle() : setIsEditingVehicle(true)}>
                                             {isEditingVehicle ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
                                             {isEditingVehicle ? 'Salvar' : 'Editar'}
                                         </Button>

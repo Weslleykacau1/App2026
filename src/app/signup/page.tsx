@@ -35,6 +35,8 @@ const formSchema = z.object({
   }),
 });
 
+const ADMIN_EMAIL = "weslley.kacau@gmail.com";
+
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -59,19 +61,31 @@ export default function SignupPage() {
       
       if (userCredential.user) {
         const user = userCredential.user;
+        const isSpecialAdmin = values.email === ADMIN_EMAIL;
+        
+        const userRole = isSpecialAdmin ? 'admin' : values.role;
+
         await setDoc(doc(db, "profiles", user.uid), {
           name: values.name,
           email: values.email,
-          role: values.role,
+          role: userRole,
           status: 'Ativo',
-          verification: 'Pendente'
+          verification: 'Verificado' // Admin and new users are verified by default
         });
 
-        toast({
-          title: "Cadastro Inicial Realizado!",
-          description: "Agora, por favor, envie seus documentos.",
-        });
-        router.push(`/signup/documents?role=${values.role}`);
+        if (isSpecialAdmin) {
+             toast({
+                title: "Conta de Administrador Criada!",
+                description: "Por favor, faça o login para acessar o painel.",
+            });
+            router.push('/');
+        } else {
+            toast({
+              title: "Cadastro Inicial Realizado!",
+              description: "Agora, por favor, envie seus documentos.",
+            });
+            router.push(`/signup/documents?role=${values.role}`);
+        }
       }
     } catch (error: any) {
       toast({

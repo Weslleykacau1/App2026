@@ -42,6 +42,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const ADMIN_EMAIL = "weslley.kacau@gmail.com";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,20 +54,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        const docRef = doc(db, "profiles", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          const profileData = docSnap.data();
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            ...profileData
-          } as User);
+        // Special case for the hardcoded admin user
+        if (firebaseUser.email === ADMIN_EMAIL) {
+            setUser({
+                id: firebaseUser.uid,
+                name: "Admin",
+                email: ADMIN_EMAIL,
+                role: "admin",
+                status: "Ativo",
+                verification: "Verificado"
+            });
         } else {
-          // If profile doesn't exist, sign out the user
-          await signOut(auth);
-          setUser(null);
+            const docRef = doc(db, "profiles", firebaseUser.uid);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+              const profileData = docSnap.data();
+              setUser({
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                ...profileData
+              } as User);
+            } else {
+              // If profile doesn't exist, sign out the user
+              await signOut(auth);
+              setUser(null);
+            }
         }
       } else {
         setUser(null);
@@ -88,6 +102,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
 
       if (userCredential.user) {
+         if (userCredential.user.email === ADMIN_EMAIL) {
+            router.push('/admin');
+            return;
+        }
+
         const docRef = doc(db, "profiles", userCredential.user.uid);
         const docSnap = await getDoc(docRef);
         

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2, LocateFixed } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff, Wallet } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -36,9 +36,11 @@ function DriverDashboard() {
   });
   const [userLocation, setUserLocation] = useState<{longitude: number, latitude: number} | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [showEarnings, setShowEarnings] = useState(true);
 
    useEffect(() => {
-    // Get initial location
+     // Get initial location
      navigator.geolocation.getCurrentPosition(
         (position) => {
             const { longitude, latitude } = position.coords;
@@ -51,6 +53,11 @@ function DriverDashboard() {
         (error) => console.error("Error getting initial user location:", error),
         { enableHighAccuracy: true }
     );
+    
+    // Get earnings from session storage
+    const storedEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
+    setTodayEarnings(storedEarnings);
+
    }, []);
 
 
@@ -100,6 +107,10 @@ function DriverDashboard() {
         });
     }
   };
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
 
   if (!mapboxToken) {
     return (
@@ -152,6 +163,20 @@ function DriverDashboard() {
             >
                 <Menu className="h-6 w-6 text-primary-foreground" />
             </Button>
+            
+            <div className="bg-background/80 backdrop-blur-sm rounded-xl p-3 shadow-lg pointer-events-auto flex flex-col items-center">
+                 <div className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5 text-muted-foreground"/>
+                    <span className="text-sm font-medium text-muted-foreground">Ganhos de Hoje</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEarnings(!showEarnings)}>
+                         {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                    </Button>
+                 </div>
+                 <p className="text-2xl font-bold mt-1">
+                    {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
+                </p>
+            </div>
+
             <Button
                 variant="outline"
                 size="icon"

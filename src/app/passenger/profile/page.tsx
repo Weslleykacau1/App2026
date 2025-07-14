@@ -31,6 +31,7 @@ function ProfilePage() {
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [language, setLanguage] = useState("pt-br");
 
     const [activeTab, setActiveTab] = useState("profile");
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -314,7 +315,7 @@ function ProfilePage() {
                        <div className="space-y-6 mt-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2"><Settings/> Configurações</CardTitle>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Settings/></CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
@@ -354,7 +355,7 @@ function ProfilePage() {
                                                 <p className="font-medium">Idioma</p>
                                                 <p className="text-sm text-muted-foreground">Selecione seu idioma preferido</p>
                                             </div>
-                                            <Select defaultValue="pt-br">
+                                            <Select value={language} onValueChange={setLanguage}>
                                                 <SelectTrigger className="w-[120px]">
                                                     <SelectValue placeholder="Idioma" />
                                                 </SelectTrigger>
@@ -415,7 +416,5 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
-
-    
 
     

@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { getItem } from '@/lib/storage';
+import { getItem, setItem } from '@/lib/storage';
 
 const surgeZones = [
   { lat: -3.722, lng: -38.489, color: "bg-red-500/20 border-red-700/0" }, // Meireles
@@ -127,6 +127,37 @@ function DriverDashboard() {
     }
   };
 
+  const handleTestRide = () => {
+    const testRideRequest = {
+        fare: 25.50,
+        pickupAddress: "Av. Bezerra de Menezes, 1850",
+        destination: "Shopping Iguatemi Bosque",
+        tripDistance: 8.2,
+        tripTime: 22,
+        rideCategory: 'Comfort',
+        passenger: {
+            name: "Passageiro Teste",
+            avatarUrl: `https://placehold.co/80x80.png`,
+            rating: 4.9
+        },
+        route: {
+            pickup: { lat: -3.732, lng: -38.555 },
+            destination: { lat: -3.755, lng: -38.484 },
+            coordinates: [
+                [-38.555, -3.732],
+                [-38.550, -3.735],
+                [-38.540, -3.740],
+                [-38.520, -3.745],
+                [-38.500, -3.750],
+                [-38.484, -3.755]
+            ]
+        }
+    };
+    setItem(RIDE_REQUEST_KEY, testRideRequest);
+    router.push('/driver/accept-ride');
+  };
+
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
@@ -240,8 +271,8 @@ function DriverDashboard() {
 
               <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-1">
-                     <Button variant="ghost" className="rounded-full px-4" disabled>
-                        Nenhuma corrida
+                     <Button variant="ghost" className="rounded-full px-4" onClick={handleTestRide}>
+                        Corrida Teste
                       </Button>
                   </div>
                   
@@ -269,3 +300,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

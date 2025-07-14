@@ -419,8 +419,13 @@ function AdminDashboard() {
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle>Motoristas Online</CardTitle>
-                    <CardDescription>Localização dos motoristas em tempo real.</CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Motoristas Online</CardTitle>
+                            <CardDescription>Localização dos motoristas em tempo real.</CardDescription>
+                        </div>
+                        <Button variant="outline">Visualizar</Button>
+                    </div>
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="h-[460px] w-full">

@@ -25,6 +25,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MapGL, { Marker } from 'react-map-gl';
 import { useTheme } from 'next-themes';
+import { getItem, setItem } from "@/lib/storage";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -100,9 +101,13 @@ const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
     "Rejeitado": <AlertCircle className="h-5 w-5 text-red-500" />,
 };
 
+const ADMIN_USERS_KEY = 'admin_users_data';
+const ADMIN_FARES_KEY = 'admin_fares_data';
+
+
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<User[]>(initialUsers);
   const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>(initialOnlineDrivers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
@@ -121,6 +126,17 @@ function AdminDashboard() {
       role: "passenger",
     },
   });
+  
+  useEffect(() => {
+    const savedUsers = getItem<User[]>(ADMIN_USERS_KEY);
+    if (savedUsers) {
+        setUsers(savedUsers);
+    }
+    const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
+    if (savedFares) {
+        setFares(savedFares);
+    }
+  }, []);
 
   useEffect(() => {
     const generatedData = initialRevenueData.map(item => ({
@@ -158,7 +174,9 @@ function AdminDashboard() {
   };
   
   const handleVerification = (userId: number, newStatus: VerificationStatus) => {
-    setUsers(users.map(user => user.id === userId ? { ...user, verification: newStatus } : user));
+    const updatedUsers = users.map(user => user.id === userId ? { ...user, verification: newStatus } : user);
+    setUsers(updatedUsers);
+    setItem(ADMIN_USERS_KEY, updatedUsers);
     setIsDocsModalOpen(false);
     toast({
         title: "Status de verificação atualizado!",
@@ -171,7 +189,7 @@ function AdminDashboard() {
   };
 
   const handleSaveFares = () => {
-    // In a real app, you would save this to your database
+    setItem(ADMIN_FARES_KEY, fares);
     toast({
       title: "Tarifas Salvas!",
       description: `Comfort: R$${fares.comfort}/km, Executive: R$${fares.executive}/km`,
@@ -188,7 +206,9 @@ function AdminDashboard() {
         joined: new Date().toISOString().split('T')[0],
         verification: "Pendente"
     }
-    setUsers([...users, newUser]);
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    setItem(ADMIN_USERS_KEY, updatedUsers);
     setIsAddUserModalOpen(false);
     form.reset();
     toast({
@@ -579,3 +599,4 @@ export default withAuth(AdminDashboard, ["admin"]);
     
 
     
+

@@ -61,6 +61,8 @@ function AcceptRidePage() {
   const [timeLeft, setTimeLeft] = useState(15);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  const lineColor = resolvedTheme === 'dark' ? '#FFFFFF' : '#000000';
+
   const routeLayer: LineLayer = {
     id: 'route',
     type: 'line',
@@ -70,7 +72,7 @@ function AcceptRidePage() {
         'line-cap': 'round'
     },
     paint: {
-        'line-color': resolvedTheme === 'dark' ? '#FFFFFF' : '#000000',
+        'line-color': lineColor,
         'line-width': 4
     }
   };
@@ -196,7 +198,7 @@ function AcceptRidePage() {
                     <h3 className="text-lg font-bold">{rideData.passenger.name}</h3>
                     <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-400" fill="currentColor" />
-                        <p className="font-semibold">{rideData.passenger.rating.toFixed(1)}</p>
+                        <p className="font-semibold">{rideData.passengerRating.toFixed(1)}</p>
                     </div>
                 </div>
             </div>

@@ -42,6 +42,7 @@ export default function SignupPage() {
       password: "",
       role: "passenger",
     },
+    mode: "onChange",
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -136,7 +137,7 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold">
+              <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid}>
                 Continuar
               </Button>
             </form>

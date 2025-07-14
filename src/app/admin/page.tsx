@@ -7,17 +7,22 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -33,6 +38,16 @@ interface User {
   joined: string;
   verification: VerificationStatus;
 }
+
+const addUserFormSchema = z.object({
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
+  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
+  role: z.enum(["passenger", "driver", "admin"], {
+    required_error: "Você precisa selecionar um perfil.",
+  }),
+});
+
 
 const initialUsers: User[] = [
   { id: 1, name: "João Passageiro", email: "john.p@example.com", role: "passageiro", status: "Ativo", joined: "2023-01-15", verification: "Verificado" },
@@ -73,9 +88,20 @@ function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
   const [users, setUsers] = useState(initialUsers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof addUserFormSchema>>({
+    resolver: zodResolver(addUserFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "passenger",
+    },
+  });
 
   useEffect(() => {
     const generatedData = initialRevenueData.map(item => ({
@@ -95,12 +121,12 @@ function AdminDashboard() {
         return;
     }
     setSelectedUser(user);
-    setIsModalOpen(true);
+    setIsDocsModalOpen(true);
   };
   
   const handleVerification = (userId: number, newStatus: VerificationStatus) => {
     setUsers(users.map(user => user.id === userId ? { ...user, verification: newStatus } : user));
-    setIsModalOpen(false);
+    setIsDocsModalOpen(false);
     toast({
         title: "Status de verificação atualizado!",
         description: `O usuário foi marcado como ${newStatus.toLowerCase()}.`,
@@ -118,6 +144,25 @@ function AdminDashboard() {
       description: `Comfort: R$${fares.comfort}/km, Executive: R$${fares.executive}/km`,
     });
   };
+  
+  const handleAddUserSubmit = (values: z.infer<typeof addUserFormSchema>) => {
+    const newUser: User = {
+        id: users.length + 1,
+        name: values.name,
+        email: values.email,
+        role: values.role as UserRole,
+        status: "Ativo",
+        joined: new Date().toISOString().split('T')[0],
+        verification: "Pendente"
+    }
+    setUsers([...users, newUser]);
+    setIsAddUserModalOpen(false);
+    form.reset();
+    toast({
+        title: "Usuário Adicionado!",
+        description: `${values.name} foi adicionado ao sistema.`,
+    });
+  };
 
   return (
     <AppLayout>
@@ -132,8 +177,8 @@ function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,257</div>
-              <p className="text-xs text-muted-foreground">+120 este mês</p>
+              <div className="text-2xl font-bold">{users.length}</div>
+              <p className="text-xs text-muted-foreground">+1 este mês</p>
             </CardContent>
           </Card>
           <Card>
@@ -171,8 +216,99 @@ function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Gerenciamento de Usuários</CardTitle>
-                <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Gerenciamento de Usuários</CardTitle>
+                        <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
+                    </div>
+                    <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
+                        <DialogTrigger asChild>
+                             <Button>
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Adicionar Usuário
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+                                <DialogDescription>
+                                    Preencha os detalhes abaixo para criar uma nova conta de usuário.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(handleAddUserSubmit)} className="space-y-4">
+                                     <FormField
+                                        control={form.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nome Completo</FormLabel>
+                                            <FormControl>
+                                            <Input placeholder="Ex: João da Silva" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Email</FormLabel>
+                                            <FormControl>
+                                            <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Senha Temporária</FormLabel>
+                                            <FormControl>
+                                            <Input type="password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={form.control}
+                                        name="role"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Função</FormLabel>
+                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione um perfil" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="passenger">Passageiro</SelectItem>
+                                                    <SelectItem value="driver">Motorista</SelectItem>
+                                                    <SelectItem value="admin">Admin</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                     <DialogFooter className="pt-4">
+                                        <DialogClose asChild>
+                                            <Button type="button" variant="outline">Cancelar</Button>
+                                        </DialogClose>
+                                        <Button type="submit">Criar Usuário</Button>
+                                    </DialogFooter>
+                                </form>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -202,7 +338,7 @@ function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
-                            {roleTranslations[user.role] || user.role}
+                            {roleTranslations[user.role as UserRole] || user.role}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -300,7 +436,7 @@ function AdminDashboard() {
         </div>
       </div>
        {selectedUser && (
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <Dialog open={isDocsModalOpen} onOpenChange={setIsDocsModalOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Documentos de {selectedUser.name}</DialogTitle>

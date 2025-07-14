@@ -40,21 +40,18 @@ export default function LoginPage() {
   
   const handleQuickLogin = (role: UserRole) => {
     let credentials = { email: "", password: "password" };
-    if (role === 'admin') {
+    
+    // Admin user can log in as any role
+    if (role === 'admin' || role === 'driver' || role === 'passenger') {
         credentials.email = "weslley.kacau@gmail.com";
         credentials.password = "Extra1382@";
-    } else if (role === 'driver') {
-        credentials.email = "driver@example.com";
-    } else {
-        credentials.email = "passenger@example.com";
+        form.setValue("email", credentials.email);
+        form.setValue("password", credentials.password);
+        setTimeout(() => {
+          login({ email: credentials.email, password: credentials.password }, role);
+        }, 100);
+        return;
     }
-    form.setValue("email", credentials.email);
-    form.setValue("password", credentials.password);
-
-    // Give react time to update the form values before submitting
-    setTimeout(() => {
-        form.handleSubmit(onSubmit)();
-    }, 100);
   };
 
   return (

@@ -248,11 +248,11 @@ function ProfilePage() {
                 <main className="flex-1 py-6 container mx-auto px-4">
                      <div className="flex flex-col items-center space-y-4">
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                            <video ref={videoRef} className={cn("w-full h-full object-cover", hasCameraPermission === false && "hidden", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
                             {photoDataUrl && (
                                 <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
                             )}
-                            {hasCameraPermission === false && (
+                             {!(hasCameraPermission) && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
                                     <Alert variant="destructive">
                                         <AlertTitle>Câmera Indisponível</AlertTitle>

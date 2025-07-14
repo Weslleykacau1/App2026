@@ -107,7 +107,7 @@ function PassengerDashboard() {
   };
 
   const fetchSuggestions = async (query: string, type: 'pickup' | 'destination') => {
-    if (query.length < 3 || !mapboxToken) {
+    if (query.length < 8 || !mapboxToken) {
       if (type === 'pickup') setPickupSuggestions([]);
       else setDestinationSuggestions([]);
       return;

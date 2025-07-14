@@ -7,6 +7,8 @@ import { Car, User, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth, UserRole } from "@/context/auth-context";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,40 +23,59 @@ export default function LoginPage() {
     router.push(`/${role}`);
   };
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-primary text-primary-foreground">
-       <div className="w-full max-w-sm flex flex-col items-center text-center">
-            <Car className="h-14 w-14 mb-6" />
-            <h1 className="text-4xl font-bold tracking-tight">Onde a sua viagem começa</h1>
-            <p className="mt-4 text-primary-foreground/80">Escolha como você quer entrar.</p>
-        
-            <div className="w-full space-y-4 mt-10">
-                <Button 
-                    className="w-full h-14 text-lg font-semibold bg-background text-primary hover:bg-background/90"
-                    onClick={() => handleQuickLogin('passenger')}
-                >
-                    <User className="mr-3"/>
-                    Entrar como Passageiro
-                </Button>
-                <Button 
-                    variant="outline" 
-                    className="w-full h-14 text-lg font-semibold bg-transparent border-background text-background hover:bg-background/10 hover:text-background"
-                    onClick={() => handleQuickLogin('driver')}
-                >
-                    <Car className="mr-3"/>
-                    Entrar como Motorista
-                </Button>
-            </div>
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // For now, let's log in as a passenger by default with the form
+    handleQuickLogin('passenger');
+  };
 
-            <div className="mt-12 text-center text-sm font-medium">
-                 <button onClick={() => handleQuickLogin('admin')} className="hover:underline">
-                    Acesso Admin
-                 </button>
-                 <span className="mx-2 text-primary-foreground/50">|</span>
-                 <Link href="/signup" className="hover:underline">
-                    Cadastre-se
-                </Link>
-            </div>
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background text-foreground">
+      <div className="w-full max-w-sm flex flex-col items-center text-center">
+        <Car className="h-14 w-14 mb-6 text-primary" />
+        <h1 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h1>
+        <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
+
+        <form onSubmit={handleLogin} className="w-full space-y-4 mt-8">
+          <Input type="email" placeholder="Email" className="h-12" required />
+          <Input type="password" placeholder="Senha" className="h-12" required />
+          <div className="text-right">
+            <Link href="#" className="text-sm text-primary hover:underline">
+              Esqueceu a senha?
+            </Link>
+          </div>
+          <Button type="submit" className="w-full h-12 text-base font-semibold">
+            Entrar
+          </Button>
+        </form>
+
+        <div className="flex items-center w-full my-6">
+          <div className="flex-grow border-t border-muted-foreground/20"></div>
+          <span className="flex-shrink mx-4 text-xs uppercase text-muted-foreground">Ou continue com</span>
+          <div className="flex-grow border-t border-muted-foreground/20"></div>
+        </div>
+
+        <div className="w-full grid grid-cols-3 gap-3">
+          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('passenger')}>
+            <User className="mr-2 h-4 w-4" />
+            Passageiro
+          </Button>
+          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('driver')}>
+            <Car className="mr-2 h-4 w-4" />
+            Motorista
+          </Button>
+          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('admin')}>
+            <Shield className="mr-2 h-4 w-4" />
+            Admin
+          </Button>
+        </div>
+
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          Não tem uma conta?{" "}
+          <Link href="/signup" className="font-semibold text-primary hover:underline">
+            Cadastre-se
+          </Link>
+        </div>
       </div>
     </main>
   );

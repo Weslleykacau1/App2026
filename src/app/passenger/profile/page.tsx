@@ -20,14 +20,18 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { getItem, setItem } from "@/lib/storage";
 
+const PASSENGER_PROFILE_KEY = 'passenger_profile_data';
 
 function ProfilePage() {
     const router = useRouter();
     const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const { toast } = useToast();
+
+    const [profileData, setProfileData] = useState({ name: user?.name || '', email: user?.email || '', phone: '+55 11 99999-8888', cpf: '123.456.789-00' });
+    const [isDarkMode, setIsDarkMode] = useState(false);
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -42,6 +46,10 @@ function ProfilePage() {
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
+        const savedData = getItem(PASSENGER_PROFILE_KEY);
+        if (savedData) {
+            setProfileData(savedData);
+        }
     }, [theme]);
 
      useEffect(() => {
@@ -120,19 +128,21 @@ function ProfilePage() {
     };
 
     const handleEditToggle = () => {
-        setIsEditing(!isEditing);
         if (isEditing) {
+            setItem(PASSENGER_PROFILE_KEY, profileData);
             toast({
                 title: "Informações Salvas!",
                 description: "Seus dados foram atualizados com sucesso.",
             })
         }
+        setIsEditing(!isEditing);
     }
 
 
     if (!user) return null;
 
     const getInitials = (name: string) => {
+        if (!name) return '';
         const names = name.split(' ');
         const initials = names.map(n => n[0]).join('');
         return initials.toUpperCase();
@@ -216,13 +226,13 @@ function ProfilePage() {
                             <div className="relative mb-4">
                                 <Avatar className="h-28 w-28 border-4 border-background shadow-md">
                                     <AvatarImage src={photoDataUrl || "https://placehold.co/112x112.png"} data-ai-hint="person avatar" />
-                                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                    <AvatarFallback>{getInitials(profileData.name)}</AvatarFallback>
                                 </Avatar>
                                 <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setActiveTab('upload-photo')}>
                                     <Camera className="h-4 w-4"/>
                                 </Button>
                             </div>
-                            <h2 className="text-2xl font-bold">{user.name}</h2>
+                            <h2 className="text-2xl font-bold">{profileData.name}</h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
                                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
@@ -250,28 +260,28 @@ function ProfilePage() {
                                         <Label htmlFor="name">Nome Completo</Label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="name" defaultValue={user.name} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
+                                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="email">Email</Label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="email" type="email" defaultValue={user.email} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
+                                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="phone">Telefone</Label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="phone" type="tel" defaultValue="+55 11 99999-8888" disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
+                                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="cpf">CPF</Label>
                                         <div className="relative">
                                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="cpf" defaultValue="123.456.789-00" disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
+                                            <Input id="cpf" value={profileData.cpf} onChange={(e) => setProfileData({...profileData, cpf: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                 </div>
@@ -419,3 +429,5 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
+
+    

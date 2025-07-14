@@ -20,20 +20,26 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { getItem, setItem } from "@/lib/storage";
 
+const DRIVER_PROFILE_KEY = 'driver_profile_data';
+const DRIVER_VEHICLE_KEY = 'driver_vehicle_data';
 
 function DriverProfilePage() {
     const router = useRouter();
     const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const { toast } = useToast();
     
+    const [isDarkMode, setIsDarkMode] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingVehicle, setIsEditingVehicle] = useState(false);
     const [language, setLanguage] = useState("pt-br");
 
     const [activeTab, setActiveTab] = useState("profile");
+
+    const [profileData, setProfileData] = useState({ name: user?.name || '', email: user?.email || '', phone: '+55 11 98888-7777' });
+    const [vehicleData, setVehicleData] = useState({ model: 'Toyota Corolla', licensePlate: 'BRA2E19', color: 'Prata', year: '2022' });
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
@@ -46,6 +52,14 @@ function DriverProfilePage() {
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
+        const savedProfile = getItem(DRIVER_PROFILE_KEY);
+        if (savedProfile) {
+            setProfileData(savedProfile);
+        }
+        const savedVehicle = getItem(DRIVER_VEHICLE_KEY);
+        if (savedVehicle) {
+            setVehicleData(savedVehicle);
+        }
     }, [theme]);
 
      useEffect(() => {
@@ -125,21 +139,23 @@ function DriverProfilePage() {
 
     const handleEditToggle = (editor: 'profile' | 'vehicle') => {
         if (editor === 'profile') {
-            setIsEditingProfile(!isEditingProfile);
             if (isEditingProfile) {
+                setItem(DRIVER_PROFILE_KEY, profileData);
                  toast({
                     title: "Informações Salvas!",
                     description: "Seus dados foram atualizados com sucesso.",
                 })
             }
+            setIsEditingProfile(!isEditingProfile);
         } else if (editor === 'vehicle') {
-            setIsEditingVehicle(!isEditingVehicle);
              if (isEditingVehicle) {
+                setItem(DRIVER_VEHICLE_KEY, vehicleData);
                  toast({
                     title: "Informações Salvas!",
                     description: "Os dados do veículo foram atualizados.",
                 })
             }
+            setIsEditingVehicle(!isEditingVehicle);
         }
     }
 
@@ -230,13 +246,13 @@ function DriverProfilePage() {
                             <div className="relative mb-4">
                                 <Avatar className="h-28 w-28 border-4 border-background shadow-md">
                                     <AvatarImage src={photoDataUrl || "https://placehold.co/112x112.png"} data-ai-hint="person avatar" />
-                                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                    <AvatarFallback>{getInitials(profileData.name)}</AvatarFallback>
                                 </Avatar>
                                 <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setActiveTab('upload-photo')}>
                                     <Camera className="h-4 w-4"/>
                                 </Button>
                             </div>
-                            <h2 className="text-2xl font-bold">{user.name}</h2>
+                            <h2 className="text-2xl font-bold">{profileData.name}</h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
                                 <span className="font-semibold text-muted-foreground">4.8</span>
@@ -260,21 +276,21 @@ function DriverProfilePage() {
                                         <Label htmlFor="name">Nome Completo</Label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="name" defaultValue={user.name} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
+                                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="email">Email</Label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="email" type="email" defaultValue={user.email} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
+                                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="phone">Telefone</Label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="phone" type="tel" defaultValue="+55 11 98888-7777" disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
+                                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                 </div>
@@ -297,19 +313,19 @@ function DriverProfilePage() {
                                 <CardContent className="space-y-4">
                                      <div>
                                         <Label htmlFor="model">Modelo do Veículo</Label>
-                                        <Input id="model" defaultValue="Toyota Corolla" disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                                        <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
                                     </div>
                                     <div>
                                         <Label htmlFor="license-plate">Placa</Label>
-                                        <Input id="license-plate" defaultValue="BRA2E19" disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                                        <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
                                     </div>
                                     <div>
                                         <Label htmlFor="color">Cor</Label>
-                                        <Input id="color" defaultValue="Prata" disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                                        <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
                                     </div>
                                     <div>
                                         <Label htmlFor="year">Ano</Label>
-                                        <Input id="year" type="number" defaultValue="2022" disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                                        <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -456,3 +472,5 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    

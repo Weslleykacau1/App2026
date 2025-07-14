@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -72,6 +74,7 @@ function AdminDashboard() {
   const [users, setUsers] = useState(initialUsers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,6 +104,18 @@ function AdminDashboard() {
     toast({
         title: "Status de verificação atualizado!",
         description: `O usuário foi marcado como ${newStatus.toLowerCase()}.`,
+    });
+  };
+
+  const handleFareChange = (e: React.ChangeEvent<HTMLInputElement>, category: 'comfort' | 'executive') => {
+    setFares({ ...fares, [category]: e.target.value });
+  };
+
+  const handleSaveFares = () => {
+    // In a real app, you would save this to your database
+    toast({
+      title: "Tarifas Salvas!",
+      description: `Comfort: R$${fares.comfort}/km, Executive: R$${fares.executive}/km`,
     });
   };
 
@@ -153,8 +168,8 @@ function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-5">
-            <Card className="md:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Gerenciamento de Usuários</CardTitle>
                 <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
@@ -229,38 +244,59 @@ function AdminDashboard() {
                 </Table>
               </CardContent>
             </Card>
-            <Card className="md:col-span-2">
-                 <CardHeader>
-                    <CardTitle>Receita Mensal</CardTitle>
-                    <CardDescription>Visão geral da receita nos últimos meses.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={revenueData}>
-                            <XAxis
-                                dataKey="name"
-                                stroke="hsl(var(--muted-foreground))"
-                                fontSize={12}
-                                tickLine={false}
-                                axisLine={false}
-                            />
-                            <YAxis
-                                stroke="hsl(var(--muted-foreground))"
-                                fontSize={12}
-                                tickLine={false}
-                                axisLine={false}
-                                tickFormatter={(value) => `R$${value / 1000}k`}
-                            />
-                            <RechartsTooltip
-                                cursor={{ fill: 'hsl(var(--muted))' }}
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                                 formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-                            />
-                            <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
+            <div className="space-y-6">
+                <Card>
+                     <CardHeader>
+                        <CardTitle>Receita Mensal</CardTitle>
+                        <CardDescription>Visão geral da receita nos últimos meses.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={revenueData}>
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="hsl(var(--muted-foreground))"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    stroke="hsl(var(--muted-foreground))"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => `R$${value / 1000}k`}
+                                />
+                                <RechartsTooltip
+                                    cursor={{ fill: 'hsl(var(--muted))' }}
+                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                                     formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                                />
+                                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Tarifas por Categoria</CardTitle>
+                        <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 items-center gap-4">
+                            <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
+                            <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
+                        </div>
+                        <div className="grid grid-cols-2 items-center gap-4">
+                            <Label htmlFor="executive-fare">Executive (R$/km)</Label>
+                            <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
+                        </div>
+                         <Button onClick={handleSaveFares} className="w-full">
+                            <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       </div>
        {selectedUser && (

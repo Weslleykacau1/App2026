@@ -21,7 +21,10 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { auth, db } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -52,39 +55,17 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            name: values.name,
-            role: values.role,
-          },
-        },
-      });
-
-      if (signUpError) {
-        throw signUpError;
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({ 
-            id: data.user.id, 
-            name: values.name, 
-            email: values.email, 
-            role: values.role,
-            status: 'Ativo',
-            verification: 'Pendente'
-          });
-
-        if (profileError) {
-          // TODO: Handle potential case where auth user is created but profile fails.
-          // For now, we'll just log the error.
-           console.error("Profile creation failed:", profileError)
-           throw profileError;
-        }
+      if (userCredential.user) {
+        const user = userCredential.user;
+        await setDoc(doc(db, "profiles", user.uid), {
+          name: values.name,
+          email: values.email,
+          role: values.role,
+          status: 'Ativo',
+          verification: 'Pendente'
+        });
 
         toast({
           title: "Cadastro Inicial Realizado!",

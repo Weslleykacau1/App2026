@@ -3,7 +3,9 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 export type UserRole = "passenger" | "driver" | "admin";
@@ -48,26 +50,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        // Fetch profile data from Supabase
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        const docRef = doc(db, "profiles", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
         
-        if (profile) {
+        if (docSnap.exists()) {
+          const profileData = docSnap.data();
           setUser({
-            id: session.user.id,
-            ...profile
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            ...profileData
           } as User);
         } else {
-          // This case might happen if profile creation failed after signup
-          // Or if user was deleted from profiles table but not from auth.users
+          // If profile doesn't exist, sign out the user
+          await signOut(auth);
           setUser(null);
-          // Ensure user is fully logged out if their profile is missing
-          await supabase.auth.signOut();
         }
       } else {
         setUser(null);
@@ -75,38 +73,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
     setIsSubmitting(true);
+    if (!credentials.email || !credentials.password) {
+        toast({ variant: "destructive", title: "Erro", description: "Email e senha são obrigatórios." });
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword(credentials);
+      const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
 
-      if (authError) {
-        throw authError;
-      }
-
-      if (authData.user) {
-        // Immediately verify if a profile exists for this user
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('id', authData.user.id)
-          .single();
+      if (userCredential.user) {
+        const docRef = doc(db, "profiles", userCredential.user.uid);
+        const docSnap = await getDoc(docRef);
         
-        if (profileError || !profile) {
-          // If no profile, sign out immediately and show an error
-          await supabase.auth.signOut();
+        if (docSnap.exists()) {
+          const profileData = docSnap.data();
+          router.push(`/${profileData.role}`);
+        } else {
+          await signOut(auth);
           throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
         }
-        
-        // Profile exists, onAuthStateChange will handle setting the user and redirecting.
-        // We can manually route here if we want faster navigation.
-        router.push(`/${profile.role}`);
-
       } else {
          throw new Error("Ocorreu um erro inesperado durante o login.");
       }
@@ -123,8 +114,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null); // Clear user state immediately
+    await signOut(auth);
+    setUser(null);
     router.push("/");
   };
 

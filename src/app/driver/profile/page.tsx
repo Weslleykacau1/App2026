@@ -20,7 +20,8 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 function DriverProfilePage() {
     const router = useRouter();
@@ -57,15 +58,11 @@ function DriverProfilePage() {
             if (!user) return;
             setIsLoading(true);
             try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+                const docRef = doc(db, "profiles", user.id);
+                const docSnap = await getDoc(docRef);
 
-                if (error) throw error;
-
-                if (data) {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
                     setProfileData({
                         name: data.name || '',
                         email: data.email || '',
@@ -172,19 +169,16 @@ function DriverProfilePage() {
     const handleSaveProfile = async () => {
         if (!user) return;
         
-        const { error } = await supabase
-            .from('profiles')
-            .update({
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            await updateDoc(docRef, {
                 name: profileData.name,
                 email: profileData.email,
                 phone: profileData.phone,
-            })
-            .eq('id', user.id);
-
-        if (error) {
-            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
-        } else {
+            });
             toast({ title: "Informações Salvas!", description: "Seus dados foram atualizados com sucesso." });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
         }
         setIsEditingProfile(false);
     };
@@ -192,20 +186,17 @@ function DriverProfilePage() {
     const handleSaveVehicle = async () => {
         if (!user) return;
 
-        const { error } = await supabase
-            .from('profiles')
-            .update({
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            await updateDoc(docRef, {
                 vehicle_model: vehicleData.model,
                 vehicle_license_plate: vehicleData.licensePlate,
                 vehicle_color: vehicleData.color,
                 vehicle_year: vehicleData.year,
-            })
-            .eq('id', user.id);
-        
-        if (error) {
-            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações do veículo." });
-        } else {
+            });
             toast({ title: "Informações Salvas!", description: "Os dados do veículo foram atualizados." });
+        } catch (error) {
+             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações do veículo." });
         }
         setIsEditingVehicle(false);
     }
@@ -235,7 +226,7 @@ function DriverProfilePage() {
                 <main className="flex-1 py-6 container mx-auto px-4">
                      <div className="flex flex-col items-center space-y-4">
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                            <video ref={videoRef} className={cn("w-full h-full object-cover", hasCameraPermission === false && "hidden", photoDataUrl && "hidden")} autoPlay muted playsInline />
                             {photoDataUrl && (
                                 <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
                             )}

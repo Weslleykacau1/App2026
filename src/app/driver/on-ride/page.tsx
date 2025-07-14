@@ -12,6 +12,8 @@ import { useTheme } from 'next-themes';
 import { MapPin, MessageCircle, Phone, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { setItem } from "@/lib/storage";
+
 
 interface RideData {
   fare: number;
@@ -100,8 +102,9 @@ function OnRidePage() {
     const newRides = currentRides + 1;
     sessionStorage.setItem('today_rides', newRides.toString());
 
+    setItem('ride_to_rate_data', rideData);
     sessionStorage.removeItem('current_ride_data');
-    router.push('/driver');
+    router.push('/driver/rate-passenger');
   };
 
   if (!mapboxToken || !rideData) {

@@ -164,17 +164,13 @@ function DriverDashboard() {
                 <Menu className="h-6 w-6 text-primary-foreground" />
             </Button>
             
-            <div className="bg-background/80 backdrop-blur-sm rounded-xl p-3 shadow-lg pointer-events-auto flex flex-col items-center">
-                 <div className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-muted-foreground"/>
-                    <span className="text-sm font-medium text-muted-foreground">Ganhos de Hoje</span>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEarnings(!showEarnings)}>
-                         {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                    </Button>
-                 </div>
-                 <p className="text-2xl font-bold mt-1">
+            <div className="bg-background/80 backdrop-blur-sm rounded-xl py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-2">
+                 <p className="text-2xl font-bold">
                     {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
                 </p>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowEarnings(!showEarnings)}>
+                    {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                </Button>
             </div>
 
             <Button

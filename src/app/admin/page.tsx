@@ -41,6 +41,12 @@ interface User {
   verification: VerificationStatus;
 }
 
+interface OnlineDriver {
+    id: number;
+    lat: number;
+    lng: number;
+}
+
 const addUserFormSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -74,7 +80,7 @@ const initialRevenueData = [
   { name: "Dez", total: 0 },
 ];
 
-const onlineDrivers = [
+const initialOnlineDrivers: OnlineDriver[] = [
     { id: 1, lat: -23.5505, lng: -46.6333 },
     { id: 2, lat: -23.5610, lng: -46.6555 },
     { id: 3, lat: -23.5465, lng: -46.6280 },
@@ -97,6 +103,7 @@ const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
   const [users, setUsers] = useState(initialUsers);
+  const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>(initialOnlineDrivers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -121,6 +128,20 @@ function AdminDashboard() {
       total: Math.floor(Math.random() * 5000) + 1000
     }));
     setRevenueData(generatedData);
+    
+    // Simulate real-time driver location updates
+    const interval = setInterval(() => {
+        setOnlineDrivers(drivers => 
+            drivers.map(driver => ({
+                ...driver,
+                lat: driver.lat + (Math.random() - 0.5) * 0.001,
+                lng: driver.lng + (Math.random() - 0.5) * 0.001,
+            }))
+        );
+    }, 3000);
+
+    return () => clearInterval(interval);
+
   }, []);
 
   const handleOpenDocuments = (user: User) => {
@@ -549,5 +570,7 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    
 
     

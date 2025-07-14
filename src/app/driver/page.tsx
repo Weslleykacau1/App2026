@@ -35,34 +35,57 @@ function DriverDashboard() {
     zoom: 12
   });
   const [userLocation, setUserLocation] = useState<{longitude: number, latitude: number} | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+
+   useEffect(() => {
+    // Get initial location
+     navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { longitude, latitude } = position.coords;
+            const newLocation = { longitude, latitude };
+            if (!userLocation) {
+                 setViewState(prevState => ({ ...prevState, ...newLocation, zoom: 15 }));
+            }
+            setUserLocation(newLocation);
+        },
+        (error) => console.error("Error getting initial user location:", error),
+        { enableHighAccuracy: true }
+    );
+   }, []);
+
 
   useEffect(() => {
-    // Watch user's position
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { longitude, latitude } = position.coords;
-        const newLocation = { longitude, latitude };
-        
-        if (!userLocation) { // Fly to location on first load
-            setViewState(prevState => ({ ...prevState, ...newLocation, zoom: 15 }));
+    if (isOnline) {
+      // Start watching position when driver goes online
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          setUserLocation({ longitude, latitude });
+        },
+        (error) => {
+          console.error("Error watching user location:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
-        setUserLocation(newLocation);
-      },
-      (error) => {
-        console.error("Error getting user location:", error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+      );
+    } else {
+      // Stop watching when driver goes offline
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
       }
-    );
+    }
 
     return () => {
-      // Cleanup the watch
-      navigator.geolocation.clearWatch(watchId);
+      // Cleanup the watch on component unmount
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
     };
-  }, [userLocation]);
+  }, [isOnline]);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -102,9 +125,11 @@ function DriverDashboard() {
               {userLocation && (
                 <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
                     <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
-                        </svg>
+                       <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round"/>
+                            </svg>
+                       </div>
                     </div>
                 </Marker>
               )}

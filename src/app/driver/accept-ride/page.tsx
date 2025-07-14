@@ -16,32 +16,31 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 const rideData = {
-  fare: 32.96,
-  bonus: 11.00,
-  passengerRating: 5.0,
-  pickupDistance: 1.2,
-  pickupTime: 5,
-  pickupAddress: "Avenida Doutor Alcides de Araújo, Centro",
-  tripDistance: 24.1,
-  tripTime: 35,
-  destination: "Praia Grande, Itararé",
+  fare: 28.50,
+  bonus: 8.00,
+  passengerRating: 4.9,
+  pickupDistance: 1.5,
+  pickupTime: 6,
+  pickupAddress: "Av. Beira Mar, 3470, Meireles",
+  tripDistance: 12.3,
+  tripTime: 25,
+  destination: "Shopping Iguatemi, Edson Queiroz",
   rideCategory: "Comfort",
   passenger: {
-    name: "Ana P.",
+    name: "Lúcia S.",
     avatarUrl: "https://placehold.co/80x80.png"
   },
   route: {
-    pickup: { lat: -23.555, lng: -46.635 },
-    destination: { lat: -23.58, lng: -46.66 }
+    pickup: { lat: -3.722, lng: -38.489 },
+    destination: { lat: -3.755, lng: -38.485 }
   }
 };
 
 const routeCoordinates: LngLatLike[] = [
-  [-46.635, -23.555],
-  [-46.638, -23.558],
-  [-46.645, -23.565],
-  [-46.65, -23.57],
-  [-46.66, -23.58]
+  [-38.489, -3.722],
+  [-38.495, -3.730],
+  [-38.490, -3.745],
+  [-38.485, -3.755]
 ];
 
 const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
@@ -151,7 +150,7 @@ function AcceptRidePage() {
         <Marker longitude={rideData.route.pickup.lng} latitude={rideData.route.pickup.lat}>
             <MapPin className="text-primary h-8 w-8" fill="hsl(var(--primary))"/>
         </Marker>
-         <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
+         <Marker longitude={-38.5267} latitude={-3.7327} anchor="center">
              <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>

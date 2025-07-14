@@ -84,11 +84,11 @@ const initialRevenueData = [
 ];
 
 const initialOnlineDrivers: OnlineDriver[] = [
-    { id: 1, lat: -23.5505, lng: -46.6333 },
-    { id: 2, lat: -23.5610, lng: -46.6555 },
-    { id: 3, lat: -23.5465, lng: -46.6280 },
-    { id: 4, lat: -23.5580, lng: -46.6420 },
-    { id: 5, lat: -23.5420, lng: -46.6380 },
+    { id: 1, lat: -3.7327, lng: -38.5267 },
+    { id: 2, lat: -3.7310, lng: -38.5255 },
+    { id: 3, lat: -3.7365, lng: -38.5280 },
+    { id: 4, lat: -3.7280, lng: -38.5220 },
+    { id: 5, lat: -3.7320, lng: -38.5380 },
 ];
 
 const roleTranslations: { [key in UserRole]: string } = {
@@ -463,8 +463,8 @@ function AdminDashboard() {
                             <MapGL
                                 mapboxAccessToken={mapboxToken}
                                 initialViewState={{
-                                longitude: -46.6333,
-                                latitude: -23.5505,
+                                longitude: -38.5267,
+                                latitude: -3.7327,
                                 zoom: 12
                                 }}
                                 style={{ width: '100%', height: '100%' }}
@@ -629,6 +629,7 @@ export default withAuth(AdminDashboard, ["admin"]);
     
 
     
+
 
 
 

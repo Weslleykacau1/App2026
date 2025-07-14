@@ -14,24 +14,24 @@ import { useRouter } from 'next/navigation';
 
 // Mock data, in a real app this would come from the accepted ride
 const rideData = {
-  fare: 32.96,
+  fare: 28.50,
   passenger: {
-    name: "Ana P.",
+    name: "Lúcia S.",
     avatarUrl: "https://placehold.co/80x80.png"
   },
-  pickupAddress: "Avenida Doutor Alcides de Araújo, Centro",
-  destination: "Praia Grande, Itararé",
+  pickupAddress: "Av. Beira Mar, 3470, Meireles",
+  destination: "Shopping Iguatemi, Edson Queiroz",
   route: {
-    driver: { lat: -23.5505, lng: -46.6333 },
-    pickup: { lat: -23.555, lng: -46.635 },
-    destination: { lat: -23.58, lng: -46.66 }
+    driver: { lat: -3.7327, lng: -38.5267 },
+    pickup: { lat: -3.722, lng: -38.489 },
+    destination: { lat: -3.755, lng: -38.485 }
   }
 };
 
 const routeToPickupCoordinates: LngLatLike[] = [
-  [-46.6333, -23.5505], // Driver start
-  [-46.634, -23.552],
-  [-46.635, -23.555],  // Pickup
+  [-38.5267, -3.7327], // Driver start
+  [-38.510, -3.728],
+  [-38.489, -3.722],  // Pickup
 ];
 
 const routeToPickupGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
@@ -107,7 +107,7 @@ function OnRidePage() {
         initialViewState={{
           longitude: rideData.route.driver.lng,
           latitude: rideData.route.driver.lat,
-          zoom: 14
+          zoom: 13
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}

@@ -14,12 +14,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 const surgeZones = [
-  { lat: -23.555, lng: -46.635, color: "bg-red-500/20 border-red-700/0" },
-  { lat: -23.545, lng: -46.645, color: "bg-orange-400/20 border-orange-600/0" },
-  { lat: -23.56, lng: -46.65, color: "bg-red-500/20 border-red-700/0" },
-  { lat: -23.55, lng: -46.62, color: "bg-yellow-400/20 border-yellow-600/0" },
-  { lat: -23.565, lng: -46.63, color: "bg-orange-400/20 border-orange-600/0" },
-  { lat: -23.54, lng: -46.625, color: "bg-red-600/20 border-red-800/0" },
+  { lat: -3.722, lng: -38.489, color: "bg-red-500/20 border-red-700/0" }, // Meireles
+  { lat: -3.742, lng: -38.512, color: "bg-orange-400/20 border-orange-600/0" }, // Aldeota
+  { lat: -3.768, lng: -38.484, color: "bg-red-500/20 border-red-700/0" }, // Praia do Futuro
+  { lat: -3.731, lng: -38.541, color: "bg-yellow-400/20 border-yellow-600/0" }, // Centro
+  { lat: -3.755, lng: -38.485, color: "bg-orange-400/20 border-orange-600/0" }, // Edson Queiroz
+  { lat: -3.788, lng: -38.533, color: "bg-red-600/20 border-red-800/0" }, // Parquelândia
 ];
 
 
@@ -30,8 +30,8 @@ function DriverDashboard() {
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState({
-    longitude: -46.6333,
-    latitude: -23.5505,
+    longitude: -38.5267,
+    latitude: -3.7327,
     zoom: 12
   });
   const [userLocation, setUserLocation] = useState<{longitude: number, latitude: number} | null>(null);

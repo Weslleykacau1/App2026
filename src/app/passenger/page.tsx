@@ -62,7 +62,7 @@ function PassengerDashboard() {
   };
 
   const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length > 0) {
+    if (e.target.value.length > 8) {
       // Simulate distance calculation
       const distance = Math.random() * (30 - 1) + 1; // Random distance between 1km and 30km
       
@@ -94,7 +94,7 @@ function PassengerDashboard() {
             rating: 4.9,
             vehicle: {
                 model: "Honda Civic",
-                licensePlate: "XYZ-1234"
+                licensePlate: "NQR-8A21"
             },
             eta: 5
         })

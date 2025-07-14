@@ -1,21 +1,21 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu, Loader2, Star, X } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
-import type { MapRef } from "react-map-gl";
+import type { MapRef, LngLatLike } from "react-map-gl";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 
 type RideCategory = "comfort" | "executive";
 type PaymentMethod = "pix" | "cash" | "card_machine";
@@ -31,23 +31,87 @@ interface FoundDriver {
     eta: number;
 }
 
+interface Suggestion {
+  id: string;
+  place_name: string;
+  center: [number, number];
+}
+
 function PassengerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
-  const [showPrice, setShowPrice] = useState(false);
+  
   const [comfortPrice, setComfortPrice] = useState(0);
   const [executivePrice, setExecutivePrice] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const mapRef = useRef<MapRef>(null);
+  
+  const [destinationInput, setDestinationInput] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [selectedDestination, setSelectedDestination] = useState<Suggestion | null>(null);
+
   const [isSearching, setIsSearching] = useState(false);
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
   const { toast } = useToast();
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   useEffect(() => {
     handleLocateUser();
   }, []);
+
+  const debounce = (func: Function, delay: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
+  };
+  
+  const fetchSuggestions = async (query: string) => {
+    if (query.length < 3 || !mapboxToken) {
+        setSuggestions([]);
+        setIsSuggestionsOpen(false);
+        return;
+    }
+    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&autocomplete=true&country=BR&language=pt&proximity=-38.5267,-3.7327`);
+    const data = await response.json();
+    setSuggestions(data.features);
+    setIsSuggestionsOpen(data.features.length > 0);
+  };
+  
+  const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestions, 300), [mapboxToken]);
+
+  const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDestinationInput(value);
+    setSelectedDestination(null); // Clear selected destination if user types again
+    debouncedFetchSuggestions(value);
+  };
+
+  const handleSelectSuggestion = (suggestion: Suggestion) => {
+    setDestinationInput(suggestion.place_name);
+    setSelectedDestination(suggestion);
+    setSuggestions([]);
+    setIsSuggestionsOpen(false);
+
+    // Center map on selected destination
+    mapRef.current?.flyTo({
+      center: suggestion.center as LngLatLike,
+      zoom: 15,
+    });
+    
+    // Calculate price
+    const distance = Math.random() * (30 - 1) + 1; // Random distance
+    const comfortFare = distance * 1.80;
+    const executiveFare = distance * 2.20;
+    setComfortPrice(comfortFare);
+    setExecutivePrice(executiveFare);
+    setPromoApplied(true);
+  };
+
 
   if (!user) return null;
 
@@ -61,29 +125,8 @@ function PassengerDashboard() {
     });
   };
 
-  const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length > 8) {
-      // Simulate distance calculation
-      const distance = Math.random() * (30 - 1) + 1; // Random distance between 1km and 30km
-      
-      // Calculate price based on distance
-      const comfortFare = distance * 1.80;
-      const executiveFare = distance * 2.20;
-
-      setComfortPrice(comfortFare);
-      setExecutivePrice(executiveFare);
-      setShowPrice(true);
-      setPromoApplied(true);
-    } else {
-      setShowPrice(false);
-      setPromoApplied(false);
-      setComfortPrice(0);
-      setExecutivePrice(0);
-    }
-  };
-
   const handleConfirmRide = () => {
-    if (!showPrice) return;
+    if (!selectedDestination) return;
     setIsSearching(true);
     // Simulate finding a driver
     setTimeout(() => {
@@ -107,10 +150,9 @@ function PassengerDashboard() {
   
    const handleCancelRide = () => {
         setFoundDriver(null);
-        setShowPrice(false);
+        setSelectedDestination(null);
         setPromoApplied(false);
-        const destinationInput = document.getElementById('destination') as HTMLInputElement;
-        if(destinationInput) destinationInput.value = "";
+        setDestinationInput("");
         toast({
             title: "Corrida cancelada.",
             description: "Você pode solicitar uma nova corrida quando quiser.",
@@ -135,10 +177,6 @@ function PassengerDashboard() {
                 <h3 className="font-bold text-lg text-foreground">{name}</h3>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{time} min</span>
-                    <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{seats}</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -166,7 +204,7 @@ function PassengerDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
        <div className="absolute inset-0 h-full w-full z-0">
-         <Map mapRef={mapRef} showMovingCar={!!foundDriver} />
+         <Map mapRef={mapRef} showMovingCar={!!foundDriver} destination={selectedDestination?.center as LngLatLike | undefined} />
        </div>
 
       <header className="absolute top-0 left-0 right-0 z-10 p-6 flex justify-between items-center pointer-events-none">
@@ -189,9 +227,8 @@ function PassengerDashboard() {
       </header>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
-         {promoApplied && !foundDriver && (
+         {promoApplied && !foundDriver && selectedDestination && (
             <div className="bg-primary text-primary-foreground rounded-lg p-2 text-center text-sm font-medium flex items-center justify-center gap-2">
-                <Check className="h-4 w-4"/>
                 <span>10% de promoção aplicada</span>
             </div>
          )}
@@ -238,19 +275,37 @@ function PassengerDashboard() {
                         defaultValue="Localização atual"
                       />
                     </div>
-                    <div className="relative flex items-center">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
-                      <Input
-                        id="destination"
-                        placeholder="Digite seu endereço"
-                        className="pl-10 h-12 text-base"
-                        required
-                        onChange={handleDestinationChange}
-                      />
-                    </div>
+                    <Popover open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
+                        <PopoverAnchor asChild>
+                            <div className="relative flex items-center">
+                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                              <Input
+                                id="destination"
+                                placeholder="Digite seu endereço"
+                                className="pl-10 h-12 text-base"
+                                required
+                                value={destinationInput}
+                                onChange={handleDestinationChange}
+                                autoComplete="off"
+                              />
+                            </div>
+                        </PopoverAnchor>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                            {suggestions.map((suggestion) => (
+                                <Button
+                                key={suggestion.id}
+                                variant="ghost"
+                                className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal"
+                                onClick={() => handleSelectSuggestion(suggestion)}
+                                >
+                                {suggestion.place_name}
+                                </Button>
+                            ))}
+                        </PopoverContent>
+                    </Popover>
                   </div>
                   
-                  {showPrice && (
+                  {selectedDestination && (
                       <div className="space-y-2">
                           <RideOption 
                               type="comfort"
@@ -299,9 +354,9 @@ function PassengerDashboard() {
                     />
                   </div>
 
-                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice} onClick={handleConfirmRide}>
+                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!selectedDestination} onClick={handleConfirmRide}>
                     <span>Confirmar Corrida</span>
-                    <ArrowRight className="h-5 w-5"/>
+                    <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice * 0.9 : executivePrice * 0.9)}</span>
                   </Button>
 
                 </CardContent>

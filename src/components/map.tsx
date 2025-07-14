@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
+import MapGL, { Marker, GeolocateControl, MapRef, Source, Layer, LngLatLike } from 'react-map-gl';
 import { useTheme } from "next-themes";
-import { Car } from 'lucide-react';
+import { Car, Flag } from 'lucide-react';
 
-export function Map({ mapRef, showMovingCar }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean }) {
+export function Map({ mapRef, showMovingCar, destination }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean, destination?: LngLatLike }) {
   const { resolvedTheme } = useTheme();
   const [driverLocation, setDriverLocation] = useState({ longitude: -38.495, latitude: -3.735 });
 
@@ -60,6 +60,12 @@ export function Map({ mapRef, showMovingCar }: { mapRef?: React.Ref<MapRef>, sho
       <Marker longitude={-38.5267} latitude={-3.7327} anchor="center">
          <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>
       </Marker>
+
+      {destination && (
+        <Marker longitude={destination[0]} latitude={destination[1]} anchor="center">
+            <Flag className="h-8 w-8 text-red-500" fill="currentColor" />
+        </Marker>
+      )}
 
       {showMovingCar ? (
         <Marker longitude={driverLocation.longitude} latitude={driverLocation.latitude} anchor="bottom">

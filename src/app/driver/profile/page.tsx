@@ -392,15 +392,18 @@ function DriverProfilePage() {
                                                 <p className="font-medium">Idioma</p>
                                                 <p className="text-sm text-muted-foreground">Selecione seu idioma preferido</p>
                                             </div>
-                                            <Select value={language} onValueChange={setLanguage}>
-                                                <SelectTrigger className="w-[120px]">
-                                                    <SelectValue placeholder="Idioma" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="pt-br">Português</SelectItem>
-                                                    <SelectItem value="en-us">English</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <div className="flex items-center gap-2">
+                                                <Select value={language} onValueChange={setLanguage}>
+                                                    <SelectTrigger className="w-[120px]">
+                                                        <SelectValue placeholder="Idioma" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pt-br">Português</SelectItem>
+                                                        <SelectItem value="en-us">English</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button size="sm" onClick={() => toast({ title: "Idioma atualizado!" })}>Aplicar</Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -453,5 +456,3 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
-
-    

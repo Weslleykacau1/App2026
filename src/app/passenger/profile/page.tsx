@@ -405,7 +405,7 @@ function ProfilePage() {
                                                 <p className="font-medium">Visibilidade do perfil</p>
                                                 <p className="text-sm text-muted-foreground">Mostrar perfil para outros usuários</p>
                                             </div>
-                                            <Switch />
+                                            <Switch defaultChecked />
                                         </div>
                                     </div>
                                 </CardContent>

@@ -1,13 +1,31 @@
 
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from "next-themes";
 import { Car } from 'lucide-react';
 
-export function Map({ mapRef }: { mapRef?: React.Ref<MapRef> }) {
+export function Map({ mapRef, showMovingCar }: { mapRef?: React.Ref<MapRef>, showMovingCar?: boolean }) {
   const { resolvedTheme } = useTheme();
+  const [driverLocation, setDriverLocation] = useState({ longitude: -46.65, latitude: -23.56 });
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (showMovingCar) {
+      interval = setInterval(() => {
+        setDriverLocation(loc => ({
+          longitude: loc.longitude + (Math.random() - 0.5) * 0.002,
+          latitude: loc.latitude + (Math.random() - 0.5) * 0.002,
+        }));
+      }, 2000);
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [showMovingCar]);
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -42,20 +60,29 @@ export function Map({ mapRef }: { mapRef?: React.Ref<MapRef> }) {
       <Marker longitude={-46.6333} latitude={-23.5505} anchor="center">
          <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md"></div>
       </Marker>
-      {/* Ride X Cars */}
-       <Marker longitude={-46.65} latitude={-23.56} anchor="bottom">
-        <Car className="h-8 w-8 text-foreground" />
-      </Marker>
-       <Marker longitude={-46.60} latitude={-23.54} anchor="bottom">
-        <Car className="h-8 w-8 text-foreground" />
-      </Marker>
-      {/* Confort Cars */}
-       <Marker longitude={-46.64} latitude={-23.57} anchor="bottom">
-        <Car className="h-8 w-8 text-secondary" />
-      </Marker>
-        <Marker longitude={-46.62} latitude={-23.53} anchor="bottom">
-        <Car className="h-8 w-8 text-secondary" />
-      </Marker>
+
+      {showMovingCar ? (
+        <Marker longitude={driverLocation.longitude} latitude={driverLocation.latitude} anchor="bottom">
+          <Car className="h-8 w-8 text-foreground" />
+        </Marker>
+      ) : (
+        <>
+            {/* Ride X Cars */}
+            <Marker longitude={-46.65} latitude={-23.56} anchor="bottom">
+                <Car className="h-8 w-8 text-foreground" />
+            </Marker>
+            <Marker longitude={-46.60} latitude={-23.54} anchor="bottom">
+                <Car className="h-8 w-8 text-foreground" />
+            </Marker>
+            {/* Confort Cars */}
+            <Marker longitude={-46.64} latitude={-23.57} anchor="bottom">
+                <Car className="h-8 w-8 text-secondary" />
+            </Marker>
+                <Marker longitude={-46.62} latitude={-23.53} anchor="bottom">
+                <Car className="h-8 w-8 text-secondary" />
+            </Marker>
+        </>
+      )}
     </MapGL>
   );
 }

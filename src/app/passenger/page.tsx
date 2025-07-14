@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu, Loader2 } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, Car, User, Users, Check, LocateFixed, Menu, Loader2, Star, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -14,10 +14,22 @@ import { useRouter } from 'next/navigation';
 import type { MapRef } from "react-map-gl";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 type RideCategory = "comfort" | "executive";
 type PaymentMethod = "pix" | "cash" | "card_machine";
+
+interface FoundDriver {
+    name: string;
+    avatarUrl: string;
+    rating: number;
+    vehicle: {
+        model: string;
+        licensePlate: string;
+    };
+    eta: number;
+}
 
 function PassengerDashboard() {
   const { user } = useAuth();
@@ -30,6 +42,7 @@ function PassengerDashboard() {
   const [promoApplied, setPromoApplied] = useState(false);
   const mapRef = useRef<MapRef>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,14 +88,34 @@ function PassengerDashboard() {
     // Simulate finding a driver
     setTimeout(() => {
         setIsSearching(false);
+        setFoundDriver({
+            name: "Joana M.",
+            avatarUrl: "https://placehold.co/80x80.png",
+            rating: 4.9,
+            vehicle: {
+                model: "Honda Civic",
+                licensePlate: "XYZ-1234"
+            },
+            eta: 5
+        })
         toast({
             title: "Motorista encontrado!",
-            description: "Seu motorista está a caminho.",
+            description: "Joana M. está a caminho.",
         });
-        // Here you would typically navigate to a 'trip status' page
-        // For now, we'll just close the modal.
     }, 5000);
   };
+  
+   const handleCancelRide = () => {
+        setFoundDriver(null);
+        setShowPrice(false);
+        setPromoApplied(false);
+        const destinationInput = document.getElementById('destination') as HTMLInputElement;
+        if(destinationInput) destinationInput.value = "";
+        toast({
+            title: "Corrida cancelada.",
+            description: "Você pode solicitar uma nova corrida quando quiser.",
+        });
+    };
 
 
   const formatCurrency = (value: number) => {
@@ -132,9 +165,9 @@ function PassengerDashboard() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <div className="absolute inset-0 h-full w-full z-0">
-        <Map mapRef={mapRef} />
-      </div>
+       <div className="absolute inset-0 h-full w-full z-0">
+         <Map mapRef={mapRef} showMovingCar={!!foundDriver} />
+       </div>
 
       <header className="absolute top-0 left-0 right-0 z-10 p-6 flex justify-between items-center pointer-events-none">
         <Button
@@ -156,92 +189,124 @@ function PassengerDashboard() {
       </header>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
-         {promoApplied && (
+         {promoApplied && !foundDriver && (
             <div className="bg-primary text-primary-foreground rounded-lg p-2 text-center text-sm font-medium flex items-center justify-center gap-2">
                 <Check className="h-4 w-4"/>
                 <span>10% de promoção aplicada</span>
             </div>
          )}
-         <Card className="shadow-2xl rounded-2xl">
-            <CardContent className="p-4 space-y-4">
-               <div className="space-y-2">
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
-                  <Input
-                    id="pickup"
-                    placeholder="Local de embarque"
-                    className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
-                    defaultValue="Localização atual"
-                  />
-                </div>
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
-                  <Input
-                    id="destination"
-                    placeholder="Digite seu endereço"
-                    className="pl-10 h-12 text-base"
-                    required
-                    onChange={handleDestinationChange}
-                  />
-                </div>
-              </div>
-              
-              {showPrice && (
-                  <div className="space-y-2">
-                      <RideOption 
-                          type="comfort"
-                          name="Comfort"
-                          time={6}
-                          seats={4}
-                          originalPrice={comfortPrice}
-                          discountedPrice={comfortPrice * 0.9}
-                          isSelected={rideCategory === 'comfort'}
-                          onSelect={() => setRideCategory('comfort')}
+         
+         {foundDriver ? (
+             <Card className="shadow-2xl rounded-2xl">
+                 <CardContent className="p-4 space-y-4">
+                     <div className="flex items-center justify-between">
+                         <p className="font-bold text-lg">Seu motorista está a caminho!</p>
+                         <p className="font-bold text-lg text-primary">{foundDriver.eta} min</p>
+                     </div>
+                     <div className="flex items-center gap-4">
+                         <Avatar className="h-16 w-16">
+                            <AvatarImage src={foundDriver.avatarUrl} data-ai-hint="person avatar"/>
+                            <AvatarFallback>{foundDriver.name.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1">
+                             <h3 className="font-bold text-xl">{foundDriver.name}</h3>
+                             <div className="flex items-center gap-1 text-yellow-500">
+                                <Star className="h-4 w-4" fill="currentColor"/>
+                                <span className="font-semibold text-foreground">{foundDriver.rating.toFixed(1)}</span>
+                             </div>
+                         </div>
+                         <div className="text-right">
+                            <p className="font-bold">{foundDriver.vehicle.model}</p>
+                            <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
+                         </div>
+                     </div>
+                     <Button variant="destructive" className="w-full h-12" onClick={handleCancelRide}>
+                         <X className="mr-2 h-4 w-4"/> Cancelar Corrida
+                     </Button>
+                 </CardContent>
+             </Card>
+         ) : (
+            <Card className="shadow-2xl rounded-2xl">
+                <CardContent className="p-4 space-y-4">
+                   <div className="space-y-2">
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
+                      <Input
+                        id="pickup"
+                        placeholder="Local de embarque"
+                        className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                        defaultValue="Localização atual"
                       />
-                      <RideOption 
-                          type="executive"
-                          name="Executive"
-                          time={5}
-                          seats={4}
-                          originalPrice={executivePrice}
-                          discountedPrice={executivePrice * 0.9}
-                          isSelected={rideCategory === 'executive'}
-                          onSelect={() => setRideCategory('executive')}
+                    </div>
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                      <Input
+                        id="destination"
+                        placeholder="Digite seu endereço"
+                        className="pl-10 h-12 text-base"
+                        required
+                        onChange={handleDestinationChange}
                       />
+                    </div>
                   </div>
-              )}
-                
-              <div className="grid grid-cols-3 gap-2">
-                <PaymentOption
-                  method="pix"
-                  icon={<Wallet className="h-6 w-6 text-primary" />}
-                  label="Pix"
-                  isSelected={paymentMethod === 'pix'}
-                  onSelect={() => setPaymentMethod('pix')}
-                />
-                <PaymentOption
-                  method="cash"
-                  icon={<Coins className="h-6 w-6 text-primary" />}
-                  label="Dinheiro"
-                  isSelected={paymentMethod === 'cash'}
-                  onSelect={() => setPaymentMethod('cash')}
-                />
-                <PaymentOption
-                  method="card_machine"
-                  icon={<Landmark className="h-6 w-6 text-primary" />}
-                  label="Cartão"
-                  isSelected={paymentMethod === 'card_machine'}
-                  onSelect={() => setPaymentMethod('card_machine')}
-                />
-              </div>
+                  
+                  {showPrice && (
+                      <div className="space-y-2">
+                          <RideOption 
+                              type="comfort"
+                              name="Comfort"
+                              time={6}
+                              seats={4}
+                              originalPrice={comfortPrice}
+                              discountedPrice={comfortPrice * 0.9}
+                              isSelected={rideCategory === 'comfort'}
+                              onSelect={() => setRideCategory('comfort')}
+                          />
+                          <RideOption 
+                              type="executive"
+                              name="Executive"
+                              time={5}
+                              seats={4}
+                              originalPrice={executivePrice}
+                              discountedPrice={executivePrice * 0.9}
+                              isSelected={rideCategory === 'executive'}
+                              onSelect={() => setRideCategory('executive')}
+                          />
+                      </div>
+                  )}
+                    
+                  <div className="grid grid-cols-3 gap-2">
+                    <PaymentOption
+                      method="pix"
+                      icon={<Wallet className="h-6 w-6 text-primary" />}
+                      label="Pix"
+                      isSelected={paymentMethod === 'pix'}
+                      onSelect={() => setPaymentMethod('pix')}
+                    />
+                    <PaymentOption
+                      method="cash"
+                      icon={<Coins className="h-6 w-6 text-primary" />}
+                      label="Dinheiro"
+                      isSelected={paymentMethod === 'cash'}
+                      onSelect={() => setPaymentMethod('cash')}
+                    />
+                    <PaymentOption
+                      method="card_machine"
+                      icon={<Landmark className="h-6 w-6 text-primary" />}
+                      label="Cartão"
+                      isSelected={paymentMethod === 'card_machine'}
+                      onSelect={() => setPaymentMethod('card_machine')}
+                    />
+                  </div>
 
-              <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice} onClick={handleConfirmRide}>
-                <span>Confirmar Corrida</span>
-                <ArrowRight className="h-5 w-5"/>
-              </Button>
+                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!showPrice} onClick={handleConfirmRide}>
+                    <span>Confirmar Corrida</span>
+                    <ArrowRight className="h-5 w-5"/>
+                  </Button>
 
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+          )}
       </div>
 
        <AlertDialog open={isSearching}>

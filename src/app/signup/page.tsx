@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -18,7 +19,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -32,7 +32,6 @@ const formSchema = z.object({
 
 export default function SignupPage() {
   const router = useRouter();
-  const { login } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,18 +45,13 @@ export default function SignupPage() {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // This is a mock signup. In a real app, you'd call Firebase here.
-    const { name, email, role } = values;
-    login({
-      name,
-      email,
-      role: role as "passenger" | "driver",
-    });
+    // In a real app, you'd save this user to the database with a 'pending' status.
+    // We'll just redirect to the documents page for this demo.
     toast({
-      title: "Conta Criada!",
-      description: "Você está sendo redirecionado para o seu painel.",
+      title: "Cadastro Inicial Realizado!",
+      description: "Agora, por favor, envie seus documentos.",
     });
-    router.push(`/${role}`);
+    router.push(`/signup/documents?role=${values.role}`);
   };
 
   return (
@@ -143,7 +137,7 @@ export default function SignupPage() {
                 )}
               />
               <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold">
-                Cadastrar
+                Continuar
               </Button>
             </form>
           </Form>

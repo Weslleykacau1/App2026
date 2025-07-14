@@ -40,14 +40,14 @@ export default function SignupPage() {
       name: "",
       email: "",
       password: "",
-      role: "passenger",
+      // O role não terá um valor padrão para forçar a seleção
     },
     mode: "onChange",
   });
 
+  const role = form.watch("role");
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // In a real app, you'd save this user to the database with a 'pending' status.
-    // We'll just redirect to the documents page for this demo.
     toast({
       title: "Cadastro Inicial Realizado!",
       description: "Agora, por favor, envie seus documentos.",
@@ -69,43 +69,7 @@ export default function SignupPage() {
         
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Nome Completo" {...field} className="h-12 text-base" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Email" {...field} className="h-12 text-base" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
@@ -119,14 +83,14 @@ export default function SignupPage() {
                       >
                         <FormItem className="flex-1">
                           <RadioGroupItem value="passenger" id="passenger" className="sr-only" />
-                          <FormLabel htmlFor="passenger" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
+                          <FormLabel htmlFor="passenger" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                             <User className="mb-3 h-6 w-6" />
                             Passageiro
                           </FormLabel>
                         </FormItem>
                         <FormItem className="flex-1">
                           <RadioGroupItem value="driver" id="driver" className="sr-only" />
-                           <FormLabel htmlFor="driver" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
+                           <FormLabel htmlFor="driver" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                             <Car className="mb-3 h-6 w-6" />
                             Motorista
                           </FormLabel>
@@ -137,9 +101,50 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid}>
-                Continuar
-              </Button>
+
+              {role && (
+                <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-4 duration-500">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Nome Completo" {...field} className="h-12 text-base" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Email" {...field} className="h-12 text-base" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid}>
+                    Continuar
+                  </Button>
+                </div>
+              )}
             </form>
           </Form>
         

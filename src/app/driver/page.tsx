@@ -34,33 +34,48 @@ function DriverDashboard() {
     latitude: -23.5505,
     zoom: 12
   });
+  const [userLocation, setUserLocation] = useState<{longitude: number, latitude: number} | null>(null);
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-        const newViewState = {
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-            zoom: 15
-        };
-        setViewState(newViewState);
-        if (mapRef.current) {
-            mapRef.current.flyTo({ center: [newViewState.longitude, newViewState.latitude], zoom: 15 });
+    // Watch user's position
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        const newLocation = { longitude, latitude };
+        
+        if (!userLocation) { // Fly to location on first load
+            setViewState(prevState => ({ ...prevState, ...newLocation, zoom: 15 }));
         }
-    });
-  }, []);
+        setUserLocation(newLocation);
+      },
+      (error) => {
+        console.error("Error getting user location:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => {
+      // Cleanup the watch
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [userLocation]);
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
 
   const handleLocateUser = () => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      mapRef.current?.flyTo({
-        center: [position.coords.longitude, position.coords.latitude],
-        zoom: 15,
-        essential: true,
-      });
-    });
+    if (userLocation) {
+        mapRef.current?.flyTo({
+            center: [userLocation.longitude, userLocation.latitude],
+            zoom: 15,
+            essential: true,
+        });
+    }
   };
 
   if (!mapboxToken) {
@@ -78,19 +93,21 @@ function DriverDashboard() {
           <MapGL
               ref={mapRef}
               mapboxAccessToken={mapboxToken}
-              initialViewState={viewState}
+              {...viewState}
               onMove={evt => setViewState(evt.viewState)}
               style={{width: '100%', height: '100%'}}
               mapStyle={mapStyle}
           >
               <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
-              <Marker longitude={viewState.longitude} latitude={viewState.latitude} anchor="center">
-                  <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
-                      </svg>
-                  </div>
-              </Marker>
+              {userLocation && (
+                <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
+                    <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1" strokeLinejoin="round"/>
+                        </svg>
+                    </div>
+                </Marker>
+              )}
 
               {surgeZones.map((zone, index) => (
                   <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
@@ -187,3 +204,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

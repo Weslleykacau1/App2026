@@ -11,10 +11,12 @@ import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertC
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 type UserRole = "passageiro" | "motorista" | "admin";
 type UserStatus = "Ativo" | "Suspenso";
@@ -104,6 +106,7 @@ function AdminDashboard() {
 
   return (
     <AppLayout>
+      <TooltipProvider>
       <div className="container mx-auto py-8">
         <h2 className="text-3xl font-bold tracking-tight mb-6 text-foreground">Painel do Administrador</h2>
         
@@ -197,6 +200,9 @@ function AdminDashboard() {
                                         {verificationIcons[user.verification]}
                                     </div>
                                 </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{user.verification}</p>
+                                </TooltipContent>
                             </Tooltip>
                         </TableCell>
                         <TableCell>
@@ -245,7 +251,7 @@ function AdminDashboard() {
                                 axisLine={false}
                                 tickFormatter={(value) => `R$${value / 1000}k`}
                             />
-                            <Tooltip
+                            <RechartsTooltip
                                 cursor={{ fill: 'hsl(var(--muted))' }}
                                 contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
                                  formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
@@ -313,8 +319,11 @@ function AdminDashboard() {
                 </DialogContent>
             </Dialog>
         )}
+      </TooltipProvider>
     </AppLayout>
   );
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

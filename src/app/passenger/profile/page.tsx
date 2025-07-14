@@ -23,14 +23,15 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getItem, setItem } from "@/lib/storage";
 
 const PASSENGER_PROFILE_KEY = 'passenger_profile_data';
+const RERIDE_REQUEST_KEY = 'reride_request';
 
 const rideHistory = [
     {
         id: 1,
         driver: { name: 'Carlos S.', avatarUrl: 'https://placehold.co/40x40.png' },
         date: '2024-07-22',
-        pickup: 'Av. Paulista, 1578',
-        destination: 'Parque Ibirapuera',
+        pickup: 'Av. Paulista, 1578, São Paulo - SP',
+        destination: 'Parque Ibirapuera, São Paulo - SP',
         fare: 22.50,
         status: 'Concluída'
     },
@@ -38,8 +39,8 @@ const rideHistory = [
         id: 2,
         driver: { name: 'Ana L.', avatarUrl: 'https://placehold.co/40x40.png' },
         date: '2024-07-20',
-        pickup: 'Rua Augusta, 900',
-        destination: 'Aeroporto de Congonhas',
+        pickup: 'Rua Augusta, 900, São Paulo - SP',
+        destination: 'Aeroporto de Congonhas, São Paulo - SP',
         fare: 45.80,
         status: 'Concluída'
     },
@@ -47,8 +48,8 @@ const rideHistory = [
         id: 3,
         driver: { name: 'Ricardo P.', avatarUrl: 'https://placehold.co/40x40.png' },
         date: '2024-07-19',
-        pickup: 'Shopping Morumbi',
-        destination: 'Estádio do Morumbi',
+        pickup: 'Shopping Morumbi, São Paulo - SP',
+        destination: 'Estádio do Morumbi, São Paulo - SP',
         fare: 15.00,
         status: 'Cancelada'
     }
@@ -166,6 +167,19 @@ function ProfilePage() {
             })
         }
         setIsEditing(!isEditing);
+    }
+    
+    const handleRequestAgain = (ride: typeof rideHistory[0]) => {
+        if (ride.status === 'Cancelada') {
+             toast({
+                variant: 'destructive',
+                title: "Não é possível repetir",
+                description: "Esta corrida foi cancelada.",
+            })
+            return;
+        }
+        setItem(RERIDE_REQUEST_KEY, { pickup: ride.pickup, destination: ride.destination });
+        router.push('/passenger');
     }
 
 
@@ -363,7 +377,8 @@ function ProfilePage() {
                                                  <Button 
                                                     variant="outline" 
                                                     className="w-full mt-2"
-                                                    onClick={() => toast({ title: "Funcionalidade em breve!", description: "Você poderá solicitar esta corrida novamente."})}
+                                                    onClick={() => handleRequestAgain(ride)}
+                                                    disabled={ride.status === 'Cancelada'}
                                                 >
                                                     <RefreshCcw className="mr-2 h-4 w-4"/>
                                                     Solicitar Novamente
@@ -506,5 +521,3 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
-
-    

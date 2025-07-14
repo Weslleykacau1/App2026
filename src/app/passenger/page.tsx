@@ -40,6 +40,7 @@ interface Suggestion {
 }
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
+const RERIDE_REQUEST_KEY = 'reride_request';
 
 
 function PassengerDashboard() {
@@ -73,16 +74,46 @@ function PassengerDashboard() {
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
+  const geocodeAddress = useCallback(async (address: string): Promise<Suggestion | null> => {
+    if (!mapboxToken) return null;
+    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&limit=1&country=BR&language=pt`);
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      return data.features[0];
+    }
+    return null;
+  }, [mapboxToken]);
+
   useEffect(() => {
-    // Check if there's a ride request on load (e.g. page refresh)
+    const handleRerideRequest = async () => {
+      const rerideRequest = getItem<{ pickup: string, destination: string }>(RERIDE_REQUEST_KEY);
+      if (rerideRequest) {
+        removeItem(RERIDE_REQUEST_KEY); // Remove immediately to prevent re-triggering
+        
+        setPickupInput(rerideRequest.pickup);
+        setDestinationInput(rerideRequest.destination);
+
+        const pickupSuggestion = await geocodeAddress(rerideRequest.pickup);
+        if (pickupSuggestion) setSelectedPickup(pickupSuggestion);
+
+        const destinationSuggestion = await geocodeAddress(rerideRequest.destination);
+        if (destinationSuggestion) setSelectedDestination(destinationSuggestion);
+      }
+    };
+    
+    handleRerideRequest();
+
     const pendingRequest = getItem(RIDE_REQUEST_KEY);
     if(pendingRequest) {
       setIsSearching(true);
     }
-  }, []);
+  }, [geocodeAddress]);
 
   useEffect(() => {
-    // Set initial pickup location to user's current location after a delay
+    // Set initial pickup location only if not handling a reride
+    const rerideRequest = getItem(RERIDE_REQUEST_KEY);
+    if (rerideRequest) return;
+
     navigator.geolocation.getCurrentPosition(async (position) => {
       const { longitude, latitude } = position.coords;
       handleLocateUser(true);

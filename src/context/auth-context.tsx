@@ -55,16 +55,8 @@ const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null
             email: firebaseUser.email || '',
             ...profileData,
         } as User;
-    } else if (firebaseUser.email === ADMIN_EMAIL) {
-        return {
-            id: firebaseUser.uid,
-            name: "Admin",
-            email: ADMIN_EMAIL,
-            role: "admin",
-            status: "Ativo",
-            verification: "Verificado"
-        };
     }
+    // Don't return an admin profile here, handle it in the login logic
     return null;
 }
 
@@ -82,10 +74,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userProfile = await fetchUserProfile(firebaseUser);
         if (userProfile) {
           setUser(userProfile);
-        } else {
-          // Profile not found or other issue, log out.
-          await signOut(auth);
-          setUser(null);
+        } else if (firebaseUser.email === ADMIN_EMAIL) {
+            setUser({
+                 id: firebaseUser.uid,
+                name: "Admin",
+                email: ADMIN_EMAIL,
+                role: "admin",
+                status: "Ativo",
+                verification: "Verificado"
+            });
+        }
+        else {
+          // Profile not found in DB, but user is authenticated.
+          // This can happen with default users or if DB write failed.
+          // The login function will handle the immediate redirection logic.
+          // We can set a minimal user object here if needed, but for now we let login handle it.
         }
       } else {
         setUser(null);
@@ -109,26 +112,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const firebaseUser = userCredential.user;
 
       if (firebaseUser) {
-        const userProfile = await fetchUserProfile(firebaseUser);
+        let userProfile = await fetchUserProfile(firebaseUser);
         
-        if (userProfile) {
-            let finalRole = overrideRole || userProfile.role;
-            if (userProfile.email === ADMIN_EMAIL) {
-                finalRole = 'admin';
-            }
-
-            const finalUser = { ...userProfile, role: finalRole };
-            setUser(finalUser);
-
-            if (finalRole) {
-                router.push(`/${finalRole}`);
-            } else {
-                 throw new Error("Não foi possível determinar o perfil do usuário.");
-            }
-        } else {
-            await signOut(auth);
-            throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
+        if (!userProfile) {
+          // If no profile in Firestore, create a temporary one for routing.
+          // This is useful for the default accounts.
+           const roleToUse = overrideRole || (firebaseUser.email?.includes('passenger') ? 'passenger' : 'driver');
+           userProfile = {
+              id: firebaseUser.uid,
+              name: roleToUse.charAt(0).toUpperCase() + roleToUse.slice(1),
+              email: firebaseUser.email || '',
+              role: roleToUse,
+              status: "Ativo",
+              verification: "Verificado"
+           }
         }
+
+        let finalRole = overrideRole || userProfile.role;
+        // Ensure admin is always admin
+        if (userProfile.email === ADMIN_EMAIL) {
+            finalRole = 'admin';
+        }
+
+        const finalUser = { ...userProfile, role: finalRole };
+        setUser(finalUser);
+
+        router.push(`/${finalRole}`);
+
       } else {
          throw new Error("Ocorreu um erro inesperado durante o login.");
       }

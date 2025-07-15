@@ -575,9 +575,16 @@ function AdminDashboard() {
                             >
                                 {onlineDrivers.map(driver => (
                                     <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat}>
-                                        <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                                            <Car className="h-5 w-5 text-primary"/>
-                                        </div>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg cursor-pointer">
+                                                    <Car className="h-5 w-5 text-primary"/>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{driver.name}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </Marker>
                                 ))}
                             </MapGL>

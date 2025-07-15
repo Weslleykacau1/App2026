@@ -35,7 +35,7 @@ const formSchema = z.object({
   }),
 });
 
-const ADMIN_EMAIL = "weslley.kacau@gmail.com";
+const ADMIN_EMAIL = "driverweek@gmail.com";
 
 export default function SignupPage() {
   const router = useRouter();

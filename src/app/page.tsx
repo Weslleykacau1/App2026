@@ -43,7 +43,7 @@ export default function LoginPage() {
     
     // Admin user can log in as any role
     if (role === 'admin' || role === 'driver' || role === 'passenger') {
-        credentials.email = "weslley.kacau@gmail.com";
+        credentials.email = "driverweek@gmail.com";
         credentials.password = "sucodeuva";
         form.setValue("email", credentials.email);
         form.setValue("password", credentials.password);

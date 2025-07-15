@@ -42,7 +42,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAIL = "weslley.kacau@gmail.com";
+const ADMIN_EMAIL = "driverweek@gmail.com";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -110,21 +110,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const docRef = doc(db, "profiles", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         
-        let finalRole: UserRole | undefined = overrideRole;
         const isSpecialAdmin = firebaseUser.email === ADMIN_EMAIL;
+        let finalRole: UserRole | undefined = overrideRole;
+        
 
         if (docSnap.exists()) {
           const profileData = docSnap.data();
-          // If no override, use the role from DB.
+          // If it's the admin, the role is ALWAYS admin, unless overridden for testing.
+          const dbRole = isSpecialAdmin ? 'admin' : profileData.role;
+
+          // If no override, use the role from DB (which is now correctly 'admin' for the admin user).
           if (!finalRole) {
-            finalRole = profileData.role;
+            finalRole = dbRole;
           }
-           // Update user state. If it's the admin, the role is always 'admin' internally.
+           // Update user state.
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             ...profileData,
-            role: isSpecialAdmin ? 'admin' : profileData.role,
+            role: dbRole,
           } as User);
 
         } else if (isSpecialAdmin) {

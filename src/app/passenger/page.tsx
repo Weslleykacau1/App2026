@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -108,19 +107,21 @@ function PassengerDashboard() {
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
     if (rerideRequest) return;
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const { longitude, latitude } = position.coords;
-      handleLocateUser(true);
-      const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&limit=1&language=pt`);
-      const data = await response.json();
-      if (data.features.length > 0) {
-        const currentLocationSuggestion: Suggestion = data.features[0];
-        setPickupInput(currentLocationSuggestion.place_name);
-        setSelectedPickup(currentLocationSuggestion);
-      } else {
-        setPickupInput("Localização atual");
-      }
-    });
+    if (mapboxToken) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { longitude, latitude } = position.coords;
+          handleLocateUser(true);
+          const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&limit=1&language=pt`);
+          const data = await response.json();
+          if (data.features.length > 0) {
+            const currentLocationSuggestion: Suggestion = data.features[0];
+            setPickupInput(currentLocationSuggestion.place_name);
+            setSelectedPickup(currentLocationSuggestion);
+          } else {
+            setPickupInput("Localização atual");
+          }
+        });
+    }
   }, [mapboxToken]);
 
   const debounce = (func: Function, delay: number) => {
@@ -335,7 +336,7 @@ function PassengerDashboard() {
                          <div className="flex-1">
                              <h3 className="font-bold text-xl">{foundDriver.name}</h3>
                              <div className="flex items-center gap-1 text-yellow-500">
-                                <Star className="h-4 w-4 fill="currentColor"/>
+                                <Star className="h-4 w-4" fill="currentColor"/>
                                 <span className="font-semibold text-foreground">{foundDriver.rating.toFixed(1)}</span>
                              </div>
                          </div>
@@ -449,11 +450,8 @@ function PassengerDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   );
 }
 
 export default withAuth(PassengerDashboard, ["passenger"]);
-
-    

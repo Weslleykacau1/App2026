@@ -8,13 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Map } from '@/components/map';
 import { useRouter } from 'next/navigation';
 import type { MapRef, LngLatLike } from 'react-map-gl';
-import { ArrowLeft, User, CreditCard, Users, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Users, Check, Loader2, Wallet, Landmark, ChevronDown } from 'lucide-react';
 import { getItem, setItem, removeItem } from '@/lib/storage';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from '@/context/auth-context';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
 const RIDE_REQUEST_KEY = 'pending_ride_request';
@@ -33,6 +34,8 @@ interface RideDetails {
     route: LngLatLike[];
 }
 
+type PaymentMethod = "Cartão de Crédito" | "PIX" | "Dinheiro";
+
 function ConfirmRidePage() {
     const router = useRouter();
     const mapRef = useRef<MapRef>(null);
@@ -40,6 +43,8 @@ function ConfirmRidePage() {
     const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
     const { toast } = useToast();
     const [isRequesting, setIsRequesting] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cartão de Crédito");
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
     useEffect(() => {
         const details = getItem<RideDetails>(RIDE_DETAILS_KEY);
@@ -60,6 +65,17 @@ function ConfirmRidePage() {
              removeItem(RIDE_DETAILS_KEY);
         }
     }, [router]);
+    
+    const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
+        "Cartão de Crédito": <CreditCard className="h-6 w-6 text-primary"/>,
+        "PIX": <Landmark className="h-6 w-6 text-primary"/>,
+        "Dinheiro": <Wallet className="h-6 w-6 text-primary"/>
+    }
+
+    const handleSelectPayment = (method: PaymentMethod) => {
+        setPaymentMethod(method);
+        setIsPopoverOpen(false);
+    }
 
     const handleConfirmSelection = async () => {
         if (!rideDetails || !user) return;
@@ -107,6 +123,7 @@ function ConfirmRidePage() {
                 },
                 fare: rideDetails.fare,
                 category: rideDetails.category,
+                paymentMethod: paymentMethod,
                 status: "pending",
                 createdAt: serverTimestamp(),
             });
@@ -121,6 +138,7 @@ function ConfirmRidePage() {
                 tripDistance: 8.2, // Mock data
                 tripTime: 20, // Mock data
                 rideCategory: rideDetails.category,
+                paymentMethod: paymentMethod,
                 passenger: {
                     name: user.name,
                     avatarUrl: `https://placehold.co/80x80.png`,
@@ -216,11 +234,36 @@ function ConfirmRidePage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3 border rounded-lg">
-                            <CreditCard className="h-6 w-6 text-primary"/>
-                            <p className="font-semibold flex-1">Cartão de Crédito</p>
-                            <span className="text-sm text-muted-foreground">**** 1234</span>
-                        </div>
+                         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full h-auto justify-between p-3">
+                                    <div className="flex items-center gap-3">
+                                        {paymentIcons[paymentMethod]}
+                                        <p className="font-semibold">{paymentMethod}</p>
+                                    </div>
+                                    <ChevronDown className="h-5 w-5 text-muted-foreground"/>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                                <div className="space-y-1">
+                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Cartão de Crédito")}>
+                                        <CreditCard className="h-6 w-6 text-primary"/>
+                                        <div>
+                                            <p className="font-semibold">Cartão de Crédito</p>
+                                            <p className="text-xs text-muted-foreground text-left">Final **** 1234</p>
+                                        </div>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>
+                                        <Landmark className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">PIX</p>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Dinheiro")}>
+                                        <Wallet className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">Dinheiro</p>
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         
                         <Button className="w-full h-14 text-lg font-bold bg-green-500 hover:bg-green-600" onClick={handleConfirmSelection} disabled={isRequesting}>
                             {isRequesting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}

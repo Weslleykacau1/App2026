@@ -425,7 +425,12 @@ function RequestRidePage() {
                       <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || !fareOffer} onClick={handleProceedToConfirmation}>
                         Continuar
                       </Button>
-                      <Button variant="outline" size="icon" className="h-12 w-12 flex-shrink-0 bg-muted border-none">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-12 w-12 flex-shrink-0 bg-muted border-none"
+                        onClick={() => router.push('/passenger/profile')}
+                       >
                           <Settings2 />
                       </Button>
                   </div>

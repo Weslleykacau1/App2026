@@ -297,6 +297,8 @@ function AdminDashboard() {
     ? 'mapbox://styles/mapbox/dark-v11' 
     : 'mapbox://styles/mapbox/streets-v12';
 
+  const totalRevenue = revenueData.reduce((acc, curr) => acc + curr.total, 0);
+
   return (
     <AppLayout>
       <TooltipProvider>
@@ -330,7 +332,9 @@ function AdminDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ 1.2M</div>
+              <div className="text-2xl font-bold">
+                 {totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </div>
               <p className="text-xs text-muted-foreground">+5.2% este mês</p>
             </CardContent>
           </Card>

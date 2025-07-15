@@ -59,11 +59,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (docSnap.exists()) {
           const profileData = docSnap.data();
+          const isSpecialAdmin = firebaseUser.email === ADMIN_EMAIL;
+          
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
-            ...profileData
+            ...profileData,
+            // The admin user ALWAYS has the 'admin' role internally, even if they log in
+            // to view the app as another role. This ensures they retain admin permissions.
+            role: isSpecialAdmin ? 'admin' : profileData.role,
           } as User);
+
         } else if (firebaseUser.email === ADMIN_EMAIL) {
           // If profile doesn't exist but it's the admin, create a temporary profile
            setUser({
@@ -104,24 +110,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (firebaseUser) {
         const docRef = doc(db, "profiles", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
-
+        
         let finalRole: UserRole | undefined = overrideRole;
+        const isSpecialAdmin = firebaseUser.email === ADMIN_EMAIL;
 
         if (docSnap.exists()) {
           const profileData = docSnap.data();
-          // If no override, use the role from DB. If there is an override, use it.
+          // If no override, use the role from DB.
           if (!finalRole) {
             finalRole = profileData.role;
           }
-           // Update user state with potentially overridden role
+           // Update user state. If it's the admin, the role is always 'admin' internally.
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             ...profileData,
-            role: finalRole,
+            role: isSpecialAdmin ? 'admin' : profileData.role,
           } as User);
 
-        } else if (firebaseUser.email === ADMIN_EMAIL) {
+        } else if (isSpecialAdmin) {
             // This is the special admin user without a profile, create a temporary one
             if (!finalRole) {
               finalRole = 'admin';
@@ -130,12 +137,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: firebaseUser.uid,
                 name: "Admin",
                 email: ADMIN_EMAIL,
-                role: finalRole,
+                role: 'admin', // Always admin role
                 status: "Ativo",
                 verification: "Verificado"
             });
         } else {
-            // Should not happen if signup flow is correct, but as a safeguard:
             await signOut(auth);
             throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
         }

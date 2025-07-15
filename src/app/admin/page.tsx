@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield, Calendar as CalendarIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -30,7 +30,11 @@ import { getItem, setItem } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type UserRole = "passageiro" | "motorista" | "admin";
 type UserStatus = "Ativo" | "Suspenso";
@@ -114,6 +118,7 @@ function AdminDashboard() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const [date, setDate] = useState<DateRange | undefined>();
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -141,6 +146,7 @@ function AdminDashboard() {
   }, [theme]);
 
   useEffect(() => {
+    // This effect now also depends on the date to refetch/filter data
     const generatedData = initialRevenueData.map(item => ({
       ...item,
       total: Math.floor(Math.random() * 5000) + 1000
@@ -169,7 +175,7 @@ function AdminDashboard() {
 
     return () => clearInterval(interval);
 
-  }, [users]);
+  }, [users, date]); // Dependency on 'date' added
 
   const handleThemeChange = (checked: boolean) => {
     const newTheme = checked ? 'dark' : 'light';
@@ -310,7 +316,46 @@ function AdminDashboard() {
     <AppLayout>
       <TooltipProvider>
       <div className="container mx-auto py-8">
-        <h2 className="text-3xl font-bold tracking-tight mb-6 text-foreground">Painel do Administrador</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Painel do Administrador</h2>
+          <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                        "w-[300px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                        date.to ? (
+                            <>
+                                {format(date.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                                {format(date.to, "LLL dd, y", { locale: ptBR })}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y", { locale: ptBR })
+                        )
+                    ) : (
+                        <span>Escolha um período</span>
+                    )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    locale={ptBR}
+                />
+            </PopoverContent>
+          </Popover>
+        </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>

@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X, ShieldCheck } from "lucide-react";
+import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -16,11 +16,11 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setItem, getItem, removeItem } from "@/lib/storage";
 
 
-type RideCategory = "comfort" | "executive";
-type PaymentMethod = "pix" | "cash" | "card_machine";
+type RideCategory = "viagem" | "moto" | "executive";
 
 interface FoundDriver {
     name: string;
@@ -46,16 +46,13 @@ const RERIDE_REQUEST_KEY = 'reride_request';
 function PassengerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
-  const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
-  
-  const [comfortPrice, setComfortPrice] = useState(0);
-  const [executivePrice, setExecutivePrice] = useState(0);
+  const [rideCategory, setRideCategory] = useState<RideCategory>("viagem");
   
   const mapRef = useRef<MapRef>(null);
   
-  const [pickupInput, setPickupInput] = useState("");
+  const [pickupInput, setPickupInput] = useState("Procurando você no mapa...");
   const [destinationInput, setDestinationInput] = useState("");
+  const [fareOffer, setFareOffer] = useState("");
   
   const [pickupSuggestions, setPickupSuggestions] = useState<Suggestion[]>([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState<Suggestion[]>([]);
@@ -66,8 +63,6 @@ function PassengerDashboard() {
   const [selectedPickup, setSelectedPickup] = useState<Suggestion | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Suggestion | null>(null);
   const [route, setRoute] = useState<LngLatLike[] | null>(null);
-  const [tripDistance, setTripDistance] = useState(0);
-  const [tripTime, setTripTime] = useState(0);
 
   const [isSearching, setIsSearching] = useState(false);
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
@@ -88,7 +83,7 @@ function PassengerDashboard() {
     const handleRerideRequest = async () => {
       const rerideRequest = getItem<{ pickup: string, destination: string }>(RERIDE_REQUEST_KEY);
       if (rerideRequest) {
-        removeItem(RERIDE_REQUEST_KEY); // Remove immediately to prevent re-triggering
+        removeItem(RERIDE_REQUEST_KEY); 
         
         setPickupInput(rerideRequest.pickup);
         setDestinationInput(rerideRequest.destination);
@@ -110,7 +105,6 @@ function PassengerDashboard() {
   }, [geocodeAddress]);
 
   useEffect(() => {
-    // Set initial pickup location only if not handling a reride
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
     if (rerideRequest) return;
 
@@ -162,7 +156,6 @@ function PassengerDashboard() {
     setPickupInput(value);
     setSelectedPickup(null);
     setRoute(null);
-    
     debouncedFetchPickupSuggestions(value);
   };
   
@@ -171,7 +164,6 @@ function PassengerDashboard() {
     setDestinationInput(value);
     setSelectedDestination(null);
     setRoute(null);
-    
     debouncedFetchDestinationSuggestions(value);
   };
 
@@ -192,10 +184,8 @@ function PassengerDashboard() {
   };
 
   useEffect(() => {
-    const calculatePriceAndRoute = async () => {
+    const calculateRoute = async () => {
       if (selectedPickup && selectedDestination && mapboxToken) {
-        
-        // Fetch route from Mapbox Directions API
         const coords = `${selectedPickup.center[0]},${selectedPickup.center[1]};${selectedDestination.center[0]},${selectedDestination.center[1]}`;
         const routeResponse = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?access_token=${mapboxToken}&geometries=geojson&language=pt`);
         const routeData = await routeResponse.json();
@@ -204,27 +194,16 @@ function PassengerDashboard() {
             const currentRoute = routeData.routes[0];
             const routeGeom = currentRoute.geometry.coordinates;
             setRoute(routeGeom);
-            const distanceInKm = currentRoute.distance / 1000;
-            const timeInMinutes = Math.round(currentRoute.duration / 60);
-            setTripDistance(distanceInKm);
-            setTripTime(timeInMinutes);
-
-            const comfortFare = Math.max(7.00, distanceInKm * 1.80);
-            const executiveFare = Math.max(10.00, distanceInKm * 2.20);
-            setComfortPrice(comfortFare);
-            setExecutivePrice(executiveFare);
             
-
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
             }
         }
       } else {
         setRoute(null);
-        
       }
     }
-    calculatePriceAndRoute();
+    calculateRoute();
   }, [selectedPickup, selectedDestination, mapboxToken]);
 
   if (!user) return null;
@@ -243,15 +222,20 @@ function PassengerDashboard() {
   };
 
   const handleConfirmRide = () => {
-    if (!selectedDestination || !selectedPickup || !route || !user) return;
+    if (!selectedDestination || !selectedPickup || !user) {
+        toast({
+            variant: "destructive",
+            title: "Campos obrigatórios",
+            description: "Por favor, preencha o destino e a tarifa.",
+        });
+        return;
+    }
     
     const rideRequest = {
-        fare: rideCategory === 'comfort' ? comfortPrice : executivePrice,
+        fare: parseFloat(fareOffer) || 0,
         pickupAddress: selectedPickup.place_name,
-        destination: selectedDestination.place_name,
-        tripDistance: tripDistance,
-        tripTime: tripTime,
-        rideCategory: rideCategory === 'comfort' ? 'Comfort' : 'Executive',
+        destination: destinationInput,
+        rideCategory: rideCategory,
         passenger: {
             name: user.name,
             avatarUrl: `https://placehold.co/80x80.png`,
@@ -260,45 +244,33 @@ function PassengerDashboard() {
         route: {
             pickup: { lat: selectedPickup.center[1], lng: selectedPickup.center[0] },
             destination: { lat: selectedDestination.center[1], lng: selectedDestination.center[0] },
-            coordinates: route
+            coordinates: route || []
         }
     };
 
     setItem(RIDE_REQUEST_KEY, rideRequest);
-    
     setIsSearching(true);
     
-    // This part simulates finding a driver. In a real app, this would be a real-time listener.
     setTimeout(() => {
         setIsSearching(false);
         setFoundDriver({
             name: "Joana M.",
             avatarUrl: "https://placehold.co/80x80.png",
             rating: 4.9,
-            vehicle: {
-                model: "Honda Civic",
-                licensePlate: "NQR-8A21"
-            },
+            vehicle: { model: "Honda Civic", licensePlate: "NQR-8A21" },
             eta: 5
-        })
-        toast({
-            title: "Motorista encontrado!",
-            description: "Joana M. está a caminho.",
         });
-    }, 15000); // Simulate a longer search time
+        toast({ title: "Motorista encontrado!", description: "Joana M. está a caminho." });
+    }, 15000);
   };
   
    const handleCancelRide = () => {
         setFoundDriver(null);
         setSelectedDestination(null);
         setDestinationInput("");
+        setFareOffer("");
         setRoute(null);
-        
-        // Do not reset pickup, keep current location as default
-        toast({
-            title: "Corrida cancelada.",
-            description: "Você pode solicitar uma nova corrida quando quiser.",
-        });
+        toast({ title: "Corrida cancelada.", description: "Você pode solicitar uma nova corrida quando quiser." });
     };
 
   const handleCancelSearch = () => {
@@ -306,45 +278,21 @@ function PassengerDashboard() {
     removeItem(RIDE_REQUEST_KEY);
   };
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  }
-
-  const RideOption = ({ type, name, time, seats, price, isSelected, onSelect }: { type: RideCategory, name: string, time: number, seats: number, price: number, isSelected: boolean, onSelect: () => void }) => (
+  const RideCategoryCard = ({ type, name, seats, icon, isSelected, onSelect }: { type: RideCategory, name: string, seats: number, icon: React.ReactNode, isSelected: boolean, onSelect: () => void }) => (
     <div 
         onClick={onSelect}
         className={cn(
-            "p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center justify-between gap-4",
-            isSelected ? 'border-primary bg-primary/10' : 'border-transparent bg-muted/50 hover:border-primary/50'
+            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-start gap-1 w-full",
+            isSelected ? 'bg-primary/20' : 'bg-muted/50 hover:bg-muted'
         )}
     >
-        <div className="flex items-center gap-4">
-            <div>
-                <h3 className="font-bold text-lg text-foreground">{name}</h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{time} min</span>
-                </div>
-            </div>
-        </div>
-        <div className="text-right">
-            <p className="font-bold text-lg text-foreground">{formatCurrency(price)}</p>
+        {icon}
+        <div className="flex items-center gap-2">
+            <h3 className="font-bold text-sm text-foreground">{name}</h3>
+            <span className="text-xs text-muted-foreground">{seats}</span>
         </div>
     </div>
   );
-
-  const PaymentOption = ({ method, icon, label, isSelected, onSelect }: { method: PaymentMethod, icon: React.ReactNode, label: string, isSelected: boolean, onSelect: () => void }) => (
-    <div
-      onClick={onSelect}
-      className={cn(
-        "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all h-24",
-        isSelected ? 'border-primary bg-primary/10' : 'bg-muted hover:bg-muted/80'
-      )}
-    >
-      {icon}
-      <span className="text-xs font-medium">{label}</span>
-    </div>
-  );
-
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -352,33 +300,26 @@ function PassengerDashboard() {
          <Map mapRef={mapRef} showMovingCar={!!foundDriver} destination={selectedDestination?.center as LngLatLike | undefined} pickup={selectedPickup?.center as LngLatLike | undefined} route={route}/>
        </div>
 
-      <header className="absolute top-0 left-0 right-0 z-10 p-6 flex justify-between items-center pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-center pointer-events-none">
         <Button
-            variant="primary"
+            variant="default"
             size="icon"
-            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
+            className="h-12 w-12 rounded-full shadow-lg pointer-events-auto bg-card text-card-foreground hover:bg-card/90"
             onClick={() => router.push('/passenger/profile')}
         >
-            <Menu className="h-6 w-6 text-primary-foreground" />
+            <Menu className="h-6 w-6" />
         </Button>
         <Button
-            variant="outline"
+            variant="default"
             size="icon"
-            className="h-11 w-11 rounded-lg bg-background shadow-lg pointer-events-auto"
+            className="h-12 w-12 rounded-full shadow-lg pointer-events-auto bg-card text-card-foreground hover:bg-card/90"
             onClick={() => handleLocateUser()}
         >
             <LocateFixed className="h-5 w-5" />
         </Button>
       </header>
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 space-y-2">
-         {route && !foundDriver && selectedDestination && (
-            <div className="bg-primary text-primary-foreground rounded-lg p-2 text-center text-sm font-medium flex items-center justify-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Use o cinto de segurança</span>
-            </div>
-         )}
-         
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-2 space-y-2">
          {foundDriver ? (
              <Card className="shadow-2xl rounded-2xl">
                  <CardContent className="p-4 space-y-4">
@@ -394,7 +335,7 @@ function PassengerDashboard() {
                          <div className="flex-1">
                              <h3 className="font-bold text-xl">{foundDriver.name}</h3>
                              <div className="flex items-center gap-1 text-yellow-500">
-                                <Star className="h-4 w-4" fill="currentColor"/>
+                                <Star className="h-4 w-4 fill="currentColor"/>
                                 <span className="font-semibold text-foreground">{foundDriver.rating.toFixed(1)}</span>
                              </div>
                          </div>
@@ -409,118 +350,81 @@ function PassengerDashboard() {
                  </CardContent>
              </Card>
          ) : (
-            <Card className="shadow-2xl rounded-2xl">
-                <CardContent className="p-4 space-y-4">
-                   <div className="space-y-2">
-                    <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
-                        <PopoverAnchor asChild>
-                            <div className="relative flex items-center">
-                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
-                              <Input
+            <Card className="shadow-2xl rounded-2xl bg-card">
+                <CardContent className="p-2 space-y-3">
+                    <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
+                        <CarouselContent className="-ml-2">
+                            <CarouselItem className="pl-2 basis-1/3">
+                                <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
+                            </CarouselItem>
+                            <CarouselItem className="pl-2 basis-1/3">
+                                <RideCategoryCard type="moto" name="Moto" seats={1} icon={<svg className="h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M18.5 2c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5S20.43 2 18.5 2m-13 7.5c0 .6.14 1.16.4 1.66l-2.04 2.05c-.63.63-.63 1.64 0 2.26l.13.13c.63.63 1.64.63 2.26 0l2.05-2.04c.5.26 1.06.4 1.66.4c1.93 0 3.5-1.57 3.5-3.5S7.43 8.5 5.5 8.5S2 10.07 2 12m10.89 1.45l2.83-2.83l-1.41-1.41l-2.83 2.83c-.32-.1-.66-.14-1-.14c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5c0-.34-.04-.68-.14-1m7.61 2.55l-2.12-2.12l-2.83 2.83l2.12 2.12a2.5 2.5 0 0 0 2.83-2.83"/></svg>} isSelected={rideCategory === 'moto'} onSelect={() => setRideCategory('moto')} />
+                            </CarouselItem>
+                            <CarouselItem className="pl-2 basis-1/3">
+                                <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                            </CarouselItem>
+                        </CarouselContent>
+                    </Carousel>
+                   
+                   <div className="space-y-2 px-1">
+                        <div className="relative flex items-center">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input
                                 id="pickup"
                                 placeholder="Local de embarque"
-                                className="pl-10 h-12 text-base bg-muted focus-visible:ring-1 focus-visible:ring-ring"
+                                className="pl-10 h-11 text-base bg-muted border-none focus-visible:ring-1 focus-visible:ring-ring"
                                 value={pickupInput}
                                 onChange={handlePickupChange}
                                 autoComplete="off"
-                              />
-                            </div>
-                        </PopoverAnchor>
-                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                            {pickupSuggestions.map((suggestion) => (
-                                <Button
-                                key={suggestion.id}
-                                variant="ghost"
-                                className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal"
-                                onClick={() => handleSelectSuggestion(suggestion, 'pickup')}
-                                >
-                                {suggestion.place_name}
-                                </Button>
-                            ))}
-                        </PopoverContent>
-                    </Popover>
-
-                    <Popover open={isDestinationSuggestionsOpen} onOpenChange={setIsDestinationSuggestionsOpen}>
-                        <PopoverAnchor asChild>
-                            <div className="relative flex items-center">
-                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
-                              <Input
-                                id="destination"
-                                placeholder="Digite seu endereço"
-                                className="pl-10 h-12 text-base"
+                            />
+                        </div>
+                        <Popover open={isDestinationSuggestionsOpen} onOpenChange={setIsDestinationSuggestionsOpen}>
+                            <PopoverAnchor asChild>
+                                <div className="relative flex items-center">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                  <Input
+                                    id="destination"
+                                    placeholder="Para"
+                                    className="pl-10 h-11 text-base bg-muted border-none"
+                                    required
+                                    value={destinationInput}
+                                    onChange={handleDestinationChange}
+                                    autoComplete="off"
+                                  />
+                                </div>
+                            </PopoverAnchor>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                                {destinationSuggestions.map((suggestion) => (
+                                    <Button key={suggestion.id} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal" onClick={() => handleSelectSuggestion(suggestion, 'destination')}>
+                                    {suggestion.place_name}
+                                    </Button>
+                                ))}
+                            </PopoverContent>
+                        </Popover>
+                         <div className="relative flex items-center">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">R$</span>
+                            <Input
+                                id="fare"
+                                placeholder="Ofereça sua tarifa"
+                                className="pl-10 h-11 text-base bg-muted border-none"
                                 required
-                                value={destinationInput}
-                                onChange={handleDestinationChange}
+                                value={fareOffer}
+                                onChange={(e) => setFareOffer(e.target.value)}
                                 autoComplete="off"
-                              />
-                            </div>
-                        </PopoverAnchor>
-                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                            {destinationSuggestions.map((suggestion) => (
-                                <Button
-                                key={suggestion.id}
-                                variant="ghost"
-                                className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal"
-                                onClick={() => handleSelectSuggestion(suggestion, 'destination')}
-                                >
-                                {suggestion.place_name}
-                                </Button>
-                            ))}
-                        </PopoverContent>
-                    </Popover>
+                                type="number"
+                            />
+                            <Pencil className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        </div>
                   </div>
                   
-                  {selectedDestination && selectedPickup && route && (
-                      <div className="space-y-2">
-                          <RideOption 
-                              type="comfort"
-                              name="Comfort"
-                              time={tripTime}
-                              seats={4}
-                              price={comfortPrice}
-                              isSelected={rideCategory === 'comfort'}
-                              onSelect={() => setRideCategory('comfort')}
-                          />
-                          <RideOption 
-                              type="executive"
-                              name="Executive"
-                              time={tripTime}
-                              seats={4}
-                              price={executivePrice}
-                              isSelected={rideCategory === 'executive'}
-                              onSelect={() => setRideCategory('executive')}
-                          />
-                      </div>
-                  )}
-                    
-                  <div className="grid grid-cols-3 gap-2">
-                    <PaymentOption
-                      method="pix"
-                      icon={<Wallet className="h-6 w-6 text-primary" />}
-                      label="Pix"
-                      isSelected={paymentMethod === 'pix'}
-                      onSelect={() => setPaymentMethod('pix')}
-                    />
-                    <PaymentOption
-                      method="cash"
-                      icon={<Coins className="h-6 w-6 text-primary" />}
-                      label="Dinheiro"
-                      isSelected={paymentMethod === 'cash'}
-                      onSelect={() => setPaymentMethod('cash')}
-                    />
-                    <PaymentOption
-                      method="card_machine"
-                      icon={<Landmark className="h-6 w-6 text-primary" />}
-                      label="Cartão"
-                      isSelected={paymentMethod === 'card_machine'}
-                      onSelect={() => setPaymentMethod('card_machine')}
-                    />
+                  <div className="flex items-center gap-2 px-1">
+                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || !fareOffer} onClick={handleConfirmRide}>
+                        Encontre um motorista
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-12 w-12 flex-shrink-0 bg-muted border-none">
+                          <Settings2 />
+                      </Button>
                   </div>
-
-                  <Button className="w-full h-14 text-lg justify-between font-bold" disabled={!route} onClick={handleConfirmRide}>
-                    <span>Confirmar Corrida</span>
-                    <span>{formatCurrency(rideCategory === 'comfort' ? comfortPrice : executivePrice)}</span>
-                  </Button>
 
                 </CardContent>
               </Card>
@@ -551,3 +455,5 @@ function PassengerDashboard() {
 }
 
 export default withAuth(PassengerDashboard, ["passenger"]);
+
+    

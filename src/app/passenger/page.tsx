@@ -5,7 +5,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Home, Briefcase, BarChart2, User as UserIcon, ShieldCheck } from "lucide-react";
+import { MapPin, Search, Home, Briefcase, BarChart2, User as UserIcon, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,10 +43,15 @@ function PassengerHomePage() {
       {/* Header */}
       <header className="p-4 flex justify-between items-center bg-background">
         <h1 className="text-2xl font-bold">Olá, {user.name.split(' ')[0]}!</h1>
-        <Avatar className="h-10 w-10 cursor-pointer" onClick={() => router.push('/passenger/profile')}>
-          <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar" alt={user.name} />
-          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-10 w-10">
+                <SlidersHorizontal className="h-5 w-5" />
+            </Button>
+            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => router.push('/passenger/profile')}>
+                <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar" alt={user.name} />
+                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+        </div>
       </header>
       
       {/* Main Content */}

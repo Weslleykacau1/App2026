@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -83,6 +83,13 @@ const roleTranslations: { [key in UserRole]: string } = {
   motorista: "Motorista",
   admin: "Admin",
 };
+
+const roleIcons: { [key in UserRole]: React.ReactNode } = {
+  passageiro: <UserIcon className="h-5 w-5" />,
+  motorista: <Car className="h-5 w-5" />,
+  admin: <Shield className="h-5 w-5" />,
+};
+
 
 const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
     "Verificado": <FileCheck2 className="h-5 w-5 text-green-500" />,
@@ -464,8 +471,9 @@ function AdminDashboard() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar" />
-                              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                               <AvatarFallback className="bg-muted text-muted-foreground">
+                                    {roleIcons[user.role]}
+                               </AvatarFallback>
                             </Avatar>
                             <div>
                                 <div className="font-medium">{user.name}</div>
@@ -807,3 +815,5 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

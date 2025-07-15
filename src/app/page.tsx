@@ -3,7 +3,6 @@
 
 import { useRouter } from "next/navigation";
 import { Car, User, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function RoleSelectionPage() {
   const router = useRouter();
@@ -20,7 +19,7 @@ export default function RoleSelectionPage() {
           Sua jornada começa aqui. Escolha seu perfil para continuar.
         </p>
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        <div className="w-full grid grid-cols-1 md:grid-cols-1 gap-6 mt-12">
           <div 
             onClick={() => router.push('/login?role=passenger')}
             className="group relative cursor-pointer rounded-xl border-2 border-border bg-card p-8 text-center transition-all hover:border-primary hover:shadow-2xl hover:-translate-y-1"

@@ -65,8 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             ...profileData,
-            // The admin user ALWAYS has the 'admin' role internally, even if they log in
-            // to view the app as another role. This ensures they retain admin permissions.
+            // The admin user ALWAYS has the 'admin' role internally.
             role: isSpecialAdmin ? 'admin' : profileData.role,
           } as User);
 

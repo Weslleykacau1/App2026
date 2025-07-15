@@ -93,11 +93,20 @@ export default function SignupPage() {
         }
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no Cadastro",
-        description: error.message || "Ocorreu um erro. Por favor, tente novamente.",
-      });
+       if (error.code === 'auth/email-already-in-use') {
+         toast({
+            variant: "destructive",
+            title: "Erro no Cadastro",
+            description: "Este e-mail já está em uso. Por favor, faça o login.",
+        });
+        router.push('/');
+       } else {
+         toast({
+            variant: "destructive",
+            title: "Erro no Cadastro",
+            description: error.message || "Ocorreu um erro. Por favor, tente novamente.",
+          });
+       }
     } finally {
       setIsSubmitting(false);
     }

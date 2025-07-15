@@ -26,7 +26,7 @@ import Image from "next/image";
 
 
 type RideCategory = "viagem" | "executive";
-type PaymentMethod = "Cartão de Crédito" | "PIX" | "Dinheiro";
+type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
 
 interface FoundDriver {
     name: string;
@@ -78,7 +78,7 @@ function RequestRidePage() {
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cartão de Crédito");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Máquina de Cartão");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
 
@@ -251,7 +251,7 @@ function RequestRidePage() {
   };
     
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
-        "Cartão de Crédito": <CreditCard className="h-6 w-6 text-primary"/>,
+        "Máquina de Cartão": <CreditCard className="h-6 w-6 text-primary"/>,
         "PIX": <Landmark className="h-6 w-6 text-primary"/>,
         "Dinheiro": <Wallet className="h-6 w-6 text-primary"/>
     }
@@ -529,11 +529,11 @@ function RequestRidePage() {
                             </PopoverTrigger>
                             <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
                                 <div className="space-y-1">
-                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Cartão de Crédito")}>
+                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Máquina de Cartão")}>
                                         <CreditCard className="h-6 w-6 text-primary"/>
                                         <div>
-                                            <p className="font-semibold">Cartão de Crédito</p>
-                                            <p className="text-xs text-muted-foreground text-left">Final **** 1234</p>
+                                            <p className="font-semibold">Máquina de Cartão</p>
+                                            <p className="text-xs text-muted-foreground text-left">Pagar ao motorista</p>
                                         </div>
                                     </Button>
                                      <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>

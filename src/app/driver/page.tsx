@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff, SteeringWheel } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -277,10 +277,14 @@ function DriverDashboard() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                        <Label htmlFor="online-status" className={cn("font-semibold cursor-pointer", isOnline ? "text-primary" : "text-muted-foreground")}>
-                            {isOnline ? 'Online' : 'Offline'}
-                        </Label>
-                        <Switch id="online-status" checked={isOnline} onCheckedChange={setIsOnline} />
+                        <Switch
+                            id="online-status"
+                            checked={isOnline}
+                            onCheckedChange={setIsOnline}
+                            className="h-12 w-24 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-muted"
+                        >
+                            <SteeringWheel className={cn("h-6 w-6 text-muted-foreground transition-colors", isOnline && "text-white")} />
+                        </Switch>
                   </div>
                   
                   <div className="flex items-center gap-1">

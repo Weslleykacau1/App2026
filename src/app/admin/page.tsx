@@ -46,6 +46,7 @@ interface User {
 
 interface OnlineDriver {
     id: number;
+    name: string;
     lat: number;
     lng: number;
 }
@@ -82,14 +83,6 @@ const initialRevenueData = [
   { name: "Dez", total: 0 },
 ];
 
-const initialOnlineDrivers: OnlineDriver[] = [
-    { id: 1, lat: -3.7327, lng: -38.5267 },
-    { id: 2, lat: -3.7310, lng: -38.5255 },
-    { id: 3, lat: -3.7365, lng: -38.5280 },
-    { id: 4, lat: -3.7280, lng: -38.5220 },
-    { id: 5, lat: -3.7320, lng: -38.5380 },
-];
-
 const roleTranslations: { [key in UserRole]: string } = {
   passageiro: "Passageiro",
   motorista: "Motorista",
@@ -109,7 +102,7 @@ const ADMIN_FARES_KEY = 'admin_fares_data';
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
   const [users, setUsers] = useState<User[]>(initialUsers);
-  const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>(initialOnlineDrivers);
+  const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -144,12 +137,24 @@ function AdminDashboard() {
   }, [theme]);
 
   useEffect(() => {
+    // Generate revenue data
     const generatedData = initialRevenueData.map(item => ({
       ...item,
       total: Math.floor(Math.random() * 5000) + 1000
     }));
     setRevenueData(generatedData);
     
+    // Set online drivers based on the main users list
+    const activeDrivers = users
+        .filter(u => u.role === 'motorista' && u.status === 'Ativo')
+        .map(driver => ({
+            id: driver.id,
+            name: driver.name,
+            lat: -3.7327 + (Math.random() - 0.5) * 0.05,
+            lng: -38.5267 + (Math.random() - 0.5) * 0.05,
+        }));
+    setOnlineDrivers(activeDrivers);
+
     // Simulate real-time driver location updates
     const interval = setInterval(() => {
         setOnlineDrivers(drivers => 
@@ -163,7 +168,7 @@ function AdminDashboard() {
 
     return () => clearInterval(interval);
 
-  }, []);
+  }, [users]);
 
   const handleThemeChange = (checked: boolean) => {
     const newTheme = checked ? 'dark' : 'light';

@@ -108,26 +108,6 @@ function PassengerHomePage() {
           <ShieldCheck className="h-8 w-8 text-teal-500" />
         </div>
       </main>
-
-      {/* Bottom Navigation */}
-      <footer className="sticky bottom-0 bg-background border-t p-2">
-        <div className="flex justify-around items-center">
-          <Button variant="ghost" className="flex flex-col h-auto items-center gap-1 text-teal-500">
-            <div className="p-2 bg-teal-100 rounded-md">
-                <Home className="h-5 w-5" />
-            </div>
-            <span className="text-xs font-semibold">Início</span>
-          </Button>
-          <Button variant="ghost" className="flex flex-col h-auto items-center gap-1 text-muted-foreground">
-            <BarChart2 className="h-5 w-5" />
-            <span className="text-xs">Atividade</span>
-          </Button>
-          <Button variant="ghost" className="flex flex-col h-auto items-center gap-1 text-muted-foreground" onClick={() => router.push('/passenger/profile')}>
-            <UserIcon className="h-5 w-5" />
-            <span className="text-xs">Conta</span>
-          </Button>
-        </div>
-      </footer>
     </div>
   );
 }

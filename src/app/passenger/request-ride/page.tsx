@@ -104,24 +104,12 @@ function RequestRidePage() {
     
     handleRerideRequest();
 
-    const pendingRequest = getItem(RIDE_REQUEST_KEY);
+    const pendingRequest = getItem<{driver: FoundDriver}>(RIDE_REQUEST_KEY);
     if(pendingRequest) {
-      setIsSearching(true);
-
-      // Simulate finding a driver after a delay
-       setTimeout(() => {
-        setIsSearching(false);
-        setFoundDriver({
-            name: "Joana M.",
-            avatarUrl: "https://placehold.co/80x80.png",
-            rating: 4.9,
-            vehicle: { model: "Honda Civic", licensePlate: "NQR-8A21" },
-            eta: 5
-        });
-        toast({ title: "Motorista encontrado!", description: "Joana M. está a caminho." });
-    }, 5000);
+      setFoundDriver(pendingRequest.driver);
+      toast({ title: "Motorista encontrado!", description: `${pendingRequest.driver.name} está a caminho.` });
     }
-  }, [geocodeAddress]);
+  }, [geocodeAddress, toast]);
 
   useEffect(() => {
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
@@ -472,7 +460,7 @@ function RequestRidePage() {
           )}
       </div>
 
-       <AlertDialog open={isSearching}>
+       <AlertDialog open={isSearching && !foundDriver}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center">Procurando por um motorista</AlertDialogTitle>

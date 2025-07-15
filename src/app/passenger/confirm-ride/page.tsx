@@ -8,10 +8,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Map } from '@/components/map';
 import { useRouter } from 'next/navigation';
 import type { MapRef, LngLatLike } from 'react-map-gl';
-import { ArrowLeft, User, CreditCard, Users, Check } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Users, Check, Loader2 } from 'lucide-react';
 import { getItem, setItem, removeItem } from '@/lib/storage';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, limit } from "firebase/firestore";
 
 const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
 const RIDE_REQUEST_KEY = 'pending_ride_request';
@@ -35,6 +37,7 @@ function ConfirmRidePage() {
     const mapRef = useRef<MapRef>(null);
     const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
     const { toast } = useToast();
+    const [isRequesting, setIsRequesting] = useState(false);
 
     useEffect(() => {
         const details = getItem<RideDetails>(RIDE_DETAILS_KEY);
@@ -56,38 +59,85 @@ function ConfirmRidePage() {
         }
     }, [router]);
 
-    const handleConfirmSelection = () => {
+    const handleConfirmSelection = async () => {
         if (!rideDetails) return;
+        setIsRequesting(true);
 
-        // This would be the final request sent to the backend/drivers
-        const finalRideRequest = {
-            fare: rideDetails.fare,
-            pickupAddress: rideDetails.pickup.place_name,
-            destination: rideDetails.destination.place_name,
-            tripDistance: 8.2, // Mock data
-            tripTime: 20, // Mock data
-            rideCategory: rideDetails.category,
-            passenger: {
-                name: 'Passageiro', // Replace with actual user name
-                avatarUrl: `https://placehold.co/80x80.png`,
-                rating: 4.8
-            },
-            route: {
-                pickup: { lat: rideDetails.pickup.center[1], lng: rideDetails.pickup.center[0] },
-                destination: { lat: rideDetails.destination.center[1], lng: rideDetails.destination.center[0] },
-                coordinates: rideDetails.route
+        try {
+            // Find an available driver
+            const driversQuery = query(
+                collection(db, "profiles"), 
+                where("role", "==", "motorista"), 
+                where("status", "==", "Ativo"), 
+                limit(1)
+            );
+            
+            const querySnapshot = await getDocs(driversQuery);
+
+            if (querySnapshot.empty) {
+                toast({
+                    variant: "destructive",
+                    title: "Nenhum motorista disponível",
+                    description: "Por favor, tente novamente mais tarde.",
+                });
+                setIsRequesting(false);
+                return;
             }
-        };
 
-        setItem(RIDE_REQUEST_KEY, finalRideRequest);
+            const driverDoc = querySnapshot.docs[0];
+            const driverData = driverDoc.data();
 
-        toast({
-            title: "Solicitação Enviada!",
-            description: "Buscando o melhor motorista para você.",
-        });
+            // This would be the final request sent to the backend/drivers
+            const finalRideRequest = {
+                fare: rideDetails.fare,
+                pickupAddress: rideDetails.pickup.place_name,
+                destination: rideDetails.destination.place_name,
+                tripDistance: 8.2, // Mock data
+                tripTime: 20, // Mock data
+                rideCategory: rideDetails.category,
+                passenger: {
+                    name: 'Passageiro', // Replace with actual user name
+                    avatarUrl: `https://placehold.co/80x80.png`,
+                    rating: 4.8
+                },
+                 driver: {
+                    id: driverDoc.id,
+                    name: driverData.name || 'Motorista',
+                    avatarUrl: driverData.avatarUrl || `https://placehold.co/80x80.png`,
+                    rating: driverData.rating || 4.9,
+                    vehicle: {
+                        model: driverData.vehicle_model || 'Veículo Padrão',
+                        licensePlate: driverData.vehicle_license_plate || 'ABC-1234'
+                    },
+                    eta: Math.floor(Math.random() * 5) + 3, // Mock eta 3-8 mins
+                },
+                route: {
+                    pickup: { lat: rideDetails.pickup.center[1], lng: rideDetails.pickup.center[0] },
+                    destination: { lat: rideDetails.destination.center[1], lng: rideDetails.destination.center[0] },
+                    coordinates: rideDetails.route
+                }
+            };
 
-        // Redirect back to the request page which will now show the searching state
-        router.push('/passenger/request-ride');
+            setItem(RIDE_REQUEST_KEY, finalRideRequest);
+
+            toast({
+                title: "Solicitação Enviada!",
+                description: "Buscando o melhor motorista para você.",
+            });
+
+            // Redirect back to the request page which will now show the searching state
+            router.push('/passenger/request-ride');
+
+        } catch (error) {
+            console.error("Error finding driver:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao solicitar corrida",
+                description: "Não foi possível encontrar um motorista. Tente novamente.",
+            });
+        } finally {
+            setIsRequesting(false);
+        }
     };
 
     if (!rideDetails) {
@@ -146,8 +196,9 @@ function ConfirmRidePage() {
                             <span className="text-sm text-muted-foreground">**** 1234</span>
                         </div>
                         
-                        <Button className="w-full h-14 text-lg font-bold bg-green-500 hover:bg-green-600" onClick={handleConfirmSelection}>
-                            Selecionar Viagem
+                        <Button className="w-full h-14 text-lg font-bold bg-green-500 hover:bg-green-600" onClick={handleConfirmSelection} disabled={isRequesting}>
+                            {isRequesting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                            {isRequesting ? "Solicitando..." : "Selecionar Viagem"}
                         </Button>
                     </CardContent>
                 </Card>

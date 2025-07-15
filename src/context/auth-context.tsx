@@ -42,7 +42,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAIL = "driverweek@gmail.com";
+const ADMIN_EMAIL = "admin@tridriver.com";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -59,18 +59,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (docSnap.exists()) {
           const profileData = docSnap.data();
-          const isSpecialAdmin = firebaseUser.email === ADMIN_EMAIL;
           
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             ...profileData,
-            // The admin user ALWAYS has the 'admin' role internally.
-            role: isSpecialAdmin ? 'admin' : profileData.role,
+            role: profileData.role,
           } as User);
 
         } else if (firebaseUser.email === ADMIN_EMAIL) {
-          // If profile doesn't exist but it's the admin, create a temporary profile
            setUser({
                 id: firebaseUser.uid,
                 name: "Admin",
@@ -81,7 +78,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
         }
         else {
-          // If profile doesn't exist, sign out the user
           await signOut(auth);
           setUser(null);
         }
@@ -116,14 +112,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (docSnap.exists()) {
           const profileData = docSnap.data();
-          // If it's the admin, the role is ALWAYS admin, unless overridden for testing.
-          const dbRole = isSpecialAdmin ? 'admin' : profileData.role;
+          const dbRole = profileData.role;
 
-          // If no override, use the role from DB (which is now correctly 'admin' for the admin user).
           if (!finalRole) {
             finalRole = dbRole;
           }
-           // Update user state.
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
@@ -132,7 +125,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } as User);
 
         } else if (isSpecialAdmin) {
-            // This is the special admin user without a profile, create a temporary one
             if (!finalRole) {
               finalRole = 'admin';
             }
@@ -140,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: firebaseUser.uid,
                 name: "Admin",
                 email: ADMIN_EMAIL,
-                role: 'admin', // Always admin role
+                role: 'admin',
                 status: "Ativo",
                 verification: "Verificado"
             });
@@ -163,7 +155,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
        toast({
         variant: "destructive",
         title: "Erro no Login",
-        description: error.message || "Credenciais inválidas ou erro no servidor.",
+        description: error.code === 'auth/invalid-credential' 
+            ? "Credenciais inválidas. Verifique seu email e senha."
+            : error.message || "Ocorreu um erro no servidor.",
       });
     } finally {
         setIsSubmitting(false);

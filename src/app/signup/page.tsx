@@ -35,7 +35,11 @@ const formSchema = z.object({
   }),
 });
 
-const ADMIN_EMAIL = "driverweek@gmail.com";
+const DEFAULT_USERS = {
+    "admin@tridriver.com": "admin123",
+    "driver@tridriver.com": "driver123",
+    "passenger@tridriver.com": "passenger123",
+};
 
 export default function SignupPage() {
   const router = useRouter();
@@ -57,40 +61,34 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // Special case for admin registration
-      if (values.email === ADMIN_EMAIL) {
-        values.password = "sucodeuva";
+      // Check if it's a default user and override password
+      const isDefaultUser = Object.keys(DEFAULT_USERS).includes(values.email);
+      if (isDefaultUser) {
+        values.password = DEFAULT_USERS[values.email as keyof typeof DEFAULT_USERS];
       }
 
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
       if (userCredential.user) {
         const user = userCredential.user;
-        const isSpecialAdmin = values.email === ADMIN_EMAIL;
         
-        const userRole = isSpecialAdmin ? 'admin' : values.role;
+        // Determine the role. If it's the admin email, force the admin role.
+        const userRole = values.email === "admin@tridriver.com" ? 'admin' : values.role;
 
         await setDoc(doc(db, "profiles", user.uid), {
           name: values.name,
           email: values.email,
           role: userRole,
           status: 'Ativo',
-          verification: 'Verificado' // Admin and new users are verified by default
+          verification: 'Verificado' // All new users are auto-verified for simplicity
         });
+        
+        toast({
+          title: "Cadastro realizado com sucesso!",
+          description: "Agora você pode fazer o login.",
+        });
+        router.push('/');
 
-        if (isSpecialAdmin) {
-             toast({
-                title: "Conta de Administrador Criada!",
-                description: "Por favor, faça o login para acessar o painel.",
-            });
-            router.push('/');
-        } else {
-            toast({
-              title: "Cadastro Inicial Realizado!",
-              description: "Agora, por favor, envie seus documentos.",
-            });
-            router.push(`/signup/documents?role=${values.role}`);
-        }
       }
     } catch (error: any) {
        if (error.code === 'auth/email-already-in-use') {

@@ -41,17 +41,23 @@ export default function LoginPage() {
   const handleQuickLogin = (role: UserRole) => {
     let credentials = { email: "", password: "password" };
     
-    // Admin user can log in as any role
-    if (role === 'admin' || role === 'driver' || role === 'passenger') {
-        credentials.email = "driverweek@gmail.com";
-        credentials.password = "sucodeuva";
-        form.setValue("email", credentials.email);
-        form.setValue("password", credentials.password);
-        setTimeout(() => {
-          login({ email: credentials.email, password: credentials.password }, role);
-        }, 100);
-        return;
+    if (role === 'admin') {
+        credentials.email = "admin@tridriver.com";
+        credentials.password = "admin123";
+    } else if (role === 'driver') {
+        credentials.email = "driver@tridriver.com";
+        credentials.password = "driver123";
+    } else if (role === 'passenger') {
+        credentials.email = "passenger@tridriver.com";
+        credentials.password = "passenger123";
     }
+
+    form.setValue("email", credentials.email);
+    form.setValue("password", credentials.password);
+
+    setTimeout(() => {
+        login({ email: credentials.email, password: credentials.password }, role);
+    }, 100);
   };
 
   return (

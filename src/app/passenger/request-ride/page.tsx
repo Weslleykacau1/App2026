@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, ArrowRight, Wallet, Coins, Landmark, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft } from "lucide-react";
+import { MapPin, Wallet, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft, CreditCard, Landmark, ChevronDown, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -20,9 +20,13 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { setItem, getItem, removeItem } from "@/lib/storage";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, limit, addDoc, serverTimestamp } from "firebase/firestore";
+import Image from "next/image";
 
 
 type RideCategory = "viagem" | "executive";
+type PaymentMethod = "Cartão de Crédito" | "PIX" | "Dinheiro";
 
 interface FoundDriver {
     name: string;
@@ -43,7 +47,6 @@ interface Suggestion {
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const RERIDE_REQUEST_KEY = 'reride_request';
-const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
 const ADMIN_FARES_KEY = 'admin_fares_data';
 
 
@@ -74,6 +77,10 @@ function RequestRidePage() {
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cartão de Crédito");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
 
   const geocodeAddress = useCallback(async (address: string): Promise<Suggestion | null> => {
     if (!mapboxToken) return null;
@@ -242,29 +249,122 @@ function RequestRidePage() {
         }
     });
   };
-
-  const handleProceedToConfirmation = () => {
-    if (!selectedDestination || !selectedPickup || fareOffer <= 0) {
-        toast({
-            variant: "destructive",
-            title: "Campos obrigatórios",
-            description: "Por favor, selecione um destino para calcular a tarifa.",
-        });
-        return;
-    }
     
-    const finalFare = fareOffer * (1 + tipPercentage / 100);
+  const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
+        "Cartão de Crédito": <CreditCard className="h-6 w-6 text-primary"/>,
+        "PIX": <Landmark className="h-6 w-6 text-primary"/>,
+        "Dinheiro": <Wallet className="h-6 w-6 text-primary"/>
+    }
 
-    const rideDetails = {
-        pickup: selectedPickup,
-        destination: selectedDestination,
-        fare: finalFare,
-        category: rideCategory,
-        route: route || []
-    };
+    const handleSelectPayment = (method: PaymentMethod) => {
+        setPaymentMethod(method);
+        setIsPopoverOpen(false);
+    }
 
-    setItem(RIDE_DETAILS_KEY, rideDetails);
-    router.push('/passenger/confirm-ride');
+    const handleConfirmRequest = async () => {
+        if (!selectedPickup || !selectedDestination || !user) return;
+        
+        setIsRequesting(true);
+
+        const finalFare = fareOffer * (1 + tipPercentage / 100);
+
+        try {
+            const driversQuery = query(
+                collection(db, "profiles"), 
+                where("role", "==", "motorista"), 
+                where("status", "==", "Ativo"), 
+                limit(1)
+            );
+            
+            const querySnapshot = await getDocs(driversQuery);
+
+            if (querySnapshot.empty) {
+                toast({
+                    variant: "destructive",
+                    title: "Nenhum motorista disponível",
+                    description: "Por favor, tente novamente mais tarde.",
+                });
+                setIsRequesting(false);
+                return;
+            }
+
+            const driverDoc = querySnapshot.docs[0];
+            const driverData = driverDoc.data();
+
+             const rideDocRef = await addDoc(collection(db, "rides"), {
+                passengerId: user.id,
+                passengerName: user.name,
+                driverId: driverDoc.id,
+                driverName: driverData.name || 'Motorista',
+                pickupAddress: selectedPickup.place_name,
+                destinationAddress: selectedDestination.place_name,
+                pickupCoords: {
+                    lat: selectedPickup.center[1],
+                    lng: selectedPickup.center[0]
+                },
+                destinationCoords: {
+                    lat: selectedDestination.center[1],
+                    lng: selectedDestination.center[0]
+                },
+                fare: finalFare,
+                category: rideCategory,
+                paymentMethod: paymentMethod,
+                status: "pending",
+                createdAt: serverTimestamp(),
+            });
+
+
+            const finalRideRequest = {
+                id: rideDocRef.id,
+                fare: finalFare,
+                pickupAddress: selectedPickup.place_name,
+                destination: selectedDestination.place_name,
+                tripDistance: 8.2, 
+                tripTime: 20,
+                rideCategory: rideCategory,
+                paymentMethod: paymentMethod,
+                passenger: {
+                    name: user.name,
+                    avatarUrl: `https://placehold.co/80x80.png`,
+                    rating: 4.8
+                },
+                 driver: {
+                    id: driverDoc.id,
+                    name: driverData.name || 'Motorista',
+                    avatarUrl: driverData.avatarUrl || `https://placehold.co/80x80.png`,
+                    rating: driverData.rating || 4.9,
+                    vehicle: {
+                        model: driverData.vehicle_model || 'Veículo Padrão',
+                        licensePlate: driverData.vehicle_license_plate || 'ABC-1234'
+                    },
+                    eta: Math.floor(Math.random() * 5) + 3,
+                },
+                route: {
+                    pickup: { lat: selectedPickup.center[1], lng: selectedPickup.center[0] },
+                    destination: { lat: selectedDestination.center[1], lng: selectedDestination.center[0] },
+                    coordinates: route || []
+                }
+            };
+
+            setItem(RIDE_REQUEST_KEY, finalRideRequest);
+            setFoundDriver(finalRideRequest.driver);
+
+            toast({
+                title: "Solicitação Enviada!",
+                description: "Buscando o melhor motorista para você.",
+            });
+            setIsRequesting(false);
+
+        } catch (error) {
+            console.error("Error finding driver:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao solicitar corrida",
+                description: "Não foi possível encontrar um motorista. Tente novamente.",
+            });
+        } finally {
+            setIsRequesting(false);
+        }
   };
   
    const handleCancelRide = () => {
@@ -416,6 +516,38 @@ function RequestRidePage() {
                                 ))}
                             </PopoverContent>
                         </Popover>
+
+                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full h-11 justify-between">
+                                    <div className="flex items-center gap-3">
+                                        {paymentIcons[paymentMethod]}
+                                        <p className="font-semibold">{paymentMethod}</p>
+                                    </div>
+                                    <ChevronDown className="h-5 w-5 text-muted-foreground"/>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                                <div className="space-y-1">
+                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Cartão de Crédito")}>
+                                        <CreditCard className="h-6 w-6 text-primary"/>
+                                        <div>
+                                            <p className="font-semibold">Cartão de Crédito</p>
+                                            <p className="text-xs text-muted-foreground text-left">Final **** 1234</p>
+                                        </div>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>
+                                        <Landmark className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">PIX</p>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Dinheiro")}>
+                                        <Wallet className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">Dinheiro</p>
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
                         {fareOffer > 0 && (
                             <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
                                 <div className="flex justify-between items-center">
@@ -442,8 +574,9 @@ function RequestRidePage() {
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || fareOffer <= 0} onClick={handleProceedToConfirmation}>
-                        Continuar
+                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                        {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Solicitar Corrida
                       </Button>
                       <Button 
                         variant="outline" 

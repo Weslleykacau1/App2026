@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield, ListVideo } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -30,8 +30,10 @@ import { getItem, setItem } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { RideRequestsDrawer } from "@/components/ride-requests-drawer";
+
 
 type UserRole = "passageiro" | "motorista" | "admin";
 type UserStatus = "Ativo" | "Suspenso";
@@ -111,6 +113,8 @@ function AdminDashboard() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("total");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [pendingRidesCount, setPendingRidesCount] = useState(0);
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -145,10 +149,17 @@ function AdminDashboard() {
     setIsDarkMode(theme === 'dark');
     fetchUsers();
 
+    const q = query(collection(db, "rides"), where("status", "==", "pending"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setPendingRidesCount(querySnapshot.size);
+    });
+
     const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
     if (savedFares) {
         setFares(savedFares);
     }
+    
+    return () => unsubscribe();
   }, [theme]);
 
   useEffect(() => {
@@ -425,98 +436,107 @@ function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <Card className="lg:col-span-1">
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-4">
                     <div>
                         <CardTitle>Gerenciamento de Usuários</CardTitle>
                         <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
                     </div>
-                    <Dialog open={isAddUserModalOpen} onOpenChange={(isOpen) => { setIsAddUserModalOpen(isOpen); if (!isOpen) form.reset(); }}>
-                        <DialogTrigger asChild>
-                             <Button>
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                Adicionar Usuário
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Adicionar Novo Usuário</DialogTitle>
-                                <DialogDescription>
-                                    Preencha os detalhes abaixo para criar uma nova conta de usuário.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(handleAddUserSubmit)} className="space-y-4">
-                                     <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nome Completo</FormLabel>
-                                            <FormControl>
-                                            <Input placeholder="Ex: João da Silva" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Email</FormLabel>
-                                            <FormControl>
-                                            <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="password"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Senha</FormLabel>
-                                            <FormControl>
-                                            <Input type="password" {...field} required/>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="role"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Função</FormLabel>
-                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <div className="flex gap-2 items-center">
+                         <Button variant="outline" onClick={() => setIsDrawerOpen(true)}>
+                            <ListVideo className="mr-2 h-4 w-4" />
+                            Corridas em Tempo Real
+                            {pendingRidesCount > 0 && (
+                                <Badge variant="destructive" className="ml-2 animate-pulse">{pendingRidesCount}</Badge>
+                            )}
+                         </Button>
+                        <Dialog open={isAddUserModalOpen} onOpenChange={(isOpen) => { setIsAddUserModalOpen(isOpen); if (!isOpen) form.reset(); }}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    Adicionar Usuário
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+                                    <DialogDescription>
+                                        Preencha os detalhes abaixo para criar uma nova conta de usuário.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(handleAddUserSubmit)} className="space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Nome Completo</FormLabel>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione um perfil" />
-                                                    </SelectTrigger>
+                                                <Input placeholder="Ex: João da Silva" {...field} />
                                                 </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="passageiro">Passageiro</SelectItem>
-                                                    <SelectItem value="motorista">Motorista</SelectItem>
-                                                    <SelectItem value="admin">Admin</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                     <DialogFooter className="pt-4">
-                                        <DialogClose asChild>
-                                            <Button type="button" variant="outline">Cancelar</Button>
-                                        </DialogClose>
-                                        <Button type="submit">Criar Usuário</Button>
-                                    </DialogFooter>
-                                </form>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Email</FormLabel>
+                                                <FormControl>
+                                                <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Senha</FormLabel>
+                                                <FormControl>
+                                                <Input type="password" {...field} required/>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="role"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Função</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecione um perfil" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="passageiro">Passageiro</SelectItem>
+                                                        <SelectItem value="motorista">Motorista</SelectItem>
+                                                        <SelectItem value="admin">Admin</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <DialogFooter className="pt-4">
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="outline">Cancelar</Button>
+                                            </DialogClose>
+                                            <Button type="submit">Criar Usuário</Button>
+                                        </DialogFooter>
+                                    </form>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -874,6 +894,7 @@ function AdminDashboard() {
                 </Form>
             </DialogContent>
         </Dialog>
+        <RideRequestsDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
       </TooltipProvider>
     </AppLayout>
   );

@@ -13,7 +13,8 @@ import { getItem, setItem, removeItem } from '@/lib/storage';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, addDoc, serverTimestamp } from "firebase/firestore";
+import { useAuth } from '@/context/auth-context';
 
 const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
 const RIDE_REQUEST_KEY = 'pending_ride_request';
@@ -35,6 +36,7 @@ interface RideDetails {
 function ConfirmRidePage() {
     const router = useRouter();
     const mapRef = useRef<MapRef>(null);
+    const { user } = useAuth();
     const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
     const { toast } = useToast();
     const [isRequesting, setIsRequesting] = useState(false);
@@ -60,7 +62,7 @@ function ConfirmRidePage() {
     }, [router]);
 
     const handleConfirmSelection = async () => {
-        if (!rideDetails) return;
+        if (!rideDetails || !user) return;
         setIsRequesting(true);
 
         try {
@@ -87,8 +89,32 @@ function ConfirmRidePage() {
             const driverDoc = querySnapshot.docs[0];
             const driverData = driverDoc.data();
 
+             // Create ride document in Firestore
+            const rideDocRef = await addDoc(collection(db, "rides"), {
+                passengerId: user.id,
+                passengerName: user.name,
+                driverId: driverDoc.id,
+                driverName: driverData.name || 'Motorista',
+                pickupAddress: rideDetails.pickup.place_name,
+                destinationAddress: rideDetails.destination.place_name,
+                pickupCoords: {
+                    lat: rideDetails.pickup.center[1],
+                    lng: rideDetails.pickup.center[0]
+                },
+                destinationCoords: {
+                    lat: rideDetails.destination.center[1],
+                    lng: rideDetails.destination.center[0]
+                },
+                fare: rideDetails.fare,
+                category: rideDetails.category,
+                status: "pending",
+                createdAt: serverTimestamp(),
+            });
+
+
             // This would be the final request sent to the backend/drivers
             const finalRideRequest = {
+                id: rideDocRef.id, // Add ride ID from firestore
                 fare: rideDetails.fare,
                 pickupAddress: rideDetails.pickup.place_name,
                 destination: rideDetails.destination.place_name,
@@ -96,7 +122,7 @@ function ConfirmRidePage() {
                 tripTime: 20, // Mock data
                 rideCategory: rideDetails.category,
                 passenger: {
-                    name: 'Passageiro', // Replace with actual user name
+                    name: user.name,
                     avatarUrl: `https://placehold.co/80x80.png`,
                     rating: 4.8
                 },

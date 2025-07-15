@@ -9,10 +9,17 @@ import { MapPin, Search, Home, Briefcase, BarChart2, User as UserIcon, ShieldChe
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
+import { setItem } from "@/lib/storage";
+
+
+const RERIDE_REQUEST_KEY = 'reride_request';
 
 function PassengerHomePage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [pickup, setPickup] = useState("Av. Bezerra de Menezes, 1850");
+  const [destination, setDestination] = useState("");
 
   if (!user) {
     return null; 
@@ -26,7 +33,7 @@ function PassengerHomePage() {
   }
 
   const handleSearchRide = () => {
-    // Navigate to a new page to handle the ride request with map
+    setItem(RERIDE_REQUEST_KEY, { pickup, destination });
     router.push('/passenger/request-ride');
   };
 
@@ -53,19 +60,16 @@ function PassengerHomePage() {
               <Input
                 placeholder="Local de partida"
                 className="pl-10 h-12 text-base bg-muted border-none"
-                defaultValue="Av. Bezerra de Menezes, 1850"
+                value={pickup}
+                onChange={(e) => setPickup(e.target.value)}
               />
             </div>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center cursor-pointer" onClick={handleSearchRide}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Para onde vamos?"
-                className="pl-10 h-12 text-base bg-muted border-none"
-              />
+              <div className="pl-10 h-12 text-base bg-muted border-none w-full flex items-center rounded-md text-muted-foreground">
+                Para onde vamos?
+              </div>
             </div>
-            <Button className="w-full h-12 text-lg font-bold bg-teal-500 hover:bg-teal-600 text-white" onClick={handleSearchRide}>
-              Buscar corrida
-            </Button>
           </CardContent>
         </Card>
 

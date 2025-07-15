@@ -2,10 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Car, User, Shield, Loader2 } from "lucide-react";
-import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -23,6 +23,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isSubmitting } = useAuth();
   const { toast } = useToast();
 
@@ -34,12 +35,21 @@ export default function LoginPage() {
     },
   });
 
+  useEffect(() => {
+    const role = searchParams.get('role') as UserRole;
+    if (role) {
+      handleQuickLogin(role);
+    }
+  }, [searchParams]);
+
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    login(values);
+    const role = searchParams.get('role') as UserRole;
+    login(values, role);
   };
   
   const handleQuickLogin = (role: UserRole) => {
-    let credentials = { email: "", password: "password" };
+    let credentials = { email: "", password: "" };
+    let finalRole: UserRole = role;
     
     if (role === 'admin') {
         credentials.email = "admin@tridriver.com";
@@ -56,7 +66,7 @@ export default function LoginPage() {
     form.setValue("password", credentials.password);
 
     setTimeout(() => {
-        login({ email: credentials.email, password: credentials.password }, role);
+        login({ email: credentials.email, password: credentials.password }, finalRole);
     }, 100);
   };
 

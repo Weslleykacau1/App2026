@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Car, User } from "lucide-react";
+import { Car, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function RoleSelectionPage() {
@@ -44,12 +44,20 @@ export default function RoleSelectionPage() {
           </div>
         </div>
         
-        <p className="mt-12 text-center text-sm text-muted-foreground">
-          Novo por aqui?{" "}
-          <span onClick={() => router.push('/signup')} className="font-semibold text-primary hover:underline cursor-pointer">
-            Cadastre-se
-          </span>
-        </p>
+        <div className="mt-12 text-center text-sm text-muted-foreground space-y-2">
+            <p>
+              Novo por aqui?{" "}
+              <span onClick={() => router.push('/signup')} className="font-semibold text-primary hover:underline cursor-pointer">
+                Cadastre-se
+              </span>
+            </p>
+             <p>
+              <span onClick={() => router.push('/login?role=admin')} className="font-semibold text-primary hover:underline cursor-pointer flex items-center justify-center gap-1.5">
+                <Shield className="h-4 w-4" />
+                Entrar como Administrador
+              </span>
+            </p>
+        </div>
       </div>
     </main>
   );

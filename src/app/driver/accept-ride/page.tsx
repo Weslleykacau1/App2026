@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -80,6 +80,24 @@ function AcceptRidePage() {
     }
 } : null;
 
+  const handleAcceptRide = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    // Set ride data for the next page
+    setItem(CURRENT_RIDE_KEY, rideData);
+    removeItem(RIDE_REQUEST_KEY); // Clear the request
+    router.push('/driver/on-ride');
+  }
+
+  const handleRejectRide = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    removeItem(RIDE_REQUEST_KEY); // Clear the request
+    router.back();
+  }, [router]);
+
 
   useEffect(() => {
     if (audioRef.current) {
@@ -107,25 +125,6 @@ function AcceptRidePage() {
 
     return () => clearInterval(timer);
   }, [timeLeft, handleRejectRide]);
-
-  const handleAcceptRide = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    // Set ride data for the next page
-    setItem(CURRENT_RIDE_KEY, rideData);
-    removeItem(RIDE_REQUEST_KEY); // Clear the request
-    router.push('/driver/on-ride');
-  }
-
-  const handleRejectRide = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    removeItem(RIDE_REQUEST_KEY); // Clear the request
-    router.back();
-  }
-
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 

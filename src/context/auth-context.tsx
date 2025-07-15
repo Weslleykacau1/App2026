@@ -126,8 +126,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const finalUser = { ...userProfile, role: finalRole };
         setUser(finalUser);
-
-        router.push(`/${finalRole}`);
+        
+        if (finalRole === 'passenger') {
+            router.push('/passenger/request-ride');
+        } else {
+            router.push(`/${finalRole}`);
+        }
 
       } else {
          throw new Error("Ocorreu um erro inesperado durante o login.");

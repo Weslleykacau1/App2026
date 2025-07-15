@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Wallet, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft, CreditCard, Landmark, ChevronDown, Users } from "lucide-react";
+import { MapPin, Wallet, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft, CreditCard, Landmark, ChevronDown, Users, Home, Briefcase } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -516,6 +516,18 @@ function RequestRidePage() {
                                 ))}
                             </PopoverContent>
                         </Popover>
+
+                        <div className="flex gap-2">
+                            <Button variant="ghost" className="flex-1 bg-muted h-14">
+                                <Home className="h-5 w-5 mr-2"/>
+                                Casa
+                            </Button>
+                             <Button variant="ghost" className="flex-1 bg-muted h-14">
+                                <Briefcase className="h-5 w-5 mr-2"/>
+                                Trabalho
+                            </Button>
+                        </div>
+
 
                         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                             <PopoverTrigger asChild>

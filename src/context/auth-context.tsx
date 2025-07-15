@@ -44,6 +44,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_EMAIL = "admin@tridriver.com";
 
+const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> => {
+    const docRef = doc(db, "profiles", firebaseUser.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const profileData = docSnap.data();
+        return {
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            ...profileData,
+        } as User;
+    } else if (firebaseUser.email === ADMIN_EMAIL) {
+        return {
+            id: firebaseUser.uid,
+            name: "Admin",
+            email: ADMIN_EMAIL,
+            role: "admin",
+            status: "Ativo",
+            verification: "Verificado"
+        };
+    }
+    return null;
+}
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,32 +79,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        const docRef = doc(db, "profiles", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          const profileData = docSnap.data();
-          
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            ...profileData,
-            role: profileData.role,
-          } as User);
-
-        } else if (firebaseUser.email === ADMIN_EMAIL) {
-           setUser({
-                id: firebaseUser.uid,
-                name: "Admin",
-                email: ADMIN_EMAIL,
-                role: "admin",
-                status: "Ativo",
-                verification: "Verificado"
-            });
-        }
-        else {
-          // This can happen if a user is deleted from Firestore but not Auth
-          // Or if there's a delay in profile creation. For now, log them out.
+        const userProfile = await fetchUserProfile(firebaseUser);
+        if (userProfile) {
+          setUser(userProfile);
+        } else {
+          // Profile not found or other issue, log out.
           await signOut(auth);
           setUser(null);
         }
@@ -105,55 +109,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const firebaseUser = userCredential.user;
 
       if (firebaseUser) {
-        const docRef = doc(db, "profiles", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
+        const userProfile = await fetchUserProfile(firebaseUser);
         
-        let finalRole: UserRole | undefined = overrideRole;
-        
-        if (docSnap.exists()) {
-          const profileData = docSnap.data();
-          const dbRole = profileData.role;
-
-          if (!finalRole) {
-            finalRole = dbRole;
-          }
-          
-          // The email `admin@tridriver.com` ALWAYS has the admin role, regardless of what's in the DB.
-          if (profileData.email === ADMIN_EMAIL) {
-            finalRole = 'admin';
-          }
-          
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            ...profileData,
-            role: finalRole,
-          } as User);
-
-        } else {
-            // If profile doesn't exist, it's an error unless it's the hardcoded admin
-             if (firebaseUser.email === ADMIN_EMAIL) {
+        if (userProfile) {
+            let finalRole = overrideRole || userProfile.role;
+            if (userProfile.email === ADMIN_EMAIL) {
                 finalRole = 'admin';
-                 setUser({
-                    id: firebaseUser.uid,
-                    name: "Admin",
-                    email: ADMIN_EMAIL,
-                    role: 'admin',
-                    status: "Ativo",
-                    verification: "Verificado"
-                });
-             } else {
-                await signOut(auth);
-                throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
-             }
-        }
-        
-        if (finalRole) {
-          router.push(`/${finalRole}`);
-        } else {
-            throw new Error("Não foi possível determinar o perfil do usuário.");
-        }
+            }
 
+            const finalUser = { ...userProfile, role: finalRole };
+            setUser(finalUser);
+
+            if (finalRole) {
+                router.push(`/${finalRole}`);
+            } else {
+                 throw new Error("Não foi possível determinar o perfil do usuário.");
+            }
+        } else {
+            await signOut(auth);
+            throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
+        }
       } else {
          throw new Error("Ocorreu um erro inesperado durante o login.");
       }

@@ -20,7 +20,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { setItem, getItem, removeItem } from "@/lib/storage";
 
 
-type RideCategory = "viagem" | "moto" | "executive";
+type RideCategory = "viagem" | "executive";
 
 interface FoundDriver {
     name: string;
@@ -350,13 +350,10 @@ function RequestRidePage() {
                 <CardContent className="p-2 space-y-3">
                     <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
                         <CarouselContent className="-ml-2">
-                            <CarouselItem className="pl-2 basis-1/3">
+                            <CarouselItem className="pl-2 basis-1/2">
                                 <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
                             </CarouselItem>
-                            <CarouselItem className="pl-2 basis-1/3">
-                                <RideCategoryCard type="moto" name="Moto" seats={1} icon={<svg className="h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M18.5 2c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5S20.43 2 18.5 2m-13 7.5c0 .6.14 1.16.4 1.66l-2.04 2.05c-.63.63-.63 1.64 0 2.26l.13.13c.63.63 1.64.63 2.26 0l2.05-2.04c.5.26 1.06.4 1.66.4c1.93 0 3.5-1.57 3.5-3.5S7.43 8.5 5.5 8.5S2 10.07 2 12m10.89 1.45l2.83-2.83l-1.41-1.41l-2.83 2.83c-.32-.1-.66-.14-1-.14c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5c0-.34-.04-.68-.14-1m7.61 2.55l-2.12-2.12l-2.83 2.83l2.12 2.12a2.5 2.5 0 0 0 2.83-2.83"/></svg>} isSelected={rideCategory === 'moto'} onSelect={() => setRideCategory('moto')} />
-                            </CarouselItem>
-                            <CarouselItem className="pl-2 basis-1/3">
+                            <CarouselItem className="pl-2 basis-1/2">
                                 <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                             </CarouselItem>
                         </CarouselContent>

@@ -61,7 +61,7 @@ function ConfirmRidePage() {
 
         // This would be the final request sent to the backend/drivers
         const finalRideRequest = {
-            fare: rideDetails.fare * 0.9, // Apply 10% discount
+            fare: rideDetails.fare,
             pickupAddress: rideDetails.pickup.place_name,
             destination: rideDetails.destination.place_name,
             tripDistance: 8.2, // Mock data
@@ -94,8 +94,6 @@ function ConfirmRidePage() {
         return <div className="h-screen w-screen flex items-center justify-center bg-muted">Carregando...</div>;
     }
 
-    const discountedFare = rideDetails.fare * 0.9;
-
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground">
             <div className="absolute inset-0 h-full w-full z-0">
@@ -120,9 +118,6 @@ function ConfirmRidePage() {
 
             <div className="absolute bottom-0 left-0 right-0 z-10 p-2 space-y-2">
                 <Card className="shadow-2xl rounded-2xl bg-card">
-                    <div className="bg-blue-500 text-white text-sm font-semibold p-2 text-center rounded-t-2xl flex items-center justify-center gap-2">
-                        <Check className="h-4 w-4"/> 10% de desconto aplicado
-                    </div>
                     <CardContent className="p-4 space-y-4">
                         <div className="bg-primary/10 rounded-lg p-3">
                             <div className="flex items-center justify-between">
@@ -140,8 +135,7 @@ function ConfirmRidePage() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-lg">R${discountedFare.toFixed(2)}</p>
-                                    <p className="text-sm text-muted-foreground line-through">R${rideDetails.fare.toFixed(2)}</p>
+                                    <p className="font-bold text-lg">{rideDetails.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                                 </div>
                             </div>
                         </div>

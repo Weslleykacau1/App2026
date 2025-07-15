@@ -18,6 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setItem, getItem, removeItem } from "@/lib/storage";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 
 type RideCategory = "viagem" | "executive";
@@ -42,6 +44,7 @@ interface Suggestion {
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const RERIDE_REQUEST_KEY = 'reride_request';
 const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
+const ADMIN_FARES_KEY = 'admin_fares_data';
 
 
 function RequestRidePage() {
@@ -53,8 +56,10 @@ function RequestRidePage() {
   
   const [pickupInput, setPickupInput] = useState("Procurando você no mapa...");
   const [destinationInput, setDestinationInput] = useState("");
-  const [fareOffer, setFareOffer] = useState("");
-  
+  const [fareOffer, setFareOffer] = useState(0);
+  const [tripDistance, setTripDistance] = useState(0);
+  const [tipPercentage, setTipPercentage] = useState(0);
+
   const [pickupSuggestions, setPickupSuggestions] = useState<Suggestion[]>([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState<Suggestion[]>([]);
   
@@ -172,6 +177,7 @@ function RequestRidePage() {
     setPickupInput(value);
     setSelectedPickup(null);
     setRoute(null);
+    setFareOffer(0);
     debouncedFetchPickupSuggestions(value);
   };
   
@@ -180,6 +186,7 @@ function RequestRidePage() {
     setDestinationInput(value);
     setSelectedDestination(null);
     setRoute(null);
+    setFareOffer(0);
     debouncedFetchDestinationSuggestions(value);
   };
 
@@ -211,16 +218,27 @@ function RequestRidePage() {
             const routeGeom = currentRoute.geometry.coordinates;
             setRoute(routeGeom);
             
+            const distanceInKm = currentRoute.distance / 1000;
+            setTripDistance(distanceInKm);
+
+            const adminFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY) || { comfort: '1.80', executive: '2.20' };
+            const ratePerKm = rideCategory === 'viagem' ? parseFloat(adminFares.comfort) : parseFloat(adminFares.executive);
+            const baseFare = distanceInKm * ratePerKm;
+            
+            setFareOffer(baseFare);
+            setTipPercentage(0); // Reset tip when route changes
+            
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
             }
         }
       } else {
         setRoute(null);
+        setFareOffer(0);
       }
     }
     calculateRoute();
-  }, [selectedPickup, selectedDestination, mapboxToken]);
+  }, [selectedPickup, selectedDestination, mapboxToken, rideCategory]);
 
   if (!user) return null;
 
@@ -238,19 +256,21 @@ function RequestRidePage() {
   };
 
   const handleProceedToConfirmation = () => {
-    if (!selectedDestination || !selectedPickup || !fareOffer) {
+    if (!selectedDestination || !selectedPickup || fareOffer <= 0) {
         toast({
             variant: "destructive",
             title: "Campos obrigatórios",
-            description: "Por favor, preencha o destino e a tarifa.",
+            description: "Por favor, selecione um destino para calcular a tarifa.",
         });
         return;
     }
     
+    const finalFare = fareOffer * (1 + tipPercentage / 100);
+
     const rideDetails = {
         pickup: selectedPickup,
         destination: selectedDestination,
-        fare: parseFloat(fareOffer),
+        fare: finalFare,
         category: rideCategory,
         route: route || []
     };
@@ -263,7 +283,7 @@ function RequestRidePage() {
         setFoundDriver(null);
         setSelectedDestination(null);
         setDestinationInput("");
-        setFareOffer("");
+        setFareOffer(0);
         setRoute(null);
         removeItem(RIDE_REQUEST_KEY);
         toast({ title: "Corrida cancelada.", description: "Você pode solicitar uma nova corrida quando quiser." });
@@ -289,6 +309,9 @@ function RequestRidePage() {
         </div>
     </div>
   );
+  
+  const finalFare = fareOffer * (1 + tipPercentage / 100);
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -405,24 +428,33 @@ function RequestRidePage() {
                                 ))}
                             </PopoverContent>
                         </Popover>
-                         <div className="relative flex items-center">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">R$</span>
-                            <Input
-                                id="fare"
-                                placeholder="Ofereça sua tarifa"
-                                className="pl-10 h-11 text-base bg-muted border-none"
-                                required
-                                value={fareOffer}
-                                onChange={(e) => setFareOffer(e.target.value)}
-                                autoComplete="off"
-                                type="number"
-                            />
-                            <Pencil className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        </div>
+                        {fareOffer > 0 && (
+                            <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="fare" className="text-base font-bold">
+                                        Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                                    </Label>
+                                    <span className="text-xs text-muted-foreground">
+                                        Base: {fareOffer.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Slider
+                                        id="fare"
+                                        min={0}
+                                        max={20}
+                                        step={1}
+                                        value={[tipPercentage]}
+                                        onValueChange={(value) => setTipPercentage(value[0])}
+                                    />
+                                    <span className="text-sm font-medium w-12 text-right">+{tipPercentage}%</span>
+                                </div>
+                            </div>
+                        )}
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || !fareOffer} onClick={handleProceedToConfirmation}>
+                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || fareOffer <= 0} onClick={handleProceedToConfirmation}>
                         Continuar
                       </Button>
                       <Button 

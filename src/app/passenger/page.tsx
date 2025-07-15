@@ -44,13 +44,12 @@ function PassengerHomePage() {
       <header className="p-4 flex justify-between items-center bg-background">
         <h1 className="text-2xl font-bold">Olá, {user.name.split(' ')[0]}!</h1>
         <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-10 w-10">
-                <SlidersHorizontal className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={() => router.push('/passenger/profile')}>
+                <Avatar className="h-10 w-10 cursor-pointer">
+                    <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar" alt={user.name} />
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                </Avatar>
             </Button>
-            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => router.push('/passenger/profile')}>
-                <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar" alt={user.name} />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-            </Avatar>
         </div>
       </header>
       

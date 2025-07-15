@@ -55,6 +55,7 @@ export default function LoginPage() {
     form.setValue("email", credentials.email);
     form.setValue("password", credentials.password);
 
+    // Use a small timeout to allow form state to update before submitting
     setTimeout(() => {
         login({ email: credentials.email, password: credentials.password }, role);
     }, 100);

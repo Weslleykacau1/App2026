@@ -78,6 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
         }
         else {
+          // This can happen if a user is deleted from Firestore but not Auth
+          // Or if there's a delay in profile creation. For now, log them out.
           await signOut(auth);
           setUser(null);
         }
@@ -106,10 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const docRef = doc(db, "profiles", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         
-        const isSpecialAdmin = firebaseUser.email === ADMIN_EMAIL;
         let finalRole: UserRole | undefined = overrideRole;
         
-
         if (docSnap.exists()) {
           const profileData = docSnap.data();
           const dbRole = profileData.role;
@@ -117,28 +117,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (!finalRole) {
             finalRole = dbRole;
           }
+          
+          // The email `admin@tridriver.com` ALWAYS has the admin role, regardless of what's in the DB.
+          if (profileData.email === ADMIN_EMAIL) {
+            finalRole = 'admin';
+          }
+          
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             ...profileData,
-            role: dbRole,
+            role: finalRole,
           } as User);
 
-        } else if (isSpecialAdmin) {
-            if (!finalRole) {
-              finalRole = 'admin';
-            }
-            setUser({
-                id: firebaseUser.uid,
-                name: "Admin",
-                email: ADMIN_EMAIL,
-                role: 'admin',
-                status: "Ativo",
-                verification: "Verificado"
-            });
         } else {
-            await signOut(auth);
-            throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
+            // If profile doesn't exist, it's an error unless it's the hardcoded admin
+             if (firebaseUser.email === ADMIN_EMAIL) {
+                finalRole = 'admin';
+                 setUser({
+                    id: firebaseUser.uid,
+                    name: "Admin",
+                    email: ADMIN_EMAIL,
+                    role: 'admin',
+                    status: "Ativo",
+                    verification: "Verificado"
+                });
+             } else {
+                await signOut(auth);
+                throw new Error("Usuário não encontrado ou perfil incompleto. Por favor, cadastre-se.");
+             }
         }
         
         if (finalRole) {

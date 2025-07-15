@@ -35,12 +35,6 @@ const formSchema = z.object({
   }),
 });
 
-const DEFAULT_USERS = {
-    "admin@tridriver.com": "admin123",
-    "driver@tridriver.com": "driver123",
-    "passenger@tridriver.com": "passenger123",
-};
-
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -61,33 +55,24 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // Check if it's a default user and override password
-      const isDefaultUser = Object.keys(DEFAULT_USERS).includes(values.email);
-      if (isDefaultUser) {
-        values.password = DEFAULT_USERS[values.email as keyof typeof DEFAULT_USERS];
-      }
-
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
       if (userCredential.user) {
         const user = userCredential.user;
         
-        // Determine the role. If it's the admin email, force the admin role.
-        const userRole = values.email === "admin@tridriver.com" ? 'admin' : values.role;
-
         await setDoc(doc(db, "profiles", user.uid), {
           name: values.name,
           email: values.email,
-          role: userRole,
+          role: values.role,
           status: 'Ativo',
-          verification: 'Verificado' // All new users are auto-verified for simplicity
+          verification: 'Pendente' // All new users start as pending
         });
         
         toast({
           title: "Cadastro realizado com sucesso!",
-          description: "Agora você pode fazer o login.",
+          description: "Seus documentos estão em análise. Você já pode fazer login.",
         });
-        router.push('/');
+        router.push(`/signup/documents?role=${values.role}`);
 
       }
     } catch (error: any) {

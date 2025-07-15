@@ -29,6 +29,9 @@ import { useTheme } from 'next-themes';
 import { getItem, setItem } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { db, auth } from "@/lib/firebase";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query } from "firebase/firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 type UserRole = "passageiro" | "motorista" | "admin";
 type UserStatus = "Ativo" | "Suspenso";
@@ -37,7 +40,7 @@ type TimePeriod = "total" | "7d" | "15d" | "30d";
 
 
 interface User {
-  id: number;
+  id: string; // Firestore document ID (which should be the same as Firebase Auth UID)
   name: string;
   email: string;
   role: UserRole;
@@ -55,13 +58,6 @@ const userFormSchema = z.object({
   }),
 });
 
-
-const initialUsers: User[] = [
-  { id: 1, name: "Passageiro Padrão", email: "passenger@tridriver.com", role: "passageiro", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
-  { id: 2, name: "Motorista Padrão", email: "driver@tridriver.com", role: "motorista", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
-  { id: 3, name: "Admin Padrão", email: "admin@tridriver.com", role: "admin", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
-  { id: 4, name: "Weslley Kacau", email: "weslley.kacau@gmail.com", role: "admin", status: "Ativo", joined: "2024-07-25", verification: "Verificado" },
-];
 
 const initialRevenueData = [
   { name: "Jan", total: 0 },
@@ -97,7 +93,6 @@ const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
     "Rejeitado": <AlertCircle className="h-5 w-5 text-red-500" />,
 };
 
-const ADMIN_USERS_KEY = 'admin_users_data';
 const ADMIN_FARES_KEY = 'admin_fares_data';
 
 
@@ -115,7 +110,7 @@ function AdminDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("total");
-
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -126,16 +121,30 @@ function AdminDashboard() {
       role: "passageiro",
     },
   });
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+        const usersCollection = collection(db, "profiles");
+        const usersSnapshot = await getDocs(usersCollection);
+        const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+        setUsers(usersList);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao carregar usuários",
+            description: "Não foi possível buscar os dados do Firestore.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  };
   
   useEffect(() => {
     setIsDarkMode(theme === 'dark');
-    const savedUsers = getItem<User[]>(ADMIN_USERS_KEY);
-    if (savedUsers) {
-        setUsers(savedUsers);
-    } else {
-        setUsers(initialUsers);
-        setItem(ADMIN_USERS_KEY, initialUsers);
-    }
+    fetchUsers();
+
     const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
     if (savedFares) {
         setFares(savedFares);
@@ -143,7 +152,6 @@ function AdminDashboard() {
   }, [theme]);
 
   useEffect(() => {
-    // This effect now also depends on the selectedPeriod to refetch/filter data
     const generateRandomData = (multiplier: number) => {
         return initialRevenueData.map(item => ({
             ...item,
@@ -201,15 +209,20 @@ function AdminDashboard() {
     setIsDocsModalOpen(true);
   };
   
-  const handleVerification = (userId: number, newStatus: VerificationStatus) => {
-    const updatedUsers = users.map(user => user.id === userId ? { ...user, verification: newStatus } : user);
-    setUsers(updatedUsers);
-    setItem(ADMIN_USERS_KEY, updatedUsers);
-    setIsDocsModalOpen(false);
-    toast({
-        title: "Status de verificação atualizado!",
-        description: `O usuário foi marcado como ${newStatus.toLowerCase()}.`,
-    });
+  const handleVerification = async (userId: string, newStatus: VerificationStatus) => {
+    try {
+        const userDocRef = doc(db, "profiles", userId);
+        await updateDoc(userDocRef, { verification: newStatus });
+        fetchUsers(); // Refresh users list from Firestore
+        setIsDocsModalOpen(false);
+        toast({
+            title: "Status de verificação atualizado!",
+            description: `O usuário foi marcado como ${newStatus.toLowerCase()}.`,
+        });
+    } catch (error) {
+        console.error("Error updating verification status:", error);
+        toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o status." });
+    }
   };
 
   const handleFareChange = (e: React.ChangeEvent<HTMLInputElement>, category: 'comfort' | 'executive') => {
@@ -224,29 +237,41 @@ function AdminDashboard() {
     });
   };
   
-  const handleAddUserSubmit = (values: z.infer<typeof userFormSchema>) => {
+  const handleAddUserSubmit = async (values: z.infer<typeof userFormSchema>) => {
     if (!values.password) {
         toast({ variant: "destructive", title: "Erro", description: "A senha é obrigatória para novos usuários." });
         return;
     }
-    const newUser: User = {
-        id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-        name: values.name,
-        email: values.email,
-        role: values.role as UserRole,
-        status: "Ativo",
-        joined: new Date().toISOString().split('T')[0],
-        verification: "Pendente"
+    try {
+        // This is a temporary auth instance for user creation, to avoid conflicts with logged-in admin
+        const { user: newUser } = await createUserWithEmailAndPassword(auth, values.email, values.password);
+
+        const newUserProfile = {
+            name: values.name,
+            email: values.email,
+            role: values.role,
+            status: "Ativo",
+            joined: new Date().toISOString().split('T')[0],
+            verification: "Verificado" // Admin-created users are auto-verified
+        };
+
+        await setDoc(doc(db, "profiles", newUser.uid), newUserProfile);
+        
+        fetchUsers(); // Refresh list from firestore
+        setIsAddUserModalOpen(false);
+        form.reset();
+        toast({
+            title: "Usuário Adicionado!",
+            description: `${values.name} foi adicionado ao sistema.`,
+        });
+    } catch (error: any) {
+        console.error("Error creating user:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao criar usuário",
+            description: error.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso." : error.message,
+        });
     }
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    setItem(ADMIN_USERS_KEY, updatedUsers);
-    setIsAddUserModalOpen(false);
-    form.reset();
-    toast({
-        title: "Usuário Adicionado!",
-        description: `${values.name} foi adicionado ao sistema.`,
-    });
   };
 
   const handleOpenEditModal = (user: User) => {
@@ -255,68 +280,69 @@ function AdminDashboard() {
       name: user.name,
       email: user.email,
       role: user.role,
-      password: ""
+      password: "" // Clear password field
     });
     setIsEditUserModalOpen(true);
   };
 
-  const handleUpdateUserSubmit = (values: z.infer<typeof userFormSchema>) => {
+  const handleUpdateUserSubmit = async (values: z.infer<typeof userFormSchema>) => {
     if (!selectedUser) return;
     
-    // In a real app, you would handle password change logic here securely
-    if (values.password) {
-        console.log(`Password for user ${selectedUser.id} would be changed to: ${values.password}`);
-        toast({
-            title: "Senha Atualizada!",
-            description: `A senha de ${values.name} foi atualizada.`,
+    try {
+        const userDocRef = doc(db, "profiles", selectedUser.id);
+        await updateDoc(userDocRef, {
+            name: values.name,
+            email: values.email,
+            role: values.role,
         });
+
+        fetchUsers(); // Refresh list from firestore
+        setIsEditUserModalOpen(false);
+        setSelectedUser(null);
+        form.reset();
+        toast({
+            title: "Usuário Atualizado!",
+            description: `Os dados de ${values.name} foram atualizados.`,
+        });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar os dados." });
     }
-
-    const updatedUsers = users.map(user => 
-      user.id === selectedUser.id ? { ...user, name: values.name, email: values.email, role: values.role as UserRole } : user
-    );
-
-    setUsers(updatedUsers);
-    setItem(ADMIN_USERS_KEY, updatedUsers);
-    setIsEditUserModalOpen(false);
-    setSelectedUser(null);
-    form.reset();
-    toast({
-        title: "Usuário Atualizado!",
-        description: `Os dados de ${values.name} foram atualizados.`,
-    });
   };
 
-  const handleDeleteUser = (userId: number) => {
-    const updatedUsers = users.filter(user => user.id !== userId);
-    setUsers(updatedUsers);
-    setItem(ADMIN_USERS_KEY, updatedUsers);
-    toast({
-        title: "Usuário Excluído!",
-        description: "O usuário foi removido do sistema.",
-        variant: "destructive",
-    });
+  const handleDeleteUser = async (userId: string) => {
+     try {
+        // Note: This only deletes the Firestore profile.
+        // Deleting from Firebase Auth requires Admin SDK on a backend.
+        const userDocRef = doc(db, "profiles", userId);
+        await deleteDoc(userDocRef);
+
+        fetchUsers(); // Refresh list from firestore
+        toast({
+            title: "Usuário Excluído!",
+            description: "O perfil do usuário foi removido do sistema.",
+            variant: "destructive",
+        });
+    } catch (error) {
+         console.error("Error deleting user:", error);
+         toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir o perfil." });
+    }
   };
   
-  const handleToggleSuspendUser = (userId: number) => {
-    let userName = '';
-    const updatedUsers = users.map(user => {
-      if (user.id === userId) {
-        userName = user.name;
-        const newStatus = user.status === "Ativo" ? "Suspenso" : "Ativo";
-        return { ...user, status: newStatus };
-      }
-      return user;
-    });
-
-    setUsers(updatedUsers);
-    setItem(ADMIN_USERS_KEY, updatedUsers);
-    const targetUser = updatedUsers.find(u => u.id === userId);
-
-    toast({
-      title: `Status de ${userName} atualizado!`,
-      description: `O usuário agora está ${targetUser?.status?.toLowerCase()}.`,
-    });
+  const handleToggleSuspendUser = async (user: User) => {
+    const newStatus = user.status === "Ativo" ? "Suspenso" : "Ativo";
+    try {
+        const userDocRef = doc(db, "profiles", user.id);
+        await updateDoc(userDocRef, { status: newStatus });
+        fetchUsers(); // Refresh list from firestore
+        toast({
+          title: `Status de ${user.name} atualizado!`,
+          description: `O usuário agora está ${newStatus.toLowerCase()}.`,
+        });
+    } catch (error) {
+         console.error("Error updating user status:", error);
+         toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o status." });
+    }
   };
 
 
@@ -359,7 +385,7 @@ function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">+1 este mês</p>
+              <p className="text-xs text-muted-foreground">Usuários cadastrados</p>
             </CardContent>
           </Card>
           <Card>
@@ -381,7 +407,7 @@ function AdminDashboard() {
               <div className="text-2xl font-bold">
                  {totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </div>
-              <p className="text-xs text-muted-foreground">+5.2% este mês</p>
+              <p className="text-xs text-muted-foreground">Período selecionado</p>
             </CardContent>
           </Card>
           <Card>
@@ -451,7 +477,7 @@ function AdminDashboard() {
                                         name="password"
                                         render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Senha Temporária</FormLabel>
+                                            <FormLabel>Senha</FormLabel>
                                             <FormControl>
                                             <Input type="password" {...field} required/>
                                             </FormControl>
@@ -569,7 +595,7 @@ function AdminDashboard() {
                                             <Edit className="mr-2 h-4 w-4" />
                                             Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleToggleSuspendUser(user.id)}>
+                                        <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
                                           <UserX className="mr-2 h-4 w-4" />
                                           <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
                                         </DropdownMenuItem>
@@ -586,7 +612,7 @@ function AdminDashboard() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Essa ação não pode ser desfeita. Isso irá excluir permanentemente a conta de <span className="font-bold">{user.name}</span> e remover seus dados de nossos servidores.
+                                            Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -785,7 +811,7 @@ function AdminDashboard() {
                 <DialogHeader>
                     <DialogTitle>Editar Usuário</DialogTitle>
                     <DialogDescription>
-                        Atualize os detalhes do usuário. Deixe a senha em branco para não alterá-la.
+                        Atualize os detalhes do usuário. A alteração de senha deve ser feita pelo usuário.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -811,19 +837,6 @@ function AdminDashboard() {
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
                                 <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nova Senha (Opcional)</FormLabel>
-                                <FormControl>
-                                <Input type="password" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -867,3 +880,5 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

@@ -1,14 +1,22 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper function to check if the requesting user is an admin.
+    // It reads the user's own profile document to check their role.
+    function isAdmin() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin';
+    }
 
-    // Regras para a coleção de perfis
     match /profiles/{userId} {
-      // O administrador (weslley.kacau@gmail.com) tem permissão para ler e escrever em qualquer perfil.
-      // Usuários normais podem criar, ler e atualizar apenas seu próprio perfil.
-      allow read, write: if request.auth.token.email == 'weslley.kacau@gmail.com'
-                         || (request.auth != null && request.auth.uid == userId);
+      // Admins can read and write any profile.
+      // Regular users can only read/update their own profile.
+      // Anyone authenticated can create a profile (for signup).
+      allow read, update: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow create: if request.auth != null;
+      allow write: if isAdmin(); // Allows admins to create/delete/update any profile
     }
   }
 }

@@ -56,7 +56,6 @@ const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null
             ...profileData,
         } as User;
     }
-    // Don't return an admin profile here, handle it in the login logic
     return null;
 }
 
@@ -84,12 +83,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 verification: "Verificado"
             });
         }
-        else {
-          // Profile not found in DB, but user is authenticated.
-          // This can happen with default users or if DB write failed.
-          // The login function will handle the immediate redirection logic.
-          // We can set a minimal user object here if needed, but for now we let login handle it.
-        }
       } else {
         setUser(null);
       }
@@ -115,8 +108,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let userProfile = await fetchUserProfile(firebaseUser);
         
         if (!userProfile) {
-          // If no profile in Firestore, create a temporary one for routing.
-          // This is useful for the default accounts.
            const roleToUse = overrideRole || (firebaseUser.email?.includes('passenger') ? 'passenger' : 'driver');
            userProfile = {
               id: firebaseUser.uid,
@@ -129,7 +120,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         let finalRole = overrideRole || userProfile.role;
-        // Ensure admin is always admin
         if (userProfile.email === ADMIN_EMAIL) {
             finalRole = 'admin';
         }
@@ -159,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
-    router.push("/");
+    router.push("/login");
   };
 
   return (

@@ -65,7 +65,7 @@ export default function SignupPage() {
           email: values.email,
           role: values.role,
           status: 'Ativo',
-          verification: 'Pendente' // All new users start as pending
+          verification: 'Pendente'
         });
         
         toast({
@@ -82,7 +82,7 @@ export default function SignupPage() {
             title: "Erro no Cadastro",
             description: "Este e-mail já está em uso. Por favor, faça o login.",
         });
-        router.push('/');
+        router.push('/login');
        } else {
          toast({
             variant: "destructive",
@@ -191,7 +191,7 @@ export default function SignupPage() {
         
         <div className="mt-8 text-center text-sm text-muted-foreground">
             Já tem uma conta?{" "}
-            <Link href="/" className="font-semibold text-primary hover:underline">
+            <Link href="/login" className="font-semibold text-primary hover:underline">
               Entrar
             </Link>
           </div>

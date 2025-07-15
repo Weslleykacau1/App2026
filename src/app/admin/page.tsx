@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -46,10 +46,10 @@ interface User {
   verification: VerificationStatus;
 }
 
-const addUserFormSchema = z.object({
+const userFormSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um email válido." }),
-  password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
+  password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }).optional().or(z.literal('')),
   role: z.enum(["passageiro", "motorista", "admin"], {
     required_error: "Você precisa selecionar um perfil.",
   }),
@@ -101,14 +101,15 @@ function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-  const form = useForm<z.infer<typeof addUserFormSchema>>({
-    resolver: zodResolver(addUserFormSchema),
+  const form = useForm<z.infer<typeof userFormSchema>>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -124,6 +125,7 @@ function AdminDashboard() {
         setUsers(savedUsers);
     } else {
         setUsers(initialUsers);
+        setItem(ADMIN_USERS_KEY, initialUsers);
     }
     const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
     if (savedFares) {
@@ -204,7 +206,11 @@ function AdminDashboard() {
     });
   };
   
-  const handleAddUserSubmit = (values: z.infer<typeof addUserFormSchema>) => {
+  const handleAddUserSubmit = (values: z.infer<typeof userFormSchema>) => {
+    if (!values.password) {
+        toast({ variant: "destructive", title: "Erro", description: "A senha é obrigatória para novos usuários." });
+        return;
+    }
     const newUser: User = {
         id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
         name: values.name,
@@ -222,6 +228,35 @@ function AdminDashboard() {
     toast({
         title: "Usuário Adicionado!",
         description: `${values.name} foi adicionado ao sistema.`,
+    });
+  };
+
+  const handleOpenEditModal = (user: User) => {
+    setSelectedUser(user);
+    form.reset({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: ""
+    });
+    setIsEditUserModalOpen(true);
+  };
+
+  const handleUpdateUserSubmit = (values: z.infer<typeof userFormSchema>) => {
+    if (!selectedUser) return;
+    
+    const updatedUsers = users.map(user => 
+      user.id === selectedUser.id ? { ...user, name: values.name, email: values.email, role: values.role as UserRole } : user
+    );
+
+    setUsers(updatedUsers);
+    setItem(ADMIN_USERS_KEY, updatedUsers);
+    setIsEditUserModalOpen(false);
+    setSelectedUser(null);
+    form.reset();
+    toast({
+        title: "Usuário Atualizado!",
+        description: `Os dados de ${values.name} foram atualizados.`,
     });
   };
 
@@ -319,7 +354,7 @@ function AdminDashboard() {
                         <CardTitle>Gerenciamento de Usuários</CardTitle>
                         <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
                     </div>
-                    <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
+                    <Dialog open={isAddUserModalOpen} onOpenChange={(isOpen) => { setIsAddUserModalOpen(isOpen); if (!isOpen) form.reset(); }}>
                         <DialogTrigger asChild>
                              <Button>
                                 <UserPlus className="mr-2 h-4 w-4" />
@@ -368,7 +403,7 @@ function AdminDashboard() {
                                         <FormItem>
                                             <FormLabel>Senha Temporária</FormLabel>
                                             <FormControl>
-                                            <Input type="password" {...field} />
+                                            <Input type="password" {...field} required/>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -478,6 +513,10 @@ function AdminDashboard() {
                                         <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
                                             <FileText className="mr-2 h-4 w-4" />
                                             Ver Documentos
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            Editar
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleToggleSuspendUser(user.id)}>
                                           <UserX className="mr-2 h-4 w-4" />
@@ -683,11 +722,77 @@ function AdminDashboard() {
                 </DialogContent>
             </Dialog>
         )}
+        <Dialog open={isEditUserModalOpen} onOpenChange={(isOpen) => { setIsEditUserModalOpen(isOpen); if (!isOpen) form.reset(); }}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Editar Usuário</DialogTitle>
+                    <DialogDescription>
+                        Atualize os detalhes do usuário abaixo. A senha não será alterada.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleUpdateUserSubmit)} className="space-y-4">
+                         <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nome Completo</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: João da Silva" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Função</FormLabel>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione um perfil" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="passageiro">Passageiro</SelectItem>
+                                        <SelectItem value="motorista">Motorista</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <DialogFooter className="pt-4">
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">Cancelar</Button>
+                            </DialogClose>
+                            <Button type="submit">Salvar Alterações</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
       </TooltipProvider>
     </AppLayout>
   );
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
-
-    

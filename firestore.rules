@@ -1,0 +1,14 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Regras para a coleção de perfis
+    match /profiles/{userId} {
+      // O administrador (weslley.kacau@gmail.com) tem permissão para ler e escrever em qualquer perfil.
+      // Usuários normais podem criar, ler e atualizar apenas seu próprio perfil.
+      allow read, write: if request.auth.token.email == 'weslley.kacau@gmail.com'
+                         || (request.auth != null && request.auth.uid == userId);
+    }
+  }
+}

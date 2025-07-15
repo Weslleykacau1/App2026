@@ -41,6 +41,7 @@ interface Suggestion {
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const RERIDE_REQUEST_KEY = 'reride_request';
+const RIDE_DETAILS_KEY = 'ride_details_for_confirmation';
 
 
 function RequestRidePage() {
@@ -101,6 +102,19 @@ function RequestRidePage() {
     const pendingRequest = getItem(RIDE_REQUEST_KEY);
     if(pendingRequest) {
       setIsSearching(true);
+
+      // Simulate finding a driver after a delay
+       setTimeout(() => {
+        setIsSearching(false);
+        setFoundDriver({
+            name: "Joana M.",
+            avatarUrl: "https://placehold.co/80x80.png",
+            rating: 4.9,
+            vehicle: { model: "Honda Civic", licensePlate: "NQR-8A21" },
+            eta: 5
+        });
+        toast({ title: "Motorista encontrado!", description: "Joana M. está a caminho." });
+    }, 5000);
     }
   }, [geocodeAddress]);
 
@@ -223,8 +237,8 @@ function RequestRidePage() {
     });
   };
 
-  const handleConfirmRide = () => {
-    if (!selectedDestination || !selectedPickup || !user) {
+  const handleProceedToConfirmation = () => {
+    if (!selectedDestination || !selectedPickup || !fareOffer) {
         toast({
             variant: "destructive",
             title: "Campos obrigatórios",
@@ -233,39 +247,16 @@ function RequestRidePage() {
         return;
     }
     
-    const rideRequest = {
-        fare: parseFloat(fareOffer) || 0,
-        pickupAddress: selectedPickup.place_name,
-        destination: destinationInput,
-        tripDistance: 8.2, // Mock data
-        tripTime: 22, // Mock data
-        rideCategory: rideCategory,
-        passenger: {
-            name: user.name,
-            avatarUrl: `https://placehold.co/80x80.png`,
-            rating: 4.8
-        },
-        route: {
-            pickup: { lat: selectedPickup.center[1], lng: selectedPickup.center[0] },
-            destination: { lat: selectedDestination.center[1], lng: selectedDestination.center[0] },
-            coordinates: route || []
-        }
+    const rideDetails = {
+        pickup: selectedPickup,
+        destination: selectedDestination,
+        fare: parseFloat(fareOffer),
+        category: rideCategory,
+        route: route || []
     };
 
-    setItem(RIDE_REQUEST_KEY, rideRequest);
-    setIsSearching(true);
-    
-    setTimeout(() => {
-        setIsSearching(false);
-        setFoundDriver({
-            name: "Joana M.",
-            avatarUrl: "https://placehold.co/80x80.png",
-            rating: 4.9,
-            vehicle: { model: "Honda Civic", licensePlate: "NQR-8A21" },
-            eta: 5
-        });
-        toast({ title: "Motorista encontrado!", description: "Joana M. está a caminho." });
-    }, 5000);
+    setItem(RIDE_DETAILS_KEY, rideDetails);
+    router.push('/passenger/confirm-ride');
   };
   
    const handleCancelRide = () => {
@@ -274,6 +265,7 @@ function RequestRidePage() {
         setDestinationInput("");
         setFareOffer("");
         setRoute(null);
+        removeItem(RIDE_REQUEST_KEY);
         toast({ title: "Corrida cancelada.", description: "Você pode solicitar uma nova corrida quando quiser." });
     };
 
@@ -433,8 +425,8 @@ function RequestRidePage() {
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || !fareOffer} onClick={handleConfirmRide}>
-                        Encontre um motorista
+                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || !fareOffer} onClick={handleProceedToConfirmation}>
+                        Continuar
                       </Button>
                       <Button variant="outline" size="icon" className="h-12 w-12 flex-shrink-0 bg-muted border-none">
                           <Settings2 />
@@ -469,5 +461,3 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
-    

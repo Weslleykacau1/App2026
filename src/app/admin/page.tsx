@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2 } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -29,6 +29,7 @@ import { useTheme } from 'next-themes';
 import { getItem, setItem } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -45,18 +46,11 @@ interface User {
   verification: VerificationStatus;
 }
 
-interface OnlineDriver {
-    id: number;
-    name: string;
-    lat: number;
-    lng: number;
-}
-
 const addUserFormSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um email válido." }),
   password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
-  role: z.enum(["passenger", "driver", "admin"], {
+  role: z.enum(["passageiro", "motorista", "admin"], {
     required_error: "Você precisa selecionar um perfil.",
   }),
 });
@@ -102,8 +96,8 @@ const ADMIN_FARES_KEY = 'admin_fares_data';
 
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [onlineDrivers, setOnlineDrivers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -119,7 +113,7 @@ function AdminDashboard() {
       name: "",
       email: "",
       password: "",
-      role: "passenger",
+      role: "passageiro",
     },
   });
   
@@ -129,7 +123,7 @@ function AdminDashboard() {
     if (savedUsers) {
         setUsers(savedUsers);
     } else {
-        setUsers(initialUsers); // Set initial users if none are saved
+        setUsers(initialUsers);
     }
     const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
     if (savedFares) {
@@ -138,14 +132,12 @@ function AdminDashboard() {
   }, [theme]);
 
   useEffect(() => {
-    // Generate revenue data
     const generatedData = initialRevenueData.map(item => ({
       ...item,
       total: Math.floor(Math.random() * 5000) + 1000
     }));
     setRevenueData(generatedData);
     
-    // Set online drivers based on the main users list
     const activeDrivers = users
         .filter(u => u.role === 'motorista' && u.status === 'Ativo')
         .map(driver => ({
@@ -156,7 +148,6 @@ function AdminDashboard() {
         }));
     setOnlineDrivers(activeDrivers);
 
-    // Simulate real-time driver location updates
     const interval = setInterval(() => {
         setOnlineDrivers(drivers => 
             drivers.map(driver => ({
@@ -241,6 +232,28 @@ function AdminDashboard() {
     toast({
         title: "Usuário Excluído!",
         description: "O usuário foi removido do sistema.",
+        variant: "destructive",
+    });
+  };
+  
+  const handleToggleSuspendUser = (userId: number) => {
+    let userName = '';
+    const updatedUsers = users.map(user => {
+      if (user.id === userId) {
+        userName = user.name;
+        const newStatus = user.status === "Ativo" ? "Suspenso" : "Ativo";
+        return { ...user, status: newStatus };
+      }
+      return user;
+    });
+
+    setUsers(updatedUsers);
+    setItem(ADMIN_USERS_KEY, updatedUsers);
+    const targetUser = updatedUsers.find(u => u.id === userId);
+
+    toast({
+      title: `Status de ${userName} atualizado!`,
+      description: `O usuário agora está ${targetUser?.status?.toLowerCase()}.`,
     });
   };
 
@@ -292,7 +305,7 @@ function AdminDashboard() {
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</div>
+              <div className="text-2xl font-bold">{users.filter(u => u.role === 'admin' && u.status === 'Ativo').length}</div>
               <p className="text-xs text-muted-foreground">Administradores do Sistema</p>
             </CardContent>
           </Card>
@@ -374,8 +387,8 @@ function AdminDashboard() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="passenger">Passageiro</SelectItem>
-                                                    <SelectItem value="driver">Motorista</SelectItem>
+                                                    <SelectItem value="passageiro">Passageiro</SelectItem>
+                                                    <SelectItem value="motorista">Motorista</SelectItem>
                                                     <SelectItem value="admin">Admin</SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -400,9 +413,9 @@ function AdminDashboard() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Usuário</TableHead>
-                      <TableHead>Função</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="text-center">Verificação</TableHead>
+                      <TableHead className="text-center">Ações Pendentes</TableHead>
                       <TableHead><span className="sr-only">Menu</span></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -421,27 +434,25 @@ function AdminDashboard() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
-                            {roleTranslations[user.role as UserRole] || user.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
+                         <TableCell>
                            <Tooltip>
                                 <TooltipTrigger>
-                                     <div className="flex items-center gap-2">
-                                        <Badge variant={user.verification === 'Verificado' ? 'secondary' : user.verification === 'Pendente' ? 'default' : 'destructive'}>
-                                            {user.verification}
-                                        </Badge>
-                                    </div>
+                                    <Badge variant={user.status === 'Ativo' ? 'secondary' : 'destructive'}>
+                                        {user.status}
+                                    </Badge>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>{user.verification}</p>
+                                    <p>{user.status}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TableCell>
+                        <TableCell className="text-center">
+                            <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
+                                {roleTranslations[user.role as UserRole] || user.role}
+                            </Badge>
+                        </TableCell>
                          <TableCell>
-                            {user.verification === 'Pendente' ? (
+                            {user.verification === 'Pendente' && user.role !== 'admin' ? (
                                 <div className="flex gap-2 justify-center">
                                     <Button size="sm" variant="destructive" onClick={() => handleVerification(user.id, 'Rejeitado')}>
                                         <ThumbsDown className="mr-2 h-4 w-4"/> Rejeitar
@@ -465,13 +476,16 @@ function AdminDashboard() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                            <FileText className="mr-2 h-4 w-4" />
                                             Ver Documentos
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                                        <DropdownMenuItem>Suspender</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleToggleSuspendUser(user.id)}>
+                                          <UserX className="mr-2 h-4 w-4" />
+                                          <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <AlertDialogTrigger asChild>
-                                             <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 Excluir
                                             </DropdownMenuItem>
@@ -661,7 +675,7 @@ function AdminDashboard() {
                              <Button type="button" variant="destructive" onClick={() => handleVerification(selectedUser.id, 'Rejeitado')}>
                                 <X className="mr-2 h-4 w-4" /> Rejeitar
                             </Button>
-                            <Button type="button" variant="secondary" onClick={() => handleVerification(selectedUser.id, 'Verificado')}>
+                            <Button type="button" className="bg-green-600 hover:bg-green-700" onClick={() => handleVerification(selectedUser.id, 'Verificado')}>
                                 <Check className="mr-2 h-4 w-4" /> Aprovar
                             </Button>
                        </div>
@@ -675,3 +689,5 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

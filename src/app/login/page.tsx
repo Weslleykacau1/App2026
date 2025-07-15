@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Car, Loader2, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -12,13 +12,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { useAuth, UserRole } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
   password: z.string().min(1, { message: "Senha é obrigatória." }),
+  rememberMe: z.boolean().default(false).optional(),
 });
 
 export default function LoginPage() {
@@ -32,13 +34,26 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      form.setValue('email', rememberedEmail);
+      form.setValue('rememberMe', true);
+    }
+  }, [form]);
+
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    // The role can be passed via query param, but the login logic should primarily rely on the user's profile in the database.
+    if (values.rememberMe) {
+        localStorage.setItem('rememberedEmail', values.email);
+    } else {
+        localStorage.removeItem('rememberedEmail');
+    }
     const role = searchParams.get('role') as UserRole | undefined;
-    login(values, role);
+    login({ email: values.email, password: values.password }, role);
   };
   
 
@@ -78,14 +93,32 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              
+              <div className="flex items-center justify-between">
+                 <FormField
+                    control={form.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                            <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        <FormLabel className="text-sm !mt-0 cursor-pointer">
+                            Lembrar usuário
+                        </FormLabel>
+                        </FormItem>
+                    )}
+                 />
 
-              <div className="text-right">
                 <Link href="https://wa.me/5511912345678" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
                   Esqueceu a senha?
                 </Link>
               </div>
 
-               <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
+               <Button type="submit" className="w-full !mt-6 h-12 text-base font-semibold" disabled={isSubmitting}>
                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                  Entrar
                </Button>

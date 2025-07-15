@@ -13,7 +13,7 @@ import { useTheme } from 'next-themes';
 import { User, Star, X, Check, MapPin, Zap } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { Progress } from "@/components/ui/progress";
-import { getItem, removeItem } from "@/lib/storage";
+import { getItem, removeItem, setItem } from "@/lib/storage";
 
 interface RideRequest {
   fare: number;
@@ -35,6 +35,7 @@ interface RideRequest {
 }
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
+const CURRENT_RIDE_KEY = 'current_ride_data';
 
 function AcceptRidePage() {
   const { resolvedTheme } = useTheme();
@@ -105,14 +106,14 @@ function AcceptRidePage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, handleRejectRide]);
 
   const handleAcceptRide = () => {
     if (audioRef.current) {
       audioRef.current.pause();
     }
     // Set ride data for the next page
-    sessionStorage.setItem('current_ride_data', JSON.stringify(rideData));
+    setItem(CURRENT_RIDE_KEY, rideData);
     removeItem(RIDE_REQUEST_KEY); // Clear the request
     router.push('/driver/on-ride');
   }

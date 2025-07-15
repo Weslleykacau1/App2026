@@ -12,7 +12,7 @@ import { useTheme } from 'next-themes';
 import { MapPin, MessageCircle, Phone, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { setItem } from "@/lib/storage";
+import { setItem, getItem, removeItem } from "@/lib/storage";
 
 
 interface RideData {
@@ -25,7 +25,6 @@ interface RideData {
   pickupAddress: string;
   destination: string;
   route: {
-    driver: { lat: number; lng: number };
     pickup: { lat: number; lng: number };
     destination: { lat: number; lng: number };
     coordinates: LngLatLike[];
@@ -33,6 +32,7 @@ interface RideData {
 }
 
 const mockDriverLocation = { lat: -3.7327, lng: -38.5267 };
+const CURRENT_RIDE_KEY = 'current_ride_data';
 
 function OnRidePage() {
   const { resolvedTheme } = useTheme();
@@ -42,12 +42,11 @@ function OnRidePage() {
   const [rideData, setRideData] = useState<RideData | null>(null);
 
   useEffect(() => {
-    const data = sessionStorage.getItem('current_ride_data');
+    const data = getItem<RideData>(CURRENT_RIDE_KEY);
     if (data) {
-        const parsedData: RideData = JSON.parse(data);
         // Add current driver location to the route for display
-        parsedData.route.coordinates.unshift([mockDriverLocation.lng, mockDriverLocation.lat]);
-        setRideData(parsedData);
+        data.route.coordinates.unshift([mockDriverLocation.lng, mockDriverLocation.lat]);
+        setRideData(data);
     } else {
         router.push('/driver'); // No ride data, go back to dash
     }
@@ -103,7 +102,7 @@ function OnRidePage() {
     sessionStorage.setItem('today_rides', newRides.toString());
 
     setItem('ride_to_rate_data', rideData);
-    sessionStorage.removeItem('current_ride_data');
+    removeItem(CURRENT_RIDE_KEY);
     router.push('/driver/rate-passenger');
   };
 
@@ -163,7 +162,7 @@ function OnRidePage() {
               <div>
                 <p className="font-bold">{rideData.passenger.name}</p>
                 <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current"/>
+                    <Star className="h-4 w-4 text-yellow-400" fill="currentColor"/>
                     <span>{rideData.passenger.rating.toFixed(1)}</span>
                 </div>
               </div>

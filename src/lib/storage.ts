@@ -1,7 +1,12 @@
 
 "use client";
 
+function isServer(): boolean {
+  return typeof window === 'undefined';
+}
+
 export function setItem<T>(key: string, value: T): void {
+  if (isServer()) return;
   try {
     const serializedValue = JSON.stringify(value);
     window.localStorage.setItem(key, serializedValue);
@@ -11,6 +16,7 @@ export function setItem<T>(key: string, value: T): void {
 }
 
 export function getItem<T>(key: string): T | null {
+  if (isServer()) return null;
   try {
     const item = window.localStorage.getItem(key);
     if (item === null) {
@@ -24,6 +30,7 @@ export function getItem<T>(key: string): T | null {
 }
 
 export function removeItem(key: string): void {
+  if (isServer()) return;
   try {
     window.localStorage.removeItem(key);
   } catch (error) {

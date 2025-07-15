@@ -61,11 +61,10 @@ const addUserFormSchema = z.object({
 
 
 const initialUsers: User[] = [
-  { id: 1, name: "João Passageiro", email: "john.p@example.com", role: "passageiro", status: "Ativo", joined: "2023-01-15", verification: "Verificado" },
-  { id: 2, name: "Joana Motorista", email: "jane.d@example.com", role: "motorista", status: "Ativo", joined: "2023-02-20", verification: "Pendente" },
-  { id: 3, name: "Miguel Admin", email: "mike.a@example.com", role: "admin", status: "Ativo", joined: "2023-01-01", verification: "Verificado" },
-  { id: 4, name: "Sara Passageiro", email: "sarah.p@example.com", role: "passageiro", status: "Suspenso", joined: "2023-03-10", verification: "Verificado" },
-  { id: 5, name: "Davi Motorista", email: "david.d@example.com", role: "motorista", status: "Ativo", joined: "2023-04-05", verification: "Rejeitado" },
+  { id: 1, name: "Passageiro Padrão", email: "passenger@tridriver.com", role: "passageiro", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
+  { id: 2, name: "Motorista Padrão", email: "driver@tridriver.com", role: "motorista", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
+  { id: 3, name: "Admin Padrão", email: "admin@tridriver.com", role: "admin", status: "Ativo", joined: "2024-01-01", verification: "Verificado" },
+  { id: 4, name: "Weslley Kacau", email: "weslley.kacau@gmail.com", role: "admin", status: "Ativo", joined: "2024-07-25", verification: "Verificado" },
 ];
 
 const initialRevenueData = [
@@ -135,6 +134,8 @@ function AdminDashboard() {
     const savedUsers = getItem<User[]>(ADMIN_USERS_KEY);
     if (savedUsers) {
         setUsers(savedUsers);
+    } else {
+        setUsers(initialUsers); // Set initial users if none are saved
     }
     const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
     if (savedFares) {
@@ -274,7 +275,7 @@ function AdminDashboard() {
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</div>
               <p className="text-xs text-muted-foreground">Administradores do Sistema</p>
             </CardContent>
           </Card>
@@ -635,3 +636,5 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

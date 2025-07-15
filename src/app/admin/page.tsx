@@ -263,6 +263,15 @@ function AdminDashboard() {
   const handleUpdateUserSubmit = (values: z.infer<typeof userFormSchema>) => {
     if (!selectedUser) return;
     
+    // In a real app, you would handle password change logic here securely
+    if (values.password) {
+        console.log(`Password for user ${selectedUser.id} would be changed to: ${values.password}`);
+        toast({
+            title: "Senha Atualizada!",
+            description: `A senha de ${values.name} foi atualizada.`,
+        });
+    }
+
     const updatedUsers = users.map(user => 
       user.id === selectedUser.id ? { ...user, name: values.name, email: values.email, role: values.role as UserRole } : user
     );
@@ -776,7 +785,7 @@ function AdminDashboard() {
                 <DialogHeader>
                     <DialogTitle>Editar Usuário</DialogTitle>
                     <DialogDescription>
-                        Atualize os detalhes do usuário abaixo. A senha não será alterada.
+                        Atualize os detalhes do usuário. Deixe a senha em branco para não alterá-la.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -802,6 +811,19 @@ function AdminDashboard() {
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
                                 <Input type="email" placeholder="Ex: joao.silva@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nova Senha (Opcional)</FormLabel>
+                                <FormControl>
+                                <Input type="password" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

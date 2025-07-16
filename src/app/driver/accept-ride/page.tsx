@@ -238,7 +238,7 @@ function AcceptRidePage() {
               </div>
                <Badge variant="outline" className="gap-2">
                     <User className="h-4 w-4"/>
-                    <span>{rideData.rideCategory}</span>
+                    <span className="capitalize">{rideData.rideCategory === 'comfort' ? 'Comfort' : rideData.rideCategory}</span>
                 </Badge>
           </CardContent>
         </Card>

@@ -27,7 +27,7 @@ import { viagemCarImage, executiveCarImage } from "@/lib/images";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
-type RideCategory = "viagem" | "executive";
+type RideCategory = "comfort" | "executive";
 type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
 type AddressType = 'home' | 'work';
 
@@ -57,7 +57,7 @@ const ADMIN_FARES_KEY = 'admin_fares_data';
 function RequestRidePage() {
   const { user, fetchUserProfile } = useAuth();
   const router = useRouter();
-  const [rideCategory, setRideCategory] = useState<RideCategory>("viagem");
+  const [rideCategory, setRideCategory] = useState<RideCategory>("comfort");
   
   const mapRef = useRef<MapRef>(null);
   
@@ -297,7 +297,7 @@ function RequestRidePage() {
             setTripDistance(distanceInKm);
 
             const adminFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY) || { comfort: '1.80', executive: '2.20' };
-            const ratePerKm = rideCategory === 'viagem' ? parseFloat(adminFares.comfort) : parseFloat(adminFares.executive);
+            const ratePerKm = rideCategory === 'comfort' ? parseFloat(adminFares.comfort) : parseFloat(adminFares.executive);
             setFarePerKm(ratePerKm);
             
             const baseFare = distanceInKm * ratePerKm;
@@ -459,7 +459,7 @@ function RequestRidePage() {
     <div 
         onClick={onSelect}
         className={cn(
-            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-start gap-1 w-full border-2",
+            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center gap-1 w-full border-2 text-center",
             isSelected ? 'bg-primary/20 border-primary' : 'bg-muted/50 border-transparent hover:bg-muted'
         )}
     >
@@ -557,9 +557,9 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                   <div className="grid grid-cols-2 gap-2 px-1">
-                        <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src={viagemCarImage} alt="Viagem Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
-                        <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src={executiveCarImage} alt="Executive Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                    <div className="grid grid-cols-2 gap-2 px-1">
+                        <RideCategoryCard type="comfort" name="Comfort" seats={4} icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
+                        <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-8 w-8 text-secondary-foreground" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                    </div>
                     <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
                         {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (

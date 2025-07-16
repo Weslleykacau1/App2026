@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus } from "lucide-react";
+import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus, Shield } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -493,7 +493,7 @@ function DriverProfilePage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
-            <main className="flex-1 py-6 container mx-auto px-4">
+            <main className="flex-1 py-6 container mx-auto px-4 pb-24">
                 <div className="flex flex-col items-center text-center">
                      <div className="relative">
                         <Avatar className="h-28 w-28 border-4 border-background shadow-md">

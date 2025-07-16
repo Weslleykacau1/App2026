@@ -103,10 +103,12 @@ function DriverProfilePage() {
 
 
      useEffect(() => {
-        if (openModal !== 'upload-photo' && videoRef.current?.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
+        const videoElement = videoRef.current;
+        const stream = videoElement?.srcObject as MediaStream | null;
+        
+        if (openModal !== 'upload-photo' && stream) {
             stream.getTracks().forEach(track => track.stop());
-            videoRef.current.srcObject = null;
+            if (videoElement) videoElement.srcObject = null;
         }
 
         if (openModal === 'upload-photo') {
@@ -130,7 +132,7 @@ function DriverProfilePage() {
           getCameraPermission();
           
           return () => {
-            if (videoRef.current && videoRef.current.srcObject) {
+             if (videoRef.current && videoRef.current.srcObject) {
                 const stream = videoRef.current.srcObject as MediaStream;
                 stream.getTracks().forEach(track => track.stop());
             }
@@ -143,17 +145,18 @@ function DriverProfilePage() {
         const photo = photoRef.current;
 
         if (video && photo) {
-        const width = 300;
-        const height = video.videoHeight / (video.videoWidth / width);
+            const size = Math.min(video.videoWidth, video.videoHeight);
+            const x = (video.videoWidth - size) / 2;
+            const y = (video.videoHeight - size) / 2;
         
-        photo.width = width;
-        photo.height = height;
+            photo.width = 300;
+            photo.height = 300;
 
-        const context = photo.getContext('2d');
-        if (context) {
-            context.drawImage(video, 0, 0, width, height);
-            setPhotoDataUrl(photo.toDataURL('image/png'));
-        }
+            const context = photo.getContext('2d');
+            if (context) {
+                context.drawImage(video, x, y, size, size, 0, 0, 300, 300);
+                setPhotoDataUrl(photo.toDataURL('image/png'));
+            }
         }
     };
     
@@ -261,7 +264,7 @@ function DriverProfilePage() {
                     <DialogContent>
                         <DialogHeader><DialogTitle>{t('profile.change_photo')}</DialogTitle></DialogHeader>
                         <div className="flex flex-col items-center space-y-4 py-4">
-                            <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
+                            <div className="w-full max-w-sm aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
                                 <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
                                 {photoDataUrl && (
                                     <img src={photoDataUrl} alt={t('profile.your_photo_alt')} className="w-full h-full object-cover"/>
@@ -523,5 +526,3 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
-
-    

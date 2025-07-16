@@ -89,7 +89,7 @@ function DriverProfilePage() {
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
         fetchProfileData();
-    }, [theme, language]);
+    }, [theme, user, t]);
 
 
      useEffect(() => {
@@ -465,8 +465,8 @@ function DriverProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <Bell className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.notifications')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.notifications_desc')}</p>
+                                                <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
                                             </div>
                                             <Switch defaultChecked />
                                         </div>

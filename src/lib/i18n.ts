@@ -74,8 +74,8 @@ export const translations = {
       settings: {
           dark_mode: "Modo Escuro",
           dark_mode_desc: "Alterne entre o tema claro e escuro",
-          notifications: "Notificações",
-          notifications_desc: "Receber alertas de viagens e promoções",
+          notification_sounds: "Sons de notificação de novos pedidos de viagem",
+          notification_sounds_desc: "Receba notificações de novas viagens na lista de solicitações",
           location: "Compartilhar Localização",
           location_desc: "Permitir rastreamento durante viagens",
           language: "Idioma",
@@ -183,8 +183,8 @@ export const translations = {
       settings: {
           dark_mode: "Dark Mode",
           dark_mode_desc: "Switch between light and dark theme",
-          notifications: "Notifications",
-          notifications_desc: "Receive alerts for trips and promotions",
+          notification_sounds: "Notification sounds for new ride requests",
+          notification_sounds_desc: "Receive notifications for new trips in the requests list",
           location: "Share Location",
           location_desc: "Allow tracking during trips",
           language: "Language",

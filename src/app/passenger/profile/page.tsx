@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getItem, setItem } from "@/lib/storage";
 import { db } from "@/lib/firebase";
@@ -28,36 +29,6 @@ import { useLanguage } from "@/context/language-context";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 const RERIDE_REQUEST_KEY = 'reride_request';
-
-const rideHistory = [
-    {
-        id: 1,
-        driver: { name: 'Carlos S.', avatarUrl: 'https://placehold.co/40x40.png' },
-        date: '2024-07-22',
-        pickup: 'Av. Paulista, 1578, São Paulo - SP',
-        destination: 'Parque Ibirapuera, São Paulo - SP',
-        fare: 22.50,
-        status: 'Concluída'
-    },
-    {
-        id: 2,
-        driver: { name: 'Ana L.', avatarUrl: 'https://placehold.co/40x40.png' },
-        date: '2024-07-20',
-        pickup: 'Rua Augusta, 900, São Paulo - SP',
-        destination: 'Aeroporto de Congonhas, São Paulo - SP',
-        fare: 45.80,
-        status: 'Concluída'
-    },
-    {
-        id: 3,
-        driver: { name: 'Ricardo P.', avatarUrl: 'https://placehold.co/40x40.png' },
-        date: '2024-07-19',
-        pickup: 'Shopping Morumbi, São Paulo - SP',
-        destination: 'Estádio do Morumbi, São Paulo - SP',
-        fare: 15.00,
-        status: 'Cancelada'
-    }
-];
 
 type ModalType = 'saved-locations' | 'upload-photo' | null;
 type AddressType = 'home' | 'work';
@@ -76,7 +47,6 @@ function ProfilePageContent() {
     const [openModal, setOpenModal] = useState<ModalType>(null);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     
-    // States for saved addresses
     const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
     const [addressInput, setAddressInput] = useState("");
 
@@ -248,15 +218,6 @@ function ProfilePageContent() {
         }
     };
     
-    const handleRequestAgain = (ride: typeof rideHistory[0]) => {
-        if (ride.status === 'Cancelada') {
-             toast({ variant: 'destructive', title: "Não é possível repetir", description: "Esta corrida foi cancelada." });
-            return;
-        }
-        setItem(RERIDE_REQUEST_KEY, { pickup: ride.pickup, destination: ride.destination });
-        router.push('/passenger/request-ride');
-    };
-
     const handleOpenAddressModal = (type: AddressType) => {
         setAddressTypeToSet(type);
         setAddressInput(type === 'home' ? profileData.homeAddress : profileData.workAddress);
@@ -286,13 +247,6 @@ function ProfilePageContent() {
         }
     };
 
-    useEffect(() => {
-        if (searchParams.get('showHistory') === 'true') {
-            router.push('/passenger/history');
-            router.replace('/passenger/profile', { scroll: false });
-        }
-    }, [searchParams, router]);
-
     const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
         <>
             <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={onClick}>
@@ -320,50 +274,37 @@ function ProfilePageContent() {
 
 
     const ModalContent = () => {
-
-        if (openModal === 'saved-locations') return (
-            <DialogContent>
-                <DialogHeader><DialogTitle>Adicionar Endereço</DialogTitle></DialogHeader>
-                 <div className="py-4">
-                    <Label htmlFor="address-input">Endereço de {addressTypeToSet === 'home' ? 'Casa' : 'Trabalho'}</Label>
-                    <Input id="address-input" value={addressInput} onChange={(e) => setAddressInput(e.target.value)} />
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
-                    <Button onClick={handleSaveAddress}>Salvar Endereço</Button>
-                </DialogFooter>
-            </DialogContent>
-        );
-
         if (openModal === 'upload-photo') return (
-            <DialogContent>
-                <DialogHeader><DialogTitle>Alterar Foto</DialogTitle></DialogHeader>
-                 <div className="flex flex-col items-center space-y-4 py-4">
-                    <div className="w-full max-w-sm aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                        <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
-                        {photoDataUrl && (<img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>)}
-                         {hasCameraPermission === false && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
-                                <Alert variant="destructive"><AlertDescription>Acesso à câmera indisponível.</AlertDescription></Alert>
+            <Dialog open={openModal === 'upload-photo'} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
+                 <DialogContent>
+                    <DialogHeader><DialogTitle>Alterar Foto</DialogTitle></DialogHeader>
+                    <div className="flex flex-col items-center space-y-4 py-4">
+                        <div className="w-full max-w-sm aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
+                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                            {photoDataUrl && (<img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>)}
+                            {hasCameraPermission === false && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
+                                    <Alert variant="destructive"><AlertDescription>Acesso à câmera indisponível.</AlertDescription></Alert>
+                                </div>
+                            )}
+                        </div>
+                        <canvas ref={photoRef} className="hidden"></canvas>
+                        <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
+                        
+                        {photoDataUrl ? (
+                            <div className="flex flex-col space-y-2 w-full max-w-sm">
+                                <Button onClick={handleSavePhoto}>Salvar Foto</Button>
+                                <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                                <Button onClick={takePhoto} disabled={!hasCameraPermission}><Camera className="mr-2"/> Tirar Foto</Button>
+                                <Button variant="outline" onClick={() => galleryInputRef.current?.click()}><Library className="mr-2"/> Galeria</Button>
                             </div>
                         )}
                     </div>
-                    <canvas ref={photoRef} className="hidden"></canvas>
-                    <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
-                    
-                    {photoDataUrl ? (
-                        <div className="flex flex-col space-y-2 w-full max-w-sm">
-                            <Button onClick={handleSavePhoto}>Salvar Foto</Button>
-                            <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-                            <Button onClick={takePhoto} disabled={!hasCameraPermission}><Camera className="mr-2"/> Tirar Foto</Button>
-                            <Button variant="outline" onClick={() => galleryInputRef.current?.click()}><Library className="mr-2"/> Galeria</Button>
-                        </div>
-                    )}
-                </div>
-            </DialogContent>
+                </DialogContent>
+            </Dialog>
         );
         
         return null;
@@ -372,7 +313,6 @@ function ProfilePageContent() {
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
             <main className="flex-1 pb-24 container mx-auto px-4">
-                {/* Profile Header */}
                 <div className="flex flex-col items-center text-center my-6">
                     <div className="relative">
                         <Avatar className="h-24 w-24 border-4 border-background shadow-md">
@@ -388,7 +328,6 @@ function ProfilePageContent() {
                     <h1 className="text-2xl font-bold mt-4">{profileData.name}</h1>
                 </div>
 
-                {/* Safety Banner */}
                 <Card className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-sm mb-6">
                     <CardContent className="p-4 flex items-center gap-4">
                         <div className="bg-blue-500 text-white h-10 w-10 flex items-center justify-center rounded-lg">
@@ -400,7 +339,6 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
 
-                {/* Account Section */}
                 <Card className="mb-6">
                      <CardHeader className="flex flex-row items-center justify-between">
                          <div>
@@ -481,7 +419,6 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
 
-                {/* Saved Locations Section */}
                 <Card className="mb-6">
                     <CardHeader>
                         <CardTitle className="text-lg">Locais guardados</CardTitle>
@@ -537,9 +474,28 @@ function ProfilePageContent() {
                 </Card>
             </main>
 
-            <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
-                <ModalContent />
-            </Dialog>
+            <Sheet open={openModal === 'saved-locations'} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
+                <SheetContent>
+                    <SheetHeader>
+                        <SheetTitle>Adicionar Endereço</SheetTitle>
+                        <SheetDescription>
+                            Adicione ou edite seus endereços salvos para um acesso mais rápido.
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="py-4">
+                        <Label htmlFor="address-input">Endereço de {addressTypeToSet === 'home' ? 'Casa' : 'Trabalho'}</Label>
+                        <Input id="address-input" value={addressInput} onChange={(e) => setAddressInput(e.target.value)} />
+                    </div>
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button type="button" variant="outline">Cancelar</Button>
+                        </SheetClose>
+                        <Button onClick={handleSaveAddress}>Salvar Endereço</Button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
+
+            <ModalContent />
             <BottomNavBar role="passenger" />
         </div>
     );
@@ -553,7 +509,5 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
-
-    
 
     

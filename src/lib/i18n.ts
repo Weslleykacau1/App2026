@@ -26,7 +26,7 @@ export const translations = {
       form: {
           full_name: "Nome Completo",
           email: "Email",
-          phone: "Telefone",
+          phone: "Whatsapp",
           cpf: "CPF"
       },
       tabs: {
@@ -135,7 +135,7 @@ export const translations = {
       form: {
           full_name: "Full Name",
           email: "Email",
-          phone: "Phone",
+          phone: "Whatsapp",
           cpf: "ID Number (CPF)"
       },
       tabs: {
@@ -236,3 +236,5 @@ type DotNestedKeys<T> = (T extends object ?
 
 
 export type TranslationKey = DotNestedKeys<typeof translations.pt>;
+
+    

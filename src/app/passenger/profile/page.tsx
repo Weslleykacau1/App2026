@@ -133,41 +133,45 @@ function ProfilePageContent() {
 
      useEffect(() => {
         const videoElement = videoRef.current;
-        const stream = videoElement?.srcObject as MediaStream | null;
-        
-        if (openModal !== 'upload-photo' && stream) {
-            stream.getTracks().forEach(track => track.stop());
-            if (videoElement) videoElement.srcObject = null;
+        let stream: MediaStream | null = null;
+        if (videoElement) {
+            stream = videoElement.srcObject as MediaStream | null;
         }
 
-        if (openModal === 'upload-photo') {
-          const getCameraPermission = async () => {
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({video: true});
-              setHasCameraPermission(true);
-              if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-              }
-            } catch (error) {
-              console.error('Error accessing camera:', error);
-              setHasCameraPermission(false);
-              toast({
-                variant: 'destructive',
-                title: "Acesso negado",
-                description: "Por favor, habilite o acesso à câmera.",
-              });
-            }
-          };
-          getCameraPermission();
-
-          return () => {
-             if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
+        const stopStream = () => {
+            if (stream) {
                 stream.getTracks().forEach(track => track.stop());
+                if(videoElement) videoElement.srcObject = null;
             }
-          }
+        };
+
+        if (openModal !== 'upload-photo') {
+            stopStream();
+        } else {
+            const getCameraPermission = async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    setHasCameraPermission(true);
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                    }
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    setHasCameraPermission(false);
+                    toast({
+                        variant: 'destructive',
+                        title: "Acesso negado",
+                        description: "Por favor, habilite o acesso à câmera.",
+                    });
+                }
+            };
+            getCameraPermission();
         }
-    }, [openModal, toast, t]);
+
+        return () => {
+            stopStream();
+        };
+    }, [openModal, toast]);
 
     const takePhoto = () => {
         const video = videoRef.current;
@@ -422,7 +426,7 @@ function ProfilePageContent() {
                             <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
                         </div>
                         <div>
-                            <Label htmlFor="phone">Telefone</Label>
+                            <Label htmlFor="phone">Whatsapp</Label>
                             <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
                         </div>
                         <div>
@@ -549,5 +553,7 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
+
+    
 
     

@@ -37,7 +37,7 @@ function DriverProfilePage() {
 
     const [activeTab, setActiveTab] = useState("profile");
 
-    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '' });
     const [vehicleData, setVehicleData] = useState({ model: '', licensePlate: '', color: '', year: '' });
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,46 +49,44 @@ function DriverProfilePage() {
     const galleryInputRef = useRef<HTMLInputElement>(null);
 
 
+    const fetchProfileData = async () => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setProfileData({
+                    name: data.name || '',
+                    email: data.email || '',
+                    phone: data.phone || '+55 11 98888-7777',
+                    photoUrl: data.photoUrl || '',
+                });
+                setVehicleData({
+                    model: data.vehicle_model || 'Toyota Corolla',
+                    licensePlate: data.vehicle_license_plate || 'BRA2E19',
+                    color: data.vehicle_color || 'Prata',
+                    year: data.vehicle_year || '2022',
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching profile data:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao carregar perfil",
+                description: "Não foi possível carregar seus dados.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
-    }, [theme]);
-
-    useEffect(() => {
-        const fetchProfileData = async () => {
-            if (!user) return;
-            setIsLoading(true);
-            try {
-                const docRef = doc(db, "profiles", user.id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    setProfileData({
-                        name: data.name || '',
-                        email: data.email || '',
-                        phone: data.phone || '+55 11 98888-7777',
-                    });
-                    setVehicleData({
-                        model: data.vehicle_model || 'Toyota Corolla',
-                        licensePlate: data.vehicle_license_plate || 'BRA2E19',
-                        color: data.vehicle_color || 'Prata',
-                        year: data.vehicle_year || '2022',
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Erro ao carregar perfil",
-                    description: "Não foi possível carregar seus dados.",
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchProfileData();
-    }, [user, toast]);
+    }, [theme]);
 
 
      useEffect(() => {
@@ -201,6 +199,21 @@ function DriverProfilePage() {
         setIsEditingVehicle(false);
     }
 
+    const handleSavePhoto = async () => {
+        if (!user || !photoDataUrl) return;
+
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            await updateDoc(docRef, { photoUrl: photoDataUrl });
+            setProfileData({ ...profileData, photoUrl: photoDataUrl });
+            toast({ title: "Foto salva!", description: "Sua foto de perfil foi atualizada." });
+            setPhotoDataUrl(null);
+            setActiveTab('profile');
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar sua foto." });
+        }
+    }
+
     if (!user || isLoading) {
          return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
     }
@@ -247,7 +260,7 @@ function DriverProfilePage() {
                         
                         {photoDataUrl ? (
                             <div className="flex flex-col space-y-2 w-full max-w-sm">
-                                <Button onClick={() => { setActiveTab('profile'); toast({ title: "Foto salva!"}) }}>Salvar Foto</Button>
+                                <Button onClick={handleSavePhoto}>Salvar Foto</Button>
                                 <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
                             </div>
                         ) : (
@@ -293,7 +306,7 @@ function DriverProfilePage() {
                         <div className="flex flex-col items-center text-center">
                             <div className="relative mb-4">
                                 <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                                    <AvatarImage src={photoDataUrl || "https://placehold.co/112x112.png"} data-ai-hint="person avatar" />
+                                    <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                                     <AvatarFallback>
                                         <User className="h-12 w-12 text-muted-foreground" />
                                     </AvatarFallback>

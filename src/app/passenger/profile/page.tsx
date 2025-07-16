@@ -62,7 +62,7 @@ function ProfilePage() {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
 
-    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '' });
     const [isDarkMode, setIsDarkMode] = useState(false);
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -77,43 +77,41 @@ function ProfilePage() {
     const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
 
+    const fetchProfileData = async () => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setProfileData({
+                    name: data.name || '',
+                    email: data.email || '',
+                    phone: data.phone || '+55 11 99999-8888',
+                    cpf: data.cpf || '123.456.789-00',
+                    photoUrl: data.photoUrl || ''
+                });
+            } else {
+                 throw new Error("Perfil não encontrado.");
+            }
+        } catch (error) {
+            console.error("Error fetching profile data:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao carregar perfil",
+                description: "Não foi possível carregar seus dados.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
-    }, [theme]);
-
-    useEffect(() => {
-        const fetchProfileData = async () => {
-            if (!user) return;
-            setIsLoading(true);
-            try {
-                const docRef = doc(db, "profiles", user.id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    setProfileData({
-                        name: data.name || '',
-                        email: data.email || '',
-                        phone: data.phone || '+55 11 99999-8888',
-                        cpf: data.cpf || '123.456.789-00'
-                    });
-                } else {
-                     throw new Error("Perfil não encontrado.");
-                }
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Erro ao carregar perfil",
-                    description: "Não foi possível carregar seus dados.",
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchProfileData();
-    }, [user, toast]);
+    }, [theme]);
 
      useEffect(() => {
         if (activeTab === 'upload-photo') {
@@ -207,6 +205,21 @@ function ProfilePage() {
         }
         setIsEditing(false);
     }
+
+    const handleSavePhoto = async () => {
+        if (!user || !photoDataUrl) return;
+
+        try {
+            const docRef = doc(db, "profiles", user.id);
+            await updateDoc(docRef, { photoUrl: photoDataUrl });
+            setProfileData({ ...profileData, photoUrl: photoDataUrl });
+            toast({ title: "Foto salva!", description: "Sua foto de perfil foi atualizada." });
+            setPhotoDataUrl(null);
+            setActiveTab('profile');
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar sua foto." });
+        }
+    }
     
     const handleRequestAgain = (ride: typeof rideHistory[0]) => {
         if (ride.status === 'Cancelada') {
@@ -269,7 +282,7 @@ function ProfilePage() {
                         
                         {photoDataUrl ? (
                             <div className="flex flex-col space-y-2 w-full max-w-sm">
-                                <Button onClick={() => { setActiveTab('profile'); toast({ title: "Foto salva!"}) }}>Salvar Foto</Button>
+                                <Button onClick={handleSavePhoto}>Salvar Foto</Button>
                                 <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
                             </div>
                         ) : (
@@ -315,7 +328,7 @@ function ProfilePage() {
                         <div className="flex flex-col items-center text-center">
                             <div className="relative mb-4">
                                 <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                                    <AvatarImage src={photoDataUrl || "https://placehold.co/112x112.png"} data-ai-hint="person avatar" />
+                                    <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                                     <AvatarFallback>
                                         <User className="h-12 w-12 text-muted-foreground" />
                                     </AvatarFallback>

@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 type RideCategory = "comfort" | "executive";
-type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
+type PaymentMethod = "Cartão" | "PIX";
 type AddressType = 'home' | 'work';
 
 
@@ -410,9 +410,8 @@ function RequestRidePage() {
   };
     
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
-        "Cartão": <CreditCard className="h-5 w-5 text-muted-foreground"/>,
-        "PIX": <Landmark className="h-5 w-5 text-muted-foreground"/>,
-        "Dinheiro": <Wallet className="h-5 w-5 text-muted-foreground"/>
+        "Cartão": <CreditCard className="h-5 w-5"/>,
+        "PIX": <Landmark className="h-5 w-5"/>,
     }
 
     const handleConfirmRequest = async () => {
@@ -597,8 +596,8 @@ function RequestRidePage() {
          ) : (
             <>
                 {!route && (
-                    <div className="w-full px-4 mb-2 pointer-events-none">
-                        <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center pointer-events-auto">
+                    <div className="w-full px-4 mb-2">
+                        <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center">
                             <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
                         </div>
                     </div>
@@ -657,16 +656,26 @@ function RequestRidePage() {
                         <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                     </div>
                     <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
-                        {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
-                            <Label key={method} htmlFor={method} className={cn(
-                                "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
-                                paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
-                            )}>
-                                <RadioGroupItem value={method} id={method} className="sr-only" />
-                                {paymentIcons[method]}
-                                <span className="text-xs font-semibold mt-1">{method}</span>
-                            </Label>
-                        ))}
+                        <Label htmlFor="Cartão" className={cn(
+                            "col-span-2 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                            paymentMethod === 'Cartão' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                        )}>
+                            <RadioGroupItem value="Cartão" id="Cartão" className="sr-only" />
+                            <div className="flex items-center gap-2">
+                                {paymentIcons['Cartão']}
+                                <span className="font-semibold">Cartão</span>
+                            </div>
+                        </Label>
+                        <Label htmlFor="PIX" className={cn(
+                             "col-span-1 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                             paymentMethod === 'PIX' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                        )}>
+                             <RadioGroupItem value="PIX" id="PIX" className="sr-only" />
+                             <div className="flex items-center gap-2">
+                                 {paymentIcons['PIX']}
+                                <span className="font-semibold">PIX</span>
+                             </div>
+                        </Label>
                     </RadioGroup>
                     
                     <div className="flex items-center gap-2 px-1">
@@ -703,3 +712,5 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
+
+    

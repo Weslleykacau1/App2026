@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 
-type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
+type PaymentMethod = "Cartão" | "PIX";
 
 const surgeZones = [
   { lat: -3.742, lng: -38.512, price: 14 }, // Aldeota
@@ -58,7 +58,6 @@ function DriverDashboard() {
   const [paymentPreferences, setPaymentPreferences] = useState<Record<PaymentMethod, boolean>>({
     'Cartão': true,
     'PIX': true,
-    'Dinheiro': true,
   });
 
   useEffect(() => {
@@ -335,7 +334,7 @@ function DriverDashboard() {
             </header>
             
             {!isOnline && (
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10 pointer-events-none">
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
                     <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center pointer-events-auto">
                         <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
                     </div>
@@ -426,3 +425,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

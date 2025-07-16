@@ -27,6 +27,7 @@ import { BottomNavBar } from "@/components/bottom-nav-bar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { setItem } from "@/lib/storage";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
 type ModalType = 'upload-photo' | null;
@@ -58,6 +59,7 @@ function DriverProfilePage() {
     const [isHistorySheetOpen, setIsHistorySheetOpen] = useState(false);
     const [rideHistory, setRideHistory] = useState<Ride[]>([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [notificationSound, setNotificationSound] = useState('sound1');
 
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
@@ -119,7 +121,13 @@ function DriverProfilePage() {
             );
             const querySnapshot = await getDocs(q);
             const history: Ride[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
-            history.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+            
+            history.sort((a, b) => {
+                const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+                return dateB - dateA;
+            });
+            
             setRideHistory(history);
         } catch (error) {
              console.error("Error fetching ride history:", error);
@@ -504,7 +512,16 @@ function DriverProfilePage() {
                                 <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
                                 <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
                             </div>
-                            <Switch defaultChecked />
+                             <RadioGroup defaultValue={notificationSound} onValueChange={setNotificationSound} className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="sound1" id="sound1" />
+                                    <Label htmlFor="sound1">Som 1</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="sound2" id="sound2" />
+                                    <Label htmlFor="sound2">Som 2</Label>
+                                </div>
+                            </RadioGroup>
                         </div>
                             <Separator />
                         <div className="flex items-start justify-between gap-4">
@@ -612,7 +629,5 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
-
-    
 
     

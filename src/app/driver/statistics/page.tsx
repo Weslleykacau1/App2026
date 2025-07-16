@@ -11,6 +11,7 @@ import { ArrowLeft, Car, DollarSign } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
+import { useLanguage } from "@/context/language-context";
 
 const initialWeeklyData = [
   { name: "Seg", total: 0 },
@@ -24,6 +25,7 @@ const initialWeeklyData = [
 
 function StatisticsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [weeklyData, setWeeklyData] = useState(initialWeeklyData);
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayRides, setTodayRides] = useState(0);

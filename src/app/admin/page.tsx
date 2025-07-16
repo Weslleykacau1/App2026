@@ -50,6 +50,10 @@ interface User {
   status: UserStatus;
   joined: string;
   verification: VerificationStatus;
+  vehicle_model?: string;
+  vehicle_license_plate?: string;
+  vehicle_color?: string;
+  vehicle_year?: string;
 }
 
 const userFormSchema = z.object({
@@ -59,6 +63,10 @@ const userFormSchema = z.object({
   role: z.enum(["passageiro", "motorista", "admin"], {
     required_error: "Você precisa selecionar um perfil.",
   }),
+  vehicleModel: z.string().optional(),
+  vehicleLicensePlate: z.string().optional(),
+  vehicleColor: z.string().optional(),
+  vehicleYear: z.string().optional(),
 });
 
 
@@ -124,8 +132,14 @@ function AdminDashboard() {
       email: "",
       password: "",
       role: "passageiro",
+      vehicleModel: "",
+      vehicleLicensePlate: "",
+      vehicleColor: "",
+      vehicleYear: "",
     },
   });
+
+  const watchedRole = form.watch("role");
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -292,7 +306,11 @@ function AdminDashboard() {
       name: user.name,
       email: user.email,
       role: user.role,
-      password: "" // Clear password field
+      password: "", // Clear password field
+      vehicleModel: user.vehicle_model || "",
+      vehicleLicensePlate: user.vehicle_license_plate || "",
+      vehicleColor: user.vehicle_color || "",
+      vehicleYear: user.vehicle_year || "",
     });
     setIsEditUserModalOpen(true);
   };
@@ -302,11 +320,21 @@ function AdminDashboard() {
     
     try {
         const userDocRef = doc(db, "profiles", selectedUser.id);
-        await updateDoc(userDocRef, {
+        
+        const dataToUpdate: any = {
             name: values.name,
             email: values.email,
             role: values.role,
-        });
+        };
+
+        if (values.role === 'motorista') {
+            dataToUpdate.vehicle_model = values.vehicleModel;
+            dataToUpdate.vehicle_license_plate = values.vehicleLicensePlate;
+            dataToUpdate.vehicle_color = values.vehicleColor;
+            dataToUpdate.vehicle_year = values.vehicleYear;
+        }
+
+        await updateDoc(userDocRef, dataToUpdate);
 
         fetchUsers(); // Refresh list from firestore
         setIsEditUserModalOpen(false);
@@ -985,6 +1013,64 @@ function AdminDashboard() {
                             </FormItem>
                             )}
                         />
+                        {watchedRole === 'motorista' && (
+                            <>
+                                <Separator />
+                                <h4 className="font-semibold text-foreground">Detalhes do Veículo</h4>
+                                <FormField
+                                    control={form.control}
+                                    name="vehicleModel"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Modelo do Veículo</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Ex: Toyota Corolla" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="vehicleLicensePlate"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Placa</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Ex: BRA2E19" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="vehicleColor"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cor</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Ex: Prata" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="vehicleYear"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Ano</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Ex: 2023" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
                          <DialogFooter className="pt-4">
                             <DialogClose asChild>
                                 <Button type="button" variant="outline">Cancelar</Button>
@@ -1002,5 +1088,3 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
-
-    

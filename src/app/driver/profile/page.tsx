@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, startOfDay, endOfDay, Timestamp } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
@@ -116,10 +116,14 @@ function DriverProfilePage() {
         if (!user) return;
         setIsHistoryLoading(true);
         try {
+            const today = new Date();
+            const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
             const ridesRef = collection(db, "rides");
             const q = query(
                 ridesRef, 
-                where("driverId", "==", user.id)
+                where("driverId", "==", user.id),
+                where("createdAt", ">=", Timestamp.fromDate(startOfToday))
             );
             const querySnapshot = await getDocs(q);
             const history: Ride[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
@@ -611,14 +615,14 @@ function DriverProfilePage() {
                 <SheetContent className="w-full sm:max-w-md p-0">
                     <SheetHeader className="p-6 border-b">
                         <SheetTitle>{t('profile.history.title')}</SheetTitle>
-                        <SheetDescription>{t('profile.history.description')}</SheetDescription>
+                        <SheetDescription>Exibindo apenas o histórico de hoje. Para corridas anteriores, entre em contato com o suporte.</SheetDescription>
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100%-80px)]">
                         {isHistoryLoading ? (
                             <p className="text-center text-muted-foreground py-10">Carregando histórico...</p>
                         ) : rideHistory.length === 0 ? (
                             <div className="text-center text-muted-foreground py-10 px-6">
-                                <p>{t('profile.history.no_rides')}</p>
+                                <p>Nenhum histórico para hoje.</p>
                             </div>
                         ) : (
                             <div className="divide-y">
@@ -648,3 +652,5 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    

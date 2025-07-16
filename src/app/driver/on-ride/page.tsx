@@ -115,18 +115,28 @@ function OnRidePage() {
     });
   };
 
-  const handleStartRide = () => {
-    setRidePhase('to_destination');
-    if (mapRef.current && rideData) {
-        mapRef.current.fitBounds(
-            [rideData.route.pickup, rideData.route.destination].map(p => [p.lng, p.lat]) as [LngLatLike, LngLatLike],
-            { padding: 80, duration: 1000 }
-        );
+  const handleStartRide = async () => {
+    if (!rideData) return;
+
+    try {
+        const rideDocRef = doc(db, "rides", rideData.id);
+        await updateDoc(rideDocRef, { status: 'arrived' });
+
+        setRidePhase('to_destination');
+        if (mapRef.current && rideData) {
+            mapRef.current.fitBounds(
+                [rideData.route.pickup, rideData.route.destination].map(p => [p.lng, p.lat]) as [LngLatLike, LngLatLike],
+                { padding: 80, duration: 1000 }
+            );
+        }
+        toast({
+          title: "Viagem iniciada!",
+          description: "Boa viagem até o destino final.",
+        });
+    } catch (error) {
+        console.error("Error starting ride:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível iniciar a corrida.' });
     }
-    toast({
-      title: "Viagem iniciada!",
-      description: "Boa viagem até o destino final.",
-    });
   };
 
   const handleFinishRide = async () => {

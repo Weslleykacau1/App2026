@@ -110,7 +110,10 @@ function RequestRidePage() {
             };
           setFoundDriver(driverInfo);
           toast({ title: "Motorista encontrado!", description: `${driverInfo.name} está a caminho.` });
-        } else if (rideData && rideData.status === 'finished') {
+        } else if (rideData && rideData.status === 'arrived') {
+            toast({ title: "Seu motorista chegou!", description: "Estamos prontos para partir." });
+        }
+        else if (rideData && rideData.status === 'finished') {
           // Ride finished, navigate to rating page
           const rideForRating = { 
               driverName: rideData.driverName, 

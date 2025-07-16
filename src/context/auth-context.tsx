@@ -30,6 +30,8 @@ interface User {
   crlvUrl?: string;
   identityDocumentUrl?: string;
   addressProofUrl?: string;
+  homeAddress?: string;
+  workAddress?: string;
 }
 
 interface LoginCredentials {
@@ -43,13 +45,22 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   isSubmitting: boolean;
+  fetchUserProfile: (firebaseUser: FirebaseUser) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_EMAIL = "admin@tridriver.com";
 
-const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> => {
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> => {
     const docRef = doc(db, "profiles", firebaseUser.uid);
     const docSnap = await getDoc(docRef);
 
@@ -62,15 +73,7 @@ const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null
         } as User;
     }
     return null;
-}
-
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -162,7 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, isSubmitting }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, isSubmitting, fetchUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
@@ -175,3 +178,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    

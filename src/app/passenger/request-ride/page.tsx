@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import type { MapRef, LngLatLike } from "react-map-gl";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
@@ -21,12 +22,14 @@ import { setItem, getItem, removeItem } from "@/lib/storage";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, limit, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 
 
 type RideCategory = "viagem" | "executive";
 type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
+type AddressType = 'home' | 'work';
+
 
 interface FoundDriver {
     name: string;
@@ -51,7 +54,7 @@ const ADMIN_FARES_KEY = 'admin_fares_data';
 
 
 function RequestRidePage() {
-  const { user } = useAuth();
+  const { user, fetchUserProfile } = useAuth();
   const router = useRouter();
   const [rideCategory, setRideCategory] = useState<RideCategory>("viagem");
   
@@ -82,6 +85,13 @@ function RequestRidePage() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
 
+  const [homeAddress, setHomeAddress] = useState<string | null>(null);
+  const [workAddress, setWorkAddress] = useState<string | null>(null);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
+  const [addressInput, setAddressInput] = useState("");
+
+
   const geocodeAddress = useCallback(async (address: string): Promise<Suggestion | null> => {
     if (!mapboxToken) return null;
     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&limit=1&country=BR&language=pt`);
@@ -91,6 +101,19 @@ function RequestRidePage() {
     }
     return null;
   }, [mapboxToken]);
+
+   useEffect(() => {
+    const loadUserData = async () => {
+        if (!user) return;
+        const userProfile = await fetchUserProfile(user);
+        if (userProfile) {
+            setHomeAddress(userProfile.homeAddress || null);
+            setWorkAddress(userProfile.workAddress || null);
+        }
+    };
+    loadUserData();
+   }, [user, fetchUserProfile]);
+
 
   useEffect(() => {
     const handleRerideRequest = async () => {
@@ -383,6 +406,44 @@ function RequestRidePage() {
     removeItem(RIDE_REQUEST_KEY);
   };
 
+  const handleSavedAddressClick = async (type: AddressType) => {
+        const address = type === 'home' ? homeAddress : workAddress;
+        if (address) {
+            setDestinationInput(address);
+            const suggestion = await geocodeAddress(address);
+            if (suggestion) {
+                handleSelectSuggestion(suggestion, 'destination');
+            } else {
+                toast({ variant: 'destructive', title: 'Endereço não encontrado', description: 'Não foi possível localizar este endereço no mapa.' });
+            }
+        } else {
+            setAddressTypeToSet(type);
+            setIsAddressModalOpen(true);
+        }
+    };
+
+    const handleSaveAddress = async () => {
+        if (!user || !addressTypeToSet || !addressInput) return;
+        
+        const fieldToUpdate = addressTypeToSet === 'home' ? 'homeAddress' : 'workAddress';
+        try {
+            const userDocRef = doc(db, "profiles", user.id);
+            await updateDoc(userDocRef, { [fieldToUpdate]: addressInput });
+
+            if (addressTypeToSet === 'home') setHomeAddress(addressInput);
+            else setWorkAddress(addressInput);
+
+            toast({ title: 'Endereço salvo!', description: `Seu endereço de ${addressTypeToSet === 'home' ? 'casa' : 'trabalho'} foi atualizado.` });
+            setIsAddressModalOpen(false);
+            setAddressInput("");
+            setAddressTypeToSet(null);
+        } catch (error) {
+            console.error('Error saving address:', error);
+            toast({ variant: 'destructive', title: 'Erro ao salvar', description: 'Não foi possível salvar o endereço.' });
+        }
+    };
+
+
   const RideCategoryCard = ({ type, name, seats, icon, isSelected, onSelect }: { type: RideCategory, name: string, seats: number, icon: React.ReactNode, isSelected: boolean, onSelect: () => void }) => (
     <div 
         onClick={onSelect}
@@ -519,11 +580,11 @@ function RequestRidePage() {
                         </Popover>
 
                         <div className="flex gap-2">
-                            <Button variant="ghost" className="flex-1 bg-muted h-14">
+                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
                                 <Home className="h-5 w-5 mr-2"/>
                                 Casa
                             </Button>
-                             <Button variant="ghost" className="flex-1 bg-muted h-14">
+                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
                                 <Briefcase className="h-5 w-5 mr-2"/>
                                 Trabalho
                             </Button>
@@ -624,8 +685,36 @@ function RequestRidePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Salvar Endereço de {addressTypeToSet === 'home' ? 'Casa' : 'Trabalho'}</DialogTitle>
+                    <DialogDescription>
+                        Digite e salve seu endereço para acessá-lo rapidamente no futuro.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Label htmlFor="address-input">Endereço Completo</Label>
+                    <Input 
+                        id="address-input" 
+                        value={addressInput} 
+                        onChange={(e) => setAddressInput(e.target.value)}
+                        placeholder="Ex: Av. Paulista, 1000, São Paulo - SP"
+                    />
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">Cancelar</Button>
+                    </DialogClose>
+                    <Button onClick={handleSaveAddress} disabled={!addressInput}>Salvar Endereço</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
+
+    

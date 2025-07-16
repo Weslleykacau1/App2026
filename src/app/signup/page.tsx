@@ -76,6 +76,8 @@ export default function SignupPage() {
           crlvUrl: '',
           identityDocumentUrl: '',
           addressProofUrl: '',
+          homeAddress: '',
+          workAddress: '',
         });
         
         toast({
@@ -240,3 +242,5 @@ export default function SignupPage() {
     </main>
   );
 }
+
+    

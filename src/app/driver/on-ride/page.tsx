@@ -300,7 +300,7 @@ function OnRidePage() {
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction onClick={handleFinishRide}>
-                                Confirmar Recebimento
+                                Receber e Finalizar
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

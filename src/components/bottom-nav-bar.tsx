@@ -43,8 +43,8 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
 
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background shadow-[0_-1px_4px_rgba(0,0,0,0.05)]">
-            <div className="container mx-auto flex h-16 max-w-md items-center justify-around px-2">
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/80 backdrop-blur-sm shadow-[0_-1px_4px_rgba(0,0,0,0.05)]">
+            <div className="container mx-auto flex h-16 max-w-md items-center justify-around px-2 pb-safe">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = isItemActive(item);
@@ -54,7 +54,7 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
                             onClick={() => router.push(item.href)}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-1 text-xs font-medium w-20 h-full rounded-lg transition-colors",
-                                isActive ? "text-primary" : "text-muted-foreground hover:bg-muted"
+                                isActive ? "text-primary" : "text-muted-foreground hover:bg-muted/50"
                             )}
                         >
                             <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />

@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { setItem, getItem, removeItem } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 
 
 interface RideData {
@@ -60,6 +60,26 @@ function OnRidePage() {
         router.push('/driver'); // No ride data, go back to dash
     }
   }, [router]);
+
+  useEffect(() => {
+      if (!rideData?.id) return;
+
+      const unsubscribe = onSnapshot(doc(db, "rides", rideData.id), (docSnap) => {
+          const data = docSnap.data();
+          if (data?.status === 'cancelled') {
+              toast({
+                  variant: 'destructive',
+                  title: 'Corrida Cancelada',
+                  description: 'O passageiro cancelou a corrida.',
+                  duration: 5000,
+              });
+              removeItem(CURRENT_RIDE_KEY);
+              router.replace('/driver');
+          }
+      });
+
+      return () => unsubscribe();
+  }, [rideData, router, toast]);
 
   const routeLayer: LineLayer | null = rideData ? {
     id: 'route',

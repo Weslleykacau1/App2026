@@ -386,8 +386,8 @@ function ProfilePageContent() {
 
 
      const renderCustomLocationItem = (location: SavedLocation) => (
-         <div key={location.id}>
-            <div className="w-full h-auto justify-between items-center py-4 px-2 flex">
+         <div key={location.id} className="w-full">
+            <div className="flex items-center justify-between py-3 px-2">
                 <div className="flex items-center gap-4 flex-1">
                     <MapPin className="h-5 w-5 text-muted-foreground"/>
                     <div className="text-left">
@@ -407,7 +407,6 @@ function ProfilePageContent() {
                     </Button>
                 </div>
             </div>
-            <Separator />
          </div>
     );
     
@@ -539,21 +538,6 @@ function ProfilePageContent() {
                 </Card>
 
                 <Card className="mb-6">
-                     <CardHeader className="flex flex-row items-center justify-between">
-                         <div>
-                             <CardTitle>Ações Rápidas</CardTitle>
-                         </div>
-                     </CardHeader>
-                     <CardContent className="grid grid-cols-1 gap-4">
-                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={handleOpenHistory}>
-                           <History className="h-8 w-8 text-primary"/>
-                           <p className="font-semibold">{t('profile.history.title')}</p>
-                        </Button>
-                    </CardContent>
-                </Card>
-
-
-                <Card className="mb-6">
                     <CardHeader>
                         <CardTitle>{t('profile.documents.title')}</CardTitle>
                     </CardHeader>
@@ -594,7 +578,7 @@ function ProfilePageContent() {
                         <CardTitle className="text-lg">{t('profile.address.saved_locations')}</CardTitle>
                     </CardHeader>
                     <CardContent className="divide-y p-0">
-                        <div className="flex items-center justify-between py-3 px-2">
+                        <div className="flex items-center justify-between py-3 px-4">
                            <div className="flex items-center gap-4">
                              <Home className="h-5 w-5 text-muted-foreground"/>
                                <div className="text-left">
@@ -620,7 +604,7 @@ function ProfilePageContent() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
-                         <div className="flex items-center justify-between py-3 px-2">
+                         <div className="flex items-center justify-between py-3 px-4">
                            <div className="flex items-center gap-4">
                              <Briefcase className="h-5 w-5 text-muted-foreground"/>
                                <div className="text-left">
@@ -649,7 +633,7 @@ function ProfilePageContent() {
 
                         {profileData.savedLocations.map(renderCustomLocationItem)}
                         
-                        <Button variant="ghost" className="w-full h-auto justify-start items-center py-4 px-2 gap-4" onClick={() => handleOpenAddressSheet('custom')}>
+                        <Button variant="ghost" className="w-full h-auto justify-start items-center py-4 px-4 gap-4" onClick={() => handleOpenAddressSheet('custom')}>
                             <Plus className="h-5 w-5 text-primary"/>
                             <span className="font-semibold text-primary">{t('profile.address.add_new')}</span>
                         </Button>
@@ -799,5 +783,3 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
-
-    

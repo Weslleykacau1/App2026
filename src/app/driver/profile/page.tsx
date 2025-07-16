@@ -19,14 +19,28 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { setItem } from "@/lib/storage";
 
 
 type ModalType = 'upload-photo' | null;
+
+interface Ride {
+    id: string;
+    destinationAddress: string;
+    pickupAddress: string;
+    fare: number;
+    createdAt: {
+        toDate: () => Date;
+    };
+    status: 'concluída' | 'cancelada';
+}
 
 
 function DriverProfilePage() {
@@ -41,6 +55,9 @@ function DriverProfilePage() {
     const [openModal, setOpenModal] = useState<ModalType>(null);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingVehicle, setIsEditingVehicle] = useState(false);
+    const [isHistorySheetOpen, setIsHistorySheetOpen] = useState(false);
+    const [rideHistory, setRideHistory] = useState<Ride[]>([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
@@ -90,6 +107,32 @@ function DriverProfilePage() {
             setIsLoading(false);
         }
     };
+
+    const fetchRideHistory = async () => {
+        if (!user) return;
+        setIsHistoryLoading(true);
+        try {
+            const ridesRef = collection(db, "rides");
+            const q = query(
+                ridesRef, 
+                where("driverId", "==", user.id), 
+                orderBy("createdAt", "desc")
+            );
+            const querySnapshot = await getDocs(q);
+            const history: Ride[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
+            setRideHistory(history);
+        } catch (error) {
+             console.error("Error fetching ride history:", error);
+             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar o histórico."})
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    }
+
+    const handleOpenHistory = () => {
+        fetchRideHistory();
+        setIsHistorySheetOpen(true);
+    }
     
     useEffect(() => {
         if (user) {
@@ -331,7 +374,7 @@ function DriverProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                     <Button variant="outline" className="h-auto py-4" onClick={() => router.push('/driver/history')}>
+                     <Button variant="outline" className="h-auto py-4" onClick={handleOpenHistory}>
                         <div className="flex flex-col items-center gap-2">
                            <History className="h-8 w-8 text-primary"/>
                            <p className="font-semibold">{t('profile.history.title')}</p>
@@ -514,11 +557,9 @@ function DriverProfilePage() {
                 </Card>
                 
                 <div className="mt-8">
-                     <Button variant="ghost" className="w-full h-auto justify-center items-center py-4 px-2 text-destructive hover:text-destructive" onClick={logout}>
-                        <div className="flex items-center gap-4">
-                           <LogOut className="h-5 w-5" />
-                           <p className="font-semibold">Terminar Sessão</p>
-                        </div>
+                     <Button variant="destructive" className="w-full h-12" onClick={logout}>
+                        <LogOut className="mr-2 h-5 w-5" />
+                        Terminar Sessão
                     </Button>
                 </div>
             </main>
@@ -526,9 +567,46 @@ function DriverProfilePage() {
             <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
                 <ModalContent />
             </Dialog>
+            <Sheet open={isHistorySheetOpen} onOpenChange={setIsHistorySheetOpen}>
+                <SheetContent className="w-full sm:max-w-md p-0">
+                    <SheetHeader className="p-6 border-b">
+                        <SheetTitle>{t('profile.history.title')}</SheetTitle>
+                        <SheetDescription>{t('profile.history.description')}</SheetDescription>
+                    </SheetHeader>
+                    <ScrollArea className="h-[calc(100%-80px)]">
+                        {isHistoryLoading ? (
+                            <p className="text-center text-muted-foreground py-10">Carregando histórico...</p>
+                        ) : rideHistory.length === 0 ? (
+                            <div className="text-center text-muted-foreground py-10 px-6">
+                                <p>{t('profile.history.no_rides')}</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y">
+                                {rideHistory.map(ride => (
+                                    <div key={ride.id} className="p-4 space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <p className="font-semibold">{ride.createdAt.toDate().toLocaleDateString('pt-BR')}</p>
+                                            <p className="font-bold text-lg">{ride.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            <p><span className="font-medium text-foreground">{t('profile.history.from')}</span> {ride.pickupAddress}</p>
+                                            <p><span className="font-medium text-foreground">{t('profile.history.to')}</span> {ride.destinationAddress}</p>
+                                        </div>
+                                        <Badge variant={ride.status === 'concluída' ? "secondary" : "destructive"}>
+                                            {t(`profile.history.status.${ride.status}`)}
+                                        </Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </ScrollArea>
+                </SheetContent>
+            </Sheet>
              <BottomNavBar role="driver" />
         </div>
     );
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    

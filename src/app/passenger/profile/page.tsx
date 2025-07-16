@@ -69,7 +69,6 @@ function ProfilePageContent() {
         setIsLoading(true);
         try {
             const data = await fetchUserProfile(user);
-            // Always set base data from auth context first
             const baseData = {
                 name: user.name || '',
                 email: user.email || '',
@@ -271,7 +270,7 @@ function ProfilePageContent() {
                 const newSavedLocations = [...(profileData.savedLocations || []), newLocation];
                 await updateDoc(userDocRef, { savedLocations: newSavedLocations });
                 updatedProfileData.savedLocations = newSavedLocations;
-            } else if (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') {
+            } else if (addressTypeToSet && typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') {
                  const newSavedLocations = profileData.savedLocations.map(loc => 
                     loc.id === addressTypeToSet.id ? { ...loc, name: locationName, address: currentAddress } : loc
                 );
@@ -300,23 +299,7 @@ function ProfilePageContent() {
              toast({ variant: 'destructive', title: 'Erro ao remover', description: 'Não foi possível remover o local.' });
         }
     };
-
-    const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
-        <>
-            <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={onClick}>
-                <div className="flex items-center gap-4">
-                    {icon}
-                    <div className="text-left">
-                        <p className="font-semibold">{text}</p>
-                        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
-                    </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <Separator />
-        </>
-    );
-
+    
      const renderCustomLocationItem = (location: SavedLocation) => (
          <div key={location.id}>
             <div className="w-full h-auto justify-between items-center py-4 px-2 flex">
@@ -498,15 +481,40 @@ function ProfilePageContent() {
                 
                 <Card className="mb-6">
                     <CardHeader>
-                        <CardTitle className="text-lg">Locais guardados</CardTitle>
+                        <CardTitle className="text-lg">Locais salvos</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="p-2">
-                             {renderMenuItem(<Home className="h-5 w-5 text-muted-foreground"/>, profileData.homeAddress || "Insira a morada de casa", () => handleOpenAddressSheet('home'))}
-                            {renderMenuItem(<Briefcase className="h-5 w-5 text-muted-foreground"/>, profileData.workAddress || "Insira a morada do trabalho", () => handleOpenAddressSheet('work'))}
-                            {profileData.savedLocations.map(renderCustomLocationItem)}
-                            {renderMenuItem(<Plus className="h-5 w-5 text-muted-foreground"/>, "Adicionar um local", () => handleOpenAddressSheet('custom'))}
-                        </div>
+                    <CardContent className="divide-y p-0">
+                        <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('home')}>
+                           <div className="flex items-center gap-4">
+                             <Home className="h-5 w-5 text-muted-foreground"/>
+                               <div className="text-left">
+                                   <p className="font-semibold">Casa</p>
+                                   <p className="text-xs text-muted-foreground">{profileData.homeAddress || "Insira a morada de casa"}</p>
+                               </div>
+                           </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                         <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('work')}>
+                           <div className="flex items-center gap-4">
+                             <Briefcase className="h-5 w-5 text-muted-foreground"/>
+                               <div className="text-left">
+                                   <p className="font-semibold">Trabalho</p>
+                                   <p className="text-xs text-muted-foreground">{profileData.workAddress || "Insira a morada do trabalho"}</p>
+                               </div>
+                           </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+
+                        {profileData.savedLocations.map(renderCustomLocationItem)}
+                        
+                        <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('custom')}>
+                           <div className="flex items-center gap-4">
+                             <Plus className="h-5 w-5 text-muted-foreground"/>
+                               <div className="text-left">
+                                   <p className="font-semibold">Adicionar um local</p>
+                               </div>
+                           </div>
+                        </Button>
                     </CardContent>
                 </Card>
                 
@@ -535,20 +543,11 @@ function ProfilePageContent() {
                                 </SelectContent>
                             </Select>
                         </div>
-                    </CardContent>
-                </Card>
-
-                 <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle>Preferências de Comunicação</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between">
+                         <div className="flex items-center justify-between py-4">
                            <div className="flex items-center gap-4">
                                 <Bell className="h-5 w-5 text-muted-foreground" />
                                 <div className="flex-1">
                                     <p className="font-semibold">Notificações</p>
-                                    <p className="text-sm text-muted-foreground">Receba atualizações sobre suas viagens</p>
                                 </div>
                             </div>
                             <Switch defaultChecked />
@@ -556,11 +555,12 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
 
-                 <Card>
-                    <CardContent className="p-2">
-                        {renderMenuItem(<LogOut className="h-5 w-5 text-destructive"/>, "Terminar sessão", logout)}
-                    </CardContent>
-                </Card>
+                <div className="mt-8">
+                     <Button variant="destructive" className="w-full h-12" onClick={logout}>
+                        <LogOut className="mr-2 h-5 w-5" />
+                        Terminar Sessão
+                    </Button>
+                </div>
             </main>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -614,5 +614,3 @@ export default function ProfilePage() {
     )
 }
  
-
-    

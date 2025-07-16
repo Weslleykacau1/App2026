@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 
-type ModalType = 'profile' | 'vehicle' | 'settings' | 'privacy' | 'upload-photo' | null;
+type ModalType = 'settings' | 'privacy' | 'upload-photo' | null;
 
 
 function DriverProfilePage() {
@@ -39,7 +39,8 @@ function DriverProfilePage() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [openModal, setOpenModal] = useState<ModalType>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [isEditingVehicle, setIsEditingVehicle] = useState(false);
 
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
@@ -102,6 +103,12 @@ function DriverProfilePage() {
 
 
      useEffect(() => {
+        if (openModal !== 'upload-photo' && videoRef.current?.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+
         if (openModal === 'upload-photo') {
           const getCameraPermission = async () => {
             try {
@@ -121,11 +128,13 @@ function DriverProfilePage() {
             }
           };
           getCameraPermission();
-        } else {
+          
+          return () => {
             if (videoRef.current && videoRef.current.srcObject) {
                 const stream = videoRef.current.srcObject as MediaStream;
                 stream.getTracks().forEach(track => track.stop());
             }
+          }
         }
     }, [openModal, toast, t]);
 
@@ -198,7 +207,7 @@ function DriverProfilePage() {
                 phone: profileData.phone,
             });
             toast({ title: t('toast.info_saved_title'), description: t('toast.info_saved_desc') });
-            setIsEditing(false);
+            setIsEditingProfile(false);
         } catch (error) {
             toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.info_save_error_desc') });
         }
@@ -216,7 +225,7 @@ function DriverProfilePage() {
                 vehicle_year: vehicleData.year,
             });
             toast({ title: t('toast.info_saved_title'), description: t('toast.vehicle_info_saved_desc') });
-             setIsEditing(false);
+             setIsEditingVehicle(false);
         } catch (error) {
              toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.vehicle_info_save_error_desc') });
         }
@@ -259,82 +268,10 @@ function DriverProfilePage() {
     
     const handleCloseModal = () => {
         setOpenModal(null);
-        setIsEditing(false); // Reset editing state when closing any modal
     }
     
     const ModalContent = () => {
         switch(openModal) {
-            case 'profile':
-                return (
-                    <DialogContent>
-                        <DialogHeader>
-                            <div className="flex justify-between items-center">
-                                <DialogTitle>{t('profile.personal_info')}</DialogTitle>
-                                {isEditing ? (
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
-                                        <Save className="h-4 w-4"/> {t('common.save')}
-                                    </Button>
-                                ): (
-                                     <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
-                                        <Edit className="h-4 w-4"/> {t('common.edit')}
-                                    </Button>
-                                )}
-                            </div>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div>
-                                <Label htmlFor="name">{t('profile.form.full_name')}</Label>
-                                <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="email">{t('profile.form.email')}</Label>
-                                <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="phone">{t('profile.form.phone')}</Label>
-                                <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                        </div>
-                    </DialogContent>
-                );
-            case 'vehicle':
-                 return (
-                    <DialogContent>
-                        <DialogHeader>
-                             <div className="flex justify-between items-center">
-                                <DialogTitle>{t('profile.vehicle.title')}</DialogTitle>
-                                {isEditing ? (
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveVehicle}>
-                                        <Save className="h-4 w-4"/>{t('common.save')}
-                                    </Button>
-                                ) : (
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
-                                        <Edit className="h-4 w-4"/>{t('common.edit')}
-                                    </Button>
-                                )}
-                            </div>
-                            <DialogDescription>{t('profile.vehicle.description')}</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div>
-                                <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
-                                <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
-                                <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
-                                <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
-                                <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                            </div>
-                        </div>
-                    </DialogContent>
-                );
             case 'settings':
                  return (
                     <DialogContent>
@@ -480,11 +417,72 @@ function DriverProfilePage() {
                 </div>
 
                 <Card className="mt-8">
-                     <CardContent className="p-2">
-                         {renderMenuItem(<User className="h-5 w-5 text-muted-foreground" />, t('profile.personal_info'), () => setOpenModal('profile'))}
-                         {renderMenuItem(<Car className="h-5 w-5 text-muted-foreground" />, t('profile.vehicle.title'), () => setOpenModal('vehicle'))}
+                     <CardHeader className="flex flex-row items-center justify-between">
+                         <div>
+                            <CardTitle>{t('profile.personal_info')}</CardTitle>
+                         </div>
+                         {isEditingProfile ? (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
+                                <Save className="h-4 w-4"/> {t('common.save')}
+                            </Button>
+                         ) : (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditingProfile(true)}>
+                                <Edit className="h-4 w-4"/> {t('common.edit')}
+                            </Button>
+                         )}
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                         <div>
+                            <Label htmlFor="name">{t('profile.form.full_name')}</Label>
+                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="email">{t('profile.form.email')}</Label>
+                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="phone">{t('profile.form.phone')}</Label>
+                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
                      </CardContent>
                 </Card>
+
+                 <Card className="mt-6">
+                     <CardHeader className="flex flex-row items-center justify-between">
+                         <div>
+                            <CardTitle>{t('profile.vehicle.title')}</CardTitle>
+                            <CardDescription>{t('profile.vehicle.description')}</CardDescription>
+                         </div>
+                         {isEditingVehicle ? (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveVehicle}>
+                                <Save className="h-4 w-4"/> {t('common.save')}
+                            </Button>
+                         ) : (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditingVehicle(true)}>
+                                <Edit className="h-4 w-4"/> {t('common.edit')}
+                            </Button>
+                         )}
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                         <div>
+                            <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
+                            <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
+                            <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
+                            <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
+                            <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                     </CardContent>
+                </Card>
+
 
                 <Card className="mt-6">
                     <CardHeader>

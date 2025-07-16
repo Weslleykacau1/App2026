@@ -4,9 +4,9 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +59,7 @@ const rideHistory = [
     }
 ];
 
-type ModalType = 'personal-data' | 'security' | 'login-security' | 'saved-locations' | 'language' | 'communication' | 'upload-photo' | 'history' | 'documents' | null;
+type ModalType = 'security' | 'login-security' | 'saved-locations' | 'language' | 'communication' | 'upload-photo' | 'history' | null;
 type AddressType = 'home' | 'work';
 
 function ProfilePageContent() {
@@ -74,7 +74,7 @@ function ProfilePageContent() {
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '', homeAddress: '', workAddress: '' });
     const [isLoading, setIsLoading] = useState(true);
     const [openModal, setOpenModal] = useState<ModalType>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
     
     // States for saved addresses
     const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
@@ -132,6 +132,12 @@ function ProfilePageContent() {
 
 
      useEffect(() => {
+        if (openModal !== 'upload-photo' && videoRef.current?.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+
         if (openModal === 'upload-photo') {
           const getCameraPermission = async () => {
             try {
@@ -151,11 +157,13 @@ function ProfilePageContent() {
             }
           };
           getCameraPermission();
-        } else {
-            if (videoRef.current && videoRef.current.srcObject) {
+
+          return () => {
+             if (videoRef.current && videoRef.current.srcObject) {
                 const stream = videoRef.current.srcObject as MediaStream;
                 stream.getTracks().forEach(track => track.stop());
             }
+          }
         }
     }, [openModal, toast, t]);
 
@@ -210,7 +218,7 @@ function ProfilePageContent() {
                 cpf: profileData.cpf
             });
             toast({ title: "Informações Salvas!" });
-             setIsEditing(false);
+             setIsEditingProfile(false);
         } catch (error) {
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
         }
@@ -312,48 +320,10 @@ function ProfilePageContent() {
     
     const handleCloseModal = () => {
         setOpenModal(null);
-        setIsEditing(false); // Reset editing state when closing any modal
     }
 
 
     const ModalContent = () => {
-        if (openModal === 'personal-data') return (
-            <DialogContent>
-                <DialogHeader>
-                    <div className="flex justify-between items-center">
-                        <DialogTitle>Dados pessoais</DialogTitle>
-                        {isEditing ? (
-                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
-                                <Save className="h-4 w-4"/> Salvar
-                            </Button>
-                        ): (
-                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
-                                <Edit className="h-4 w-4"/> Editar
-                            </Button>
-                        )}
-                    </div>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div>
-                        <Label htmlFor="name">Nome Completo</Label>
-                        <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                    </div>
-                    <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                    </div>
-                    <div>
-                        <Label htmlFor="phone">Telefone</Label>
-                        <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                    </div>
-                    <div>
-                        <Label htmlFor="cpf">CPF</Label>
-                        <Input id="cpf" value={profileData.cpf} onChange={(e) => setProfileData({...profileData, cpf: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
-                    </div>
-                </div>
-            </DialogContent>
-        );
-
         if (openModal === 'security' || openModal === 'login-security') return (
             <DialogContent>
                 <DialogHeader><DialogTitle>Segurança</DialogTitle></DialogHeader>
@@ -440,45 +410,6 @@ function ProfilePageContent() {
             </DialogContent>
         );
         
-        if (openModal === 'documents') return (
-            <DialogContent>
-                <DialogHeader><DialogTitle>Documentos</DialogTitle></DialogHeader>
-                 <ScrollArea className="max-h-[60vh]">
-                <div className="space-y-6 p-1">
-                    <div className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium">Documento de Identidade (RG/CPF)</p>
-                                <p className="text-sm text-muted-foreground">Para verificação de conta</p>
-                            </div>
-                             <Badge variant={profileData.identityDocumentUrl ? 'secondary' : 'destructive'} className={cn(profileData.identityDocumentUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                {profileData.identityDocumentUrl && <CheckSquare className="h-4 w-4"/>}
-                                {profileData.identityDocumentUrl ? 'Verificado' : 'Pendente'}
-                            </Badge>
-                        </div>
-                        <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'identityDocumentUrl')} accept="image/*,.pdf" />
-                        <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>Enviar novo arquivo</Button>
-                    </div>
-                    <div className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium">Comprovante de Endereço</p>
-                                <p className="text-sm text-muted-foreground">Opcional, para segurança</p>
-                            </div>
-                             <Badge variant={profileData.addressProofUrl ? 'secondary' : 'destructive'} className={cn(profileData.addressProofUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                {profileData.addressProofUrl && <CheckSquare className="h-4 w-4"/>}
-                                {profileData.addressProofUrl ? 'Verificado' : 'Pendente'}
-                            </Badge>
-                        </div>
-                        <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'addressProofUrl')} accept="image/*,.pdf" />
-                        <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>Enviar novo arquivo</Button>
-                    </div>
-                </div>
-                 </ScrollArea>
-                <DialogFooter><DialogClose asChild><Button variant="outline">Fechar</Button></DialogClose></DialogFooter>
-            </DialogContent>
-        );
-
         if (openModal === 'history') return (
             <DialogContent>
                  <DialogHeader><DialogTitle>Histórico de Corridas</DialogTitle></DialogHeader>
@@ -543,10 +474,79 @@ function ProfilePageContent() {
 
                 {/* Account Section */}
                 <Card className="mb-6">
+                     <CardHeader className="flex flex-row items-center justify-between">
+                         <div>
+                            <CardTitle>Dados pessoais</CardTitle>
+                         </div>
+                         {isEditingProfile ? (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
+                                <Save className="h-4 w-4"/> Salvar
+                            </Button>
+                         ): (
+                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditingProfile(true)}>
+                                <Edit className="h-4 w-4"/> Editar
+                            </Button>
+                        )}
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                        <div>
+                            <Label htmlFor="name">Nome Completo</Label>
+                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="phone">Telefone</Label>
+                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="cpf">CPF</Label>
+                            <Input id="cpf" value={profileData.cpf} onChange={(e) => setProfileData({...profileData, cpf: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                     </CardContent>
+                </Card>
+
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Documentos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">Documento de Identidade (RG/CPF)</p>
+                                    <p className="text-sm text-muted-foreground">Para verificação de conta</p>
+                                </div>
+                                <Badge variant={profileData.identityDocumentUrl ? 'secondary' : 'destructive'} className={cn(profileData.identityDocumentUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.identityDocumentUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.identityDocumentUrl ? 'Verificado' : 'Pendente'}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'identityDocumentUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>Enviar novo arquivo</Button>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">Comprovante de Endereço</p>
+                                    <p className="text-sm text-muted-foreground">Opcional, para segurança</p>
+                                </div>
+                                <Badge variant={profileData.addressProofUrl ? 'secondary' : 'destructive'} className={cn(profileData.addressProofUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.addressProofUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.addressProofUrl ? 'Verificado' : 'Pendente'}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'addressProofUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>Enviar novo arquivo</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="mb-6">
                     <CardContent className="p-2">
-                        {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => setOpenModal('personal-data'))}
                         {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => setOpenModal('history'))}
-                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => setOpenModal('documents'))}
                         {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => setOpenModal('security'))}
                         {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => setOpenModal('login-security'))}
                     </CardContent>

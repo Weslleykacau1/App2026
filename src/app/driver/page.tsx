@@ -188,127 +188,130 @@ function DriverDashboard() {
   }
   
   return (
-      <div className="h-screen w-screen relative">
-          <MapGL
-              ref={mapRef}
-              mapboxAccessToken={mapboxToken}
-              {...viewState}
-              onMove={evt => setViewState(evt.viewState)}
-              style={{width: '100%', height: '100%'}}
-              mapStyle={mapStyle}
-          >
-              <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
-              {userLocation && (
-                <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
-                    <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
-                       <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round"/>
-                            </svg>
-                       </div>
-                    </div>
-                </Marker>
-              )}
-
-              {surgeZones.map((zone, index) => (
-                   <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
-                        <div className="bg-destructive/80 text-white font-bold text-sm px-3 py-1.5 rounded-full shadow-lg border-2 border-background">
-                            ${zone.price}
-                        </div>
-                   </Marker>
-              ))}
-          </MapGL>
-
-          <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-transparent z-20 pointer-events-none">
-            <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
-                 <div className="flex items-center gap-2">
-                    <p className="text-xl font-bold">
-                        {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
-                    </p>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEarnings(!showEarnings)}>
-                        {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                    </Button>
-                 </div>
-                 <div className="h-6 w-px bg-border"></div>
-                 <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold">{todayRides}</span>
-                    <span className="text-sm text-muted-foreground">corridas</span>
-                 </div>
-            </div>
-
-            <Button
-                variant="default"
-                size="icon"
-                className="relative h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
-                onClick={() => setIsDrawerOpen(true)}
+      <div className="h-screen w-screen relative overflow-hidden flex flex-col">
+          <div className="flex-1 relative">
+            <MapGL
+                ref={mapRef}
+                mapboxAccessToken={mapboxToken}
+                {...viewState}
+                onMove={evt => setViewState(evt.viewState)}
+                style={{width: '100%', height: '100%'}}
+                mapStyle={mapStyle}
             >
-                <Bell className="h-6 w-6" />
-                {pendingRidesCount > 0 && (
-                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 animate-pulse">{pendingRidesCount}</Badge>
+                <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
+                {userLocation && (
+                  <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
+                      <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                         <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round"/>
+                              </svg>
+                         </div>
+                      </div>
+                  </Marker>
                 )}
-            </Button>
-          </header>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 space-y-4">
-                <div className="absolute bottom-[7rem] left-4 right-4 z-10 flex justify-between pointer-events-none">
-                   <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
-                              <Shield className="h-7 w-7" />
-                          </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                  Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
-                              </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <div className="grid grid-cols-1 gap-4 py-4">
-                              <a href="tel:190" className="w-full">
-                                  <Button variant="destructive" className="w-full h-12 text-lg">
-                                      <Phone className="mr-2 h-5 w-5" />
-                                      Ligar para a Polícia (190)
-                                  </Button>
-                              </a>
-                               <a href="tel:192" className="w-full">
-                                  <Button variant="destructive" className="w-full h-12 text-lg">
-                                      <Phone className="mr-2 h-5 w-5" />
-                                      Ligar para o SAMU (192)
-                                  </Button>
-                              </a>
+                {surgeZones.map((zone, index) => (
+                     <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
+                          <div className="bg-destructive/80 text-white font-bold text-sm px-3 py-1.5 rounded-full shadow-lg border-2 border-background">
+                              ${zone.price}
                           </div>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          </AlertDialogFooter>
-                      </AlertDialogContent>
-                  </AlertDialog>
+                     </Marker>
+                ))}
+            </MapGL>
+
+            <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-transparent z-20 pointer-events-none">
+              <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
+                   <div className="flex items-center gap-2">
+                      <p className="text-xl font-bold">
+                          {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
+                      </p>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEarnings(!showEarnings)}>
+                          {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                      </Button>
+                   </div>
+                   <div className="h-6 w-px bg-border"></div>
+                   <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold">{todayRides}</span>
+                      <span className="text-sm text-muted-foreground">corridas</span>
+                   </div>
+              </div>
+
+              <Button
+                  variant="default"
+                  size="icon"
+                  className="relative h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
+                  onClick={() => setIsDrawerOpen(true)}
+              >
+                  <Bell className="h-6 w-6" />
+                  {pendingRidesCount > 0 && (
+                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 animate-pulse">{pendingRidesCount}</Badge>
+                  )}
+              </Button>
+            </header>
+
+            <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between pointer-events-none">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
+                            <Shield className="h-7 w-7" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="grid grid-cols-1 gap-4 py-4">
+                            <a href="tel:190" className="w-full">
+                                <Button variant="destructive" className="w-full h-12 text-lg">
+                                    <Phone className="mr-2 h-5 w-5" />
+                                    Ligar para a Polícia (190)
+                                </Button>
+                            </a>
+                                <a href="tel:192" className="w-full">
+                                <Button variant="destructive" className="w-full h-12 text-lg">
+                                    <Phone className="mr-2 h-5 w-5" />
+                                    Ligar para o SAMU (192)
+                                </Button>
+                            </a>
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <Button
+                      variant="default"
+                      size="icon"
+                      className="h-14 w-14 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
+                      onClick={handleLocateUser}
+                  >
+                      <LocateFixed className="h-6 w-6" />
+                </Button>
+            </div>
+          </div>
+          
+          <div className="z-10 bg-background/80 backdrop-blur-sm p-4 border-t border-border">
+              <div className="flex justify-center items-center gap-4">
+                  <Button onClick={handleTestRide} variant="secondary" className="h-16 rounded-full px-8 text-lg font-bold transition-colors duration-300 shadow-2xl">
+                      Corrida Teste
+                  </Button>
                   <Button
-                        variant="default"
-                        size="icon"
-                        className="h-14 w-14 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
-                        onClick={handleLocateUser}
-                    >
-                        <LocateFixed className="h-6 w-6" />
+                      onClick={() => setIsOnline(!isOnline)}
+                      className={cn(
+                          "h-16 rounded-full px-10 text-lg font-bold text-white transition-colors duration-300 flex items-center gap-3 shadow-2xl",
+                          isOnline ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
+                      )}
+                  >
+                        <Radio className="h-6 w-6 text-white" />
+                      {isOnline ? "Ficar Offline" : "Ficar Online"}
                   </Button>
               </div>
-              
-               <div className="flex justify-center items-center gap-4">
-                     <Button onClick={handleTestRide} variant="secondary" className="h-16 rounded-full px-8 text-lg font-bold transition-colors duration-300 shadow-2xl">
-                        Corrida Teste
-                    </Button>
-                    <Button
-                        onClick={() => setIsOnline(!isOnline)}
-                        className={cn(
-                            "h-16 rounded-full px-10 text-lg font-bold text-white transition-colors duration-300 flex items-center gap-3 shadow-2xl",
-                            isOnline ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
-                        )}
-                    >
-                         <Radio className="h-6 w-6 text-white" />
-                        {isOnline ? "Ficar Offline" : "Ficar Online"}
-                    </Button>
-               </div>
           </div>
+
           <AvailableRidesDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
           <BottomNavBar role="driver" />
       </div>

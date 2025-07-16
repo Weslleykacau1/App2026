@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 
-type ModalType = 'profile' | 'vehicle' | 'documents' | 'settings' | 'privacy' | 'upload-photo' | null;
+type ModalType = 'profile' | 'vehicle' | 'settings' | 'privacy' | 'upload-photo' | null;
 
 
 function DriverProfilePage() {
@@ -335,42 +335,6 @@ function DriverProfilePage() {
                         </div>
                     </DialogContent>
                 );
-            case 'documents':
-                 return (
-                    <DialogContent>
-                        <DialogHeader><DialogTitle>{t('profile.documents.title')}</DialogTitle></DialogHeader>
-                        <div className="space-y-6 py-4">
-                            <div className="p-4 border rounded-lg">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium">{t('profile.documents.cnh_title')}</p>
-                                        <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
-                                    </div>
-                                    <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                        {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
-                                        {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                    </Badge>
-                                </div>
-                                <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
-                                <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
-                            </div>
-                            <div className="p-4 border rounded-lg">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium">{t('profile.documents.crlv_title')}</p>
-                                        <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
-                                    </div>
-                                        <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                        {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
-                                        {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                    </Badge>
-                                </div>
-                                <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
-                                <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                );
             case 'settings':
                  return (
                     <DialogContent>
@@ -519,8 +483,43 @@ function DriverProfilePage() {
                      <CardContent className="p-2">
                          {renderMenuItem(<User className="h-5 w-5 text-muted-foreground" />, t('profile.personal_info'), () => setOpenModal('profile'))}
                          {renderMenuItem(<Car className="h-5 w-5 text-muted-foreground" />, t('profile.vehicle.title'), () => setOpenModal('vehicle'))}
-                         {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, t('profile.documents.title'), () => setOpenModal('documents'))}
                      </CardContent>
+                </Card>
+
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle>{t('profile.documents.title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{t('profile.documents.cnh_title')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
+                                </div>
+                                <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{t('profile.documents.crlv_title')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
+                                </div>
+                                    <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                        </div>
+                    </CardContent>
                 </Card>
                 
                  <Card className="mt-6">

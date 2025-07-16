@@ -235,7 +235,6 @@ function DriverDashboard() {
                     <div className="h-6 w-px bg-border"></div>
                     <div className="flex items-center gap-2">
                         <span className="text-xl font-bold">{todayRides}</span>
-                        <span className="text-sm text-muted-foreground">corridas</span>
                     </div>
                 </div>
               </div>

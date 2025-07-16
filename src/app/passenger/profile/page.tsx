@@ -114,7 +114,7 @@ function ProfilePage() {
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
         fetchProfileData();
-    }, [theme, t]);
+    }, [theme, language]);
 
      useEffect(() => {
         if (activeTab === 'upload-photo') {
@@ -588,5 +588,3 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
-
-    

@@ -89,7 +89,7 @@ function DriverProfilePage() {
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
         fetchProfileData();
-    }, [theme]);
+    }, [theme, language]);
 
 
      useEffect(() => {
@@ -537,5 +537,3 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
-
-    

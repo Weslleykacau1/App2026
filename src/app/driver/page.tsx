@@ -266,14 +266,14 @@ function DriverDashboard() {
             </header>
 
             <div className="absolute bottom-24 right-4 z-10 space-y-4">
-                <Button
+                 <Button
                     onClick={() => setIsOnline(!isOnline)}
                     className={cn(
                         "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto",
-                        isOnline ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
+                        isOnline ? "bg-green-500 hover:bg-green-600" : "bg-secondary hover:bg-secondary/80"
                     )}
                 >
-                    <span>{isOnline ? "Ficar Offline" : "Ficar Online"}</span>
+                    <span>{isOnline ? "Online" : "Offline"}</span>
                 </Button>
             </div>
             

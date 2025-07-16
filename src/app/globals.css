@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 @layer base {
@@ -23,7 +23,7 @@ body {
     --secondary: 0 0% 40%;
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 0 0% 95%;
+    --muted: 240 4.8% 95.9%;
     --muted-foreground: 0 0% 40%;
     
     --accent: 149 97% 40%;
@@ -33,30 +33,30 @@ body {
     --destructive-foreground: 0 0% 100%;
     
     --border: 0 0% 88%;
-    --input: 0 0% 95%;
+    --input: 240 5.9% 90%;
     --ring: 149 97% 40%;
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0 0% 7%;
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 100%;
 
-    --card: 0 0% 11%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 11%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 100%;
 
     --primary: 149 97% 40%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 73%;
-    --secondary-foreground: 0 0% 7%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 11%;
-    --muted-foreground: 0 0% 73%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
     --accent: 149 97% 40%;
     --accent-foreground: 0 0% 0%;
@@ -64,8 +64,8 @@ body {
     --destructive: 0 63% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
     --ring: 149 97% 40%;
   }
 }

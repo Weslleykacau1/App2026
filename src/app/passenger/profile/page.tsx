@@ -6,9 +6,9 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2 } from "lucide-react";
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from "@/context/auth-context";
+import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2, Mic, Languages } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { useAuth, User as AuthUser } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,6 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
-
-const RERIDE_REQUEST_KEY = 'reride_request';
 
 type ModalType = 'upload-photo' | null;
 type AddressType = 'home' | 'work' | 'custom' | { type: 'edit_custom', id: string };
@@ -71,21 +69,25 @@ function ProfilePageContent() {
         setIsLoading(true);
         try {
             const data = await fetchUserProfile(user);
+            // Always set base data from auth context first
+            const baseData = {
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '+55 11 99999-8888',
+                cpf: user.cpf || '123.456.789-00',
+                photoUrl: user.photoUrl || '',
+                identityDocumentUrl: user.identityDocumentUrl || '',
+                addressProofUrl: user.addressProofUrl || '',
+                homeAddress: user.homeAddress || '',
+                workAddress: user.workAddress || '',
+                savedLocations: user.savedLocations || [],
+            }
+            
             if (data) {
-                setProfileData({
-                    name: data.name || '',
-                    email: data.email || '',
-                    phone: data.phone || '+55 11 99999-8888',
-                    cpf: data.cpf || '123.456.789-00',
-                    photoUrl: data.photoUrl || '',
-                    identityDocumentUrl: data.identityDocumentUrl || '',
-                    addressProofUrl: data.addressProofUrl || '',
-                    homeAddress: data.homeAddress || '',
-                    workAddress: data.workAddress || '',
-                    savedLocations: data.savedLocations || [],
-                });
+                 setProfileData({ ...baseData, ...data });
             } else {
-                 throw new Error("Perfil não encontrado.");
+                 setProfileData(baseData);
+                 console.warn("Firestore profile not found, using data from auth context.");
             }
         } catch (error) {
             console.error("Error fetching profile data:", error);
@@ -103,7 +105,7 @@ function ProfilePageContent() {
         if (user) {
             fetchProfileData();
         }
-    }, [user, language]);
+    }, [user]);
     
      useEffect(() => {
         setIsDarkMode(theme === 'dark');
@@ -532,11 +534,20 @@ function ProfilePageContent() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex items-center justify-between py-4">
+                    </CardContent>
+                </Card>
+
+                 <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Preferências de Comunicação</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-between">
                            <div className="flex items-center gap-4">
                                 <Bell className="h-5 w-5 text-muted-foreground" />
                                 <div className="flex-1">
                                     <p className="font-semibold">Notificações</p>
+                                    <p className="text-sm text-muted-foreground">Receba atualizações sobre suas viagens</p>
                                 </div>
                             </div>
                             <Switch defaultChecked />
@@ -593,10 +604,12 @@ function ProfilePageContent() {
     );
 }
 
+
 export default function ProfilePage() {
     return (
-        <Suspense fallback={<div>Carregando...</div>}>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Carregando...</div>}>
             <ProfilePageContent />
         </Suspense>
     )
 }
+ 

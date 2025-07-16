@@ -12,12 +12,21 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { getItem, removeItem } from "@/lib/storage";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface DriverData {
   driverName: string;
   driverAvatar: string;
   rideId: string;
 }
+
+const commentSuggestions = [
+    "Viagem agradável",
+    "Motorista profissional",
+    "Carro limpo",
+    "Ótima conversa",
+    "Direção segura",
+];
 
 function RateDriverPage() {
     const router = useRouter();
@@ -34,6 +43,10 @@ function RateDriverPage() {
             router.replace('/passenger/request-ride');
         }
     }, [router]);
+    
+    const handleAddSuggestion = (suggestion: string) => {
+        setComment(prev => prev ? `${prev}, ${suggestion}` : suggestion);
+    }
 
     const handleSubmitRating = () => {
         if (rating === 0) {
@@ -100,13 +113,25 @@ function RateDriverPage() {
                         ))}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         <Textarea
                             placeholder="Deixe um comentário (opcional)..."
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             rows={3}
                         />
+                         <div className="flex flex-wrap gap-2">
+                            {commentSuggestions.map((suggestion) => (
+                                <Badge 
+                                    key={suggestion} 
+                                    variant="outline"
+                                    onClick={() => handleAddSuggestion(suggestion)}
+                                    className="cursor-pointer hover:bg-accent"
+                                >
+                                    {suggestion}
+                                </Badge>
+                            ))}
+                        </div>
                     </div>
                     
                     <Button onClick={handleSubmitRating} className="w-full h-12 text-lg font-bold">

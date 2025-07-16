@@ -50,21 +50,35 @@ interface Suggestion {
   center: [number, number];
 }
 
+interface FareConfig {
+    baseFare: number;
+    costPerMinute: number;
+    costPerKm: number;
+    bookingFee: number;
+}
+
+interface AppFareConfig {
+    comfort: FareConfig;
+    executive: FareConfig;
+}
+
+
 const RIDE_REQUEST_KEY = 'passenger_current_ride';
 const RERIDE_REQUEST_KEY = 'reride_request';
+const ADMIN_FARES_CONFIG_KEY = 'admin_fares_config';
 
-const fareConfig = {
-    executive: {
-        baseFare: 2.50,
-        costPerMinute: 0.30,
-        costPerKm: 1.20,
-        bookingFee: 2.00,
-    },
+const defaultFareConfig: AppFareConfig = {
     comfort: {
         baseFare: 3.50,
         costPerMinute: 0.45,
         costPerKm: 1.50,
-        bookingFee: 2.00,
+        bookingFee: 2.00
+    },
+    executive: {
+        baseFare: 2.50,
+        costPerMinute: 0.30,
+        costPerKm: 1.20,
+        bookingFee: 2.00
     }
 }
 
@@ -105,9 +119,33 @@ function RequestRidePage() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
   const [addressInput, setAddressInput] = useState("");
+  const [fareConfig, setFareConfig] = useState<AppFareConfig>(defaultFareConfig);
 
 
   useEffect(() => {
+    // Load fares from admin config or use default
+    const savedFares = getItem<AppFareConfig>(ADMIN_FARES_CONFIG_KEY);
+    if (savedFares) {
+        // Parse string values to numbers
+        const parsedFares: AppFareConfig = {
+            comfort: {
+                baseFare: parseFloat(savedFares.comfort.baseFare as any) || defaultFareConfig.comfort.baseFare,
+                costPerMinute: parseFloat(savedFares.comfort.costPerMinute as any) || defaultFareConfig.comfort.costPerMinute,
+                costPerKm: parseFloat(savedFares.comfort.costPerKm as any) || defaultFareConfig.comfort.costPerKm,
+                bookingFee: parseFloat(savedFares.comfort.bookingFee as any) || defaultFareConfig.comfort.bookingFee,
+            },
+            executive: {
+                baseFare: parseFloat(savedFares.executive.baseFare as any) || defaultFareConfig.executive.baseFare,
+                costPerMinute: parseFloat(savedFares.executive.costPerMinute as any) || defaultFareConfig.executive.costPerMinute,
+                costPerKm: parseFloat(savedFares.executive.costPerKm as any) || defaultFareConfig.executive.costPerKm,
+                bookingFee: parseFloat(savedFares.executive.bookingFee as any) || defaultFareConfig.executive.bookingFee,
+            }
+        };
+        setFareConfig(parsedFares);
+    } else {
+        setFareConfig(defaultFareConfig);
+    }
+
     // Listener for ride status updates
     if (currentRideId) {
       const unsubscribe = onSnapshot(doc(db, "rides", currentRideId), async (docSnap) => {
@@ -332,7 +370,7 @@ function RequestRidePage() {
       }
     }
     calculateRoute();
-  }, [selectedPickup, selectedDestination, mapboxToken, rideCategory]);
+  }, [selectedPickup, selectedDestination, mapboxToken, rideCategory, fareConfig]);
 
   if (!user) return null;
 
@@ -698,6 +736,5 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
 
     

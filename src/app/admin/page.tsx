@@ -34,6 +34,7 @@ import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, onSnapshot, que
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { RideRequestsDrawer } from "@/components/ride-requests-drawer";
 import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -104,8 +105,22 @@ const verificationIcons: { [key in VerificationStatus]: React.ReactNode } = {
     "Rejeitado": <AlertCircle className="h-5 w-5 text-red-500" />,
 };
 
-const ADMIN_FARES_KEY = 'admin_fares_data';
+const ADMIN_FARES_CONFIG_KEY = 'admin_fares_config';
 
+const defaultFares = {
+    comfort: {
+        baseFare: "3.50",
+        costPerMinute: "0.45",
+        costPerKm: "1.50",
+        bookingFee: "2.00"
+    },
+    executive: {
+        baseFare: "2.50",
+        costPerMinute: "0.30",
+        costPerKm: "1.20",
+        bookingFee: "2.00"
+    }
+};
 
 function AdminDashboard() {
   const [revenueData, setRevenueData] = useState(initialRevenueData);
@@ -117,7 +132,7 @@ function AdminDashboard() {
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [isEndRidesDialogOpen, setIsEndRidesDialogOpen] = useState(false);
-  const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
+  const [fares, setFares] = useState(defaultFares);
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -171,9 +186,9 @@ function AdminDashboard() {
         setPendingRidesCount(querySnapshot.size);
     });
 
-    const savedFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY);
+    const savedFares = getItem(ADMIN_FARES_CONFIG_KEY);
     if (savedFares) {
-        setFares(savedFares);
+        setFares(savedFares as any);
     }
     
     return () => unsubscribe();
@@ -253,15 +268,21 @@ function AdminDashboard() {
     }
   };
 
-  const handleFareChange = (e: React.ChangeEvent<HTMLInputElement>, category: 'comfort' | 'executive') => {
-    setFares({ ...fares, [category]: e.target.value });
+  const handleFareChange = (e: React.ChangeEvent<HTMLInputElement>, category: 'comfort' | 'executive', field: string) => {
+    setFares(prev => ({
+        ...prev,
+        [category]: {
+            ...prev[category],
+            [field]: e.target.value
+        }
+    }));
   };
 
   const handleSaveFares = () => {
-    setItem(ADMIN_FARES_KEY, fares);
+    setItem(ADMIN_FARES_CONFIG_KEY, fares);
     toast({
       title: "Tarifas Salvas!",
-      description: `Comfort: R$${fares.comfort}/km, Executive: R$${fares.executive}/km`,
+      description: `As novas configurações de tarifas foram salvas.`,
     });
   };
   
@@ -886,15 +907,51 @@ function AdminDashboard() {
                         <CardDescription>Defina o valor por km para cada categoria de viagem.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="comfort-fare">Comfort (R$/km)</Label>
-                            <Input id="comfort-fare" type="number" value={fares.comfort} onChange={(e) => handleFareChange(e, 'comfort')} step="0.01" />
-                        </div>
-                        <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="executive-fare">Executive (R$/km)</Label>
-                            <Input id="executive-fare" type="number" value={fares.executive} onChange={(e) => handleFareChange(e, 'executive')} step="0.01" />
-                        </div>
-                            <Button onClick={handleSaveFares} className="w-full">
+                         <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="comfort">
+                                <AccordionTrigger>Comfort</AccordionTrigger>
+                                <AccordionContent className="space-y-4 pt-4">
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="comfort-base-fare">Tarifa Base (R$)</Label>
+                                        <Input id="comfort-base-fare" type="number" value={fares.comfort.baseFare} onChange={(e) => handleFareChange(e, 'comfort', 'baseFare')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="comfort-cost-min">Custo/Min (R$)</Label>
+                                        <Input id="comfort-cost-min" type="number" value={fares.comfort.costPerMinute} onChange={(e) => handleFareChange(e, 'comfort', 'costPerMinute')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="comfort-cost-km">Custo/KM (R$)</Label>
+                                        <Input id="comfort-cost-km" type="number" value={fares.comfort.costPerKm} onChange={(e) => handleFareChange(e, 'comfort', 'costPerKm')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="comfort-booking-fee">Taxa Reserva (R$)</Label>
+                                        <Input id="comfort-booking-fee" type="number" value={fares.comfort.bookingFee} onChange={(e) => handleFareChange(e, 'comfort', 'bookingFee')} step="0.01" />
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                             <AccordionItem value="executive">
+                                <AccordionTrigger>Executive</AccordionTrigger>
+                                <AccordionContent className="space-y-4 pt-4">
+                                     <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="executive-base-fare">Tarifa Base (R$)</Label>
+                                        <Input id="executive-base-fare" type="number" value={fares.executive.baseFare} onChange={(e) => handleFareChange(e, 'executive', 'baseFare')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="executive-cost-min">Custo/Min (R$)</Label>
+                                        <Input id="executive-cost-min" type="number" value={fares.executive.costPerMinute} onChange={(e) => handleFareChange(e, 'executive', 'costPerMinute')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="executive-cost-km">Custo/KM (R$)</Label>
+                                        <Input id="executive-cost-km" type="number" value={fares.executive.costPerKm} onChange={(e) => handleFareChange(e, 'executive', 'costPerKm')} step="0.01" />
+                                    </div>
+                                    <div className="grid grid-cols-2 items-center gap-4">
+                                        <Label htmlFor="executive-booking-fee">Taxa Reserva (R$)</Label>
+                                        <Input id="executive-booking-fee" type="number" value={fares.executive.bookingFee} onChange={(e) => handleFareChange(e, 'executive', 'bookingFee')} step="0.01" />
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                        <Button onClick={handleSaveFares} className="w-full mt-4">
                             <Save className="mr-2 h-4 w-4" /> Salvar Tarifas
                         </Button>
                     </CardContent>
@@ -1145,3 +1202,5 @@ function AdminDashboard() {
 }
 
 export default withAuth(AdminDashboard, ["admin"]);
+
+    

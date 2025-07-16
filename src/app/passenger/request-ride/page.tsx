@@ -24,6 +24,7 @@ import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc,
 import Image from "next/image";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 import { viagemCarImage, executiveCarImage } from "@/lib/images";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
 type RideCategory = "viagem" | "executive";
@@ -331,14 +332,9 @@ function RequestRidePage() {
   };
     
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
-        "Máquina de Cartão": <CreditCard className="h-6 w-6 text-primary"/>,
-        "PIX": <Landmark className="h-6 w-6 text-primary"/>,
-        "Dinheiro": <Wallet className="h-6 w-6 text-primary"/>
-    }
-
-    const handleSelectPayment = (method: PaymentMethod) => {
-        setPaymentMethod(method);
-        setIsPopoverOpen(false);
+        "Máquina de Cartão": <CreditCard className="h-5 w-5"/>,
+        "PIX": <Landmark className="h-5 w-5"/>,
+        "Dinheiro": <Wallet className="h-5 w-5"/>
     }
 
     const handleConfirmRequest = async () => {
@@ -463,15 +459,15 @@ function RequestRidePage() {
     <div 
         onClick={onSelect}
         className={cn(
-            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-start gap-1 w-full",
-            isSelected ? 'bg-primary/20' : 'bg-muted/50 hover:bg-muted'
+            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-start gap-1 w-full border-2",
+            isSelected ? 'bg-primary/20 border-primary' : 'bg-muted/50 border-transparent hover:bg-muted'
         )}
     >
         {icon}
         <div className="flex items-center gap-2">
             <h3 className="font-bold text-sm text-foreground">{name}</h3>
-            <span className="text-xs text-muted-foreground">{seats}</span>
         </div>
+         <p className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {seats} lugares</p>
     </div>
   );
   
@@ -564,37 +560,19 @@ function RequestRidePage() {
                    <div className="grid grid-cols-2 gap-2 px-1">
                         <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src={viagemCarImage} alt="Viagem Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
                         <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src={executiveCarImage} alt="Executive Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
-                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="h-full col-span-2 justify-between">
-                                    <div className="flex items-center gap-2">
-                                        {paymentIcons[paymentMethod]}
-                                        <p className="font-semibold text-xs">{paymentMethod}</p>
-                                    </div>
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground"/>
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
-                                <div className="space-y-1">
-                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Máquina de Cartão")}>
-                                        <CreditCard className="h-6 w-6 text-primary"/>
-                                        <div>
-                                            <p className="font-semibold">Máquina de Cartão</p>
-                                            <p className="text-xs text-muted-foreground text-left">Pagar ao motorista</p>
-                                        </div>
-                                    </Button>
-                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>
-                                        <Landmark className="h-6 w-6 text-primary"/>
-                                        <p className="font-semibold">PIX</p>
-                                    </Button>
-                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Dinheiro")}>
-                                        <Wallet className="h-6 w-6 text-primary"/>
-                                        <p className="font-semibold">Dinheiro</p>
-                                    </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
                    </div>
+                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
+                        {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
+                             <Label key={method} htmlFor={method} className={cn(
+                                "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                             )}>
+                                <RadioGroupItem value={method} id={method} className="sr-only" />
+                                {paymentIcons[method]}
+                                <span className="text-xs font-semibold mt-1">{method}</span>
+                             </Label>
+                        ))}
+                    </RadioGroup>
                    
                    <div className="space-y-2 px-1">
                         <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>

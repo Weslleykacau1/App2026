@@ -59,7 +59,7 @@ const rideHistory = [
     }
 ];
 
-type ModalType = 'security' | 'login-security' | 'saved-locations' | 'language' | 'communication' | 'upload-photo' | 'history' | null;
+type ModalType = 'saved-locations' | 'upload-photo' | null;
 type AddressType = 'home' | 'work';
 
 function ProfilePageContent() {
@@ -172,6 +172,7 @@ function ProfilePageContent() {
     const takePhoto = () => {
         const video = videoRef.current;
         const photo = photoRef.current;
+
         if (video && photo) {
             const size = Math.min(video.videoWidth, video.videoHeight);
             const x = (video.videoWidth - size) / 2;
@@ -283,8 +284,7 @@ function ProfilePageContent() {
 
     useEffect(() => {
         if (searchParams.get('showHistory') === 'true') {
-            setOpenModal('history');
-            // Clean up URL by removing the query parameter
+            router.push('/passenger/history');
             router.replace('/passenger/profile', { scroll: false });
         }
     }, [searchParams, router]);
@@ -305,19 +305,6 @@ function ProfilePageContent() {
         </>
     );
     
-    const renderSettingsItem = (icon: React.ReactNode, text: string, control: React.ReactNode) => (
-        <>
-            <div className="w-full flex justify-between items-center py-4 px-2">
-                <div className="flex items-center gap-4">
-                    {icon}
-                    <p className="font-semibold">{text}</p>
-                </div>
-                {control}
-            </div>
-            <Separator />
-        </>
-    )
-
 
     if (!user || isLoading) {
       return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
@@ -329,13 +316,6 @@ function ProfilePageContent() {
 
 
     const ModalContent = () => {
-        if (openModal === 'security' || openModal === 'login-security') return (
-            <DialogContent>
-                <DialogHeader><DialogTitle>Segurança</DialogTitle></DialogHeader>
-                <div className="py-4 text-center">Funcionalidade em desenvolvimento.</div>
-                <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Fechar</Button></DialogClose></DialogFooter>
-            </DialogContent>
-        );
 
         if (openModal === 'saved-locations') return (
             <DialogContent>
@@ -348,39 +328,6 @@ function ProfilePageContent() {
                     <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
                     <Button onClick={handleSaveAddress}>Salvar Endereço</Button>
                 </DialogFooter>
-            </DialogContent>
-        );
-
-        if (openModal === 'language') return (
-             <DialogContent>
-                <DialogHeader><DialogTitle>Idioma</DialogTitle></DialogHeader>
-                <div className="py-4">
-                    <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pt">Português</SelectItem>
-                            <SelectItem value="en">English</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <DialogFooter><DialogClose asChild><Button type="button">Confirmar</Button></DialogClose></DialogFooter>
-            </DialogContent>
-        );
-        
-        if (openModal === 'communication') return (
-            <DialogContent>
-                 <DialogHeader><DialogTitle>Preferências de Comunicação</DialogTitle></DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="flex items-start justify-between gap-4">
-                        <Bell className="h-6 w-6 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                            <p className="font-medium">Notificações</p>
-                            <p className="text-sm text-muted-foreground">Receba atualizações sobre suas viagens</p>
-                        </div>
-                        <Switch defaultChecked />
-                    </div>
-                </div>
-                <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Fechar</Button></DialogClose></DialogFooter>
             </DialogContent>
         );
 
@@ -415,34 +362,6 @@ function ProfilePageContent() {
             </DialogContent>
         );
         
-        if (openModal === 'history') return (
-            <DialogContent>
-                 <DialogHeader><DialogTitle>Histórico de Corridas</DialogTitle></DialogHeader>
-                 <ScrollArea className="max-h-[60vh]">
-                     <div className="space-y-4 p-1">
-                         {rideHistory.length > 0 ? (
-                            rideHistory.map((ride) => (
-                                <div key={ride.id} className="border p-4 rounded-lg space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <p className="font-semibold">{new Date(ride.date).toLocaleDateString('pt-BR')}</p>
-                                        <p className="font-bold">{ride.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                                    </div>
-                                    <Separator/>
-                                    <div className="space-y-2 text-sm">
-                                        <p><span className="font-medium text-muted-foreground">De:</span> {ride.pickup}</p>
-                                        <p><span className="font-medium text-muted-foreground">Para:</span> {ride.destination}</p>
-                                    </div>
-                                </div>
-                            ))
-                         ) : (
-                            <p className="text-muted-foreground text-center py-8">Nenhuma corrida no seu histórico ainda.</p>
-                         )}
-                     </div>
-                 </ScrollArea>
-                 <DialogFooter><DialogClose asChild><Button variant="outline">Fechar</Button></DialogClose></DialogFooter>
-            </DialogContent>
-        )
-
         return null;
     }
 
@@ -550,10 +469,11 @@ function ProfilePageContent() {
                 </Card>
 
                 <Card className="mb-6">
+                     <CardHeader>
+                        <CardTitle>Histórico de Viagens</CardTitle>
+                    </CardHeader>
                     <CardContent className="p-2">
-                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => setOpenModal('history'))}
-                        {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => setOpenModal('security'))}
-                        {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => setOpenModal('login-security'))}
+                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Ver seu histórico completo", () => router.push('/passenger/history'))}
                     </CardContent>
                 </Card>
 
@@ -569,12 +489,40 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
                 
-                {/* Other Settings Section */}
                  <Card className="mb-6">
-                    <CardContent className="p-2">
-                        {renderSettingsItem(<Moon className="h-5 w-5 text-muted-foreground"/>, "Modo escuro", <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />)}
-                        {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => setOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
-                        {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => setOpenModal('communication'))}
+                    <CardHeader>
+                        <CardTitle>Configurações</CardTitle>
+                    </CardHeader>
+                    <CardContent className="divide-y">
+                        <div className="flex items-center justify-between py-4">
+                            <div className="flex items-center gap-4">
+                                <Moon className="h-5 w-5 text-muted-foreground"/>
+                                <p className="font-semibold">Modo escuro</p>
+                            </div>
+                            <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />
+                        </div>
+                         <div className="flex items-center justify-between py-4">
+                            <div className="flex items-center gap-4">
+                                <Globe className="h-5 w-5 text-muted-foreground"/>
+                                <p className="font-semibold">Idioma</p>
+                            </div>
+                             <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
+                                <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pt">Português</SelectItem>
+                                    <SelectItem value="en">English</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center justify-between py-4">
+                           <div className="flex items-center gap-4">
+                                <Bell className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex-1">
+                                    <p className="font-semibold">Notificações</p>
+                                </div>
+                            </div>
+                            <Switch defaultChecked />
+                        </div>
                     </CardContent>
                 </Card>
 

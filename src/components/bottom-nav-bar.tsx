@@ -25,10 +25,13 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
     ];
     
     const isItemActive = (item: typeof menuItems[0]) => {
-        const hasShowHistory = searchParams.has('showHistory');
+        const hasShowHistory = searchParams.get('showHistory') === 'true';
 
         if (item.id === 'history') {
-            return pathname === '/passenger/profile' && hasShowHistory;
+             if (role === 'passenger') {
+                return pathname === '/passenger/profile' && hasShowHistory;
+            }
+            return pathname === item.href;
         }
 
         if (item.id === 'account') {
@@ -66,5 +69,3 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
         </div>
     )
 }
-
-    

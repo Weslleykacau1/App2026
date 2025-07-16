@@ -10,6 +10,7 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
   const { resolvedTheme } = useTheme();
   const [driverLocation, setDriverLocation] = useState({ longitude: -38.495, latitude: -3.735 });
   const [lineColor, setLineColor] = useState('#000000');
+  const [userLocation, setUserLocation] = useState<{longitude: number, latitude: number} | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -38,6 +39,17 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
         setLineColor(`hsl(${h}, ${s}%, ${l}%)`);
       }
     }
+    
+    // Get user's current location to display on map
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          setUserLocation({ longitude, latitude });
+        },
+        (error) => console.error("Error getting user location:", error),
+        { enableHighAccuracy: true }
+    );
+
   }, [resolvedTheme]);
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -113,27 +125,22 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
         </Source>
       )}
 
-      {showMovingCar ? (
+      {userLocation && !showMovingCar && (
+          <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
+              <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center shadow-lg">
+                 <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L3 22L12 18L21 22L12 2Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round"/>
+                      </svg>
+                 </div>
+              </div>
+          </Marker>
+      )}
+
+      {showMovingCar && (
         <Marker longitude={driverLocation.longitude} latitude={driverLocation.latitude} anchor="bottom">
           <Car className="h-8 w-8 text-foreground" />
         </Marker>
-      ) : (
-        <>
-            {/* Ride X Cars */}
-            <Marker longitude={-38.495} latitude={-3.735} anchor="bottom">
-                <Car className="h-8 w-8 text-foreground" />
-            </Marker>
-            <Marker longitude={-38.55} latitude={-3.75} anchor="bottom">
-                <Car className="h-8 w-8 text-foreground" />
-            </Marker>
-            {/* Confort Cars */}
-            <Marker longitude={-38.51} latitude={-3.72} anchor="bottom">
-                <Car className="h-8 w-8 text-secondary" />
-            </Marker>
-                <Marker longitude={-38.54} latitude={-3.76} anchor="bottom">
-                <Car className="h-8 w-8 text-secondary" />
-            </Marker>
-        </>
       )}
     </MapGL>
   );

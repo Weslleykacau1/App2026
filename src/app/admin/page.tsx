@@ -115,6 +115,7 @@ function AdminDashboard() {
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -349,15 +350,24 @@ function AdminDashboard() {
         toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar os dados." });
     }
   };
+  
+  const handleOpenDeleteModal = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteUserModalOpen(true);
+  };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async () => {
+     if (!selectedUser) return;
      try {
         // Note: This only deletes the Firestore profile.
         // Deleting from Firebase Auth requires Admin SDK on a backend.
-        const userDocRef = doc(db, "profiles", userId);
+        const userDocRef = doc(db, "profiles", selectedUser.id);
         await deleteDoc(userDocRef);
 
         fetchUsers(); // Refresh list from firestore
+        setIsDeleteUserModalOpen(false);
+        setSelectedUser(null);
+
         toast({
             title: "Usuário Excluído!",
             description: "O perfil do usuário foi removido do sistema.",
@@ -629,51 +639,33 @@ function AdminDashboard() {
                               )}
                           </TableCell>
                           <TableCell>
-                              <AlertDialog>
-                                  <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" className="h-8 w-8 p-0">
-                                              <span className="sr-only">Abrir menu</span>
-                                              <MoreHorizontal className="h-4 w-4" />
-                                          </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
-                                              <FileText className="mr-2 h-4 w-4" />
-                                              Ver Documentos
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
-                                              <Edit className="mr-2 h-4 w-4" />
-                                              Editar
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
-                                            <UserX className="mr-2 h-4 w-4" />
-                                            <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
-                                          </DropdownMenuItem>
-                                          <DropdownMenuSeparator />
-                                          <AlertDialogTrigger asChild>
-                                               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                  <Trash2 className="mr-2 h-4 w-4" />
-                                                  Excluir
-                                              </DropdownMenuItem>
-                                          </AlertDialogTrigger>
-                                      </DropdownMenuContent>
-                                  </DropdownMenu>
-                                  <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                              Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
-                                          </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
-                                              Sim, excluir usuário
-                                          </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                  </AlertDialogContent>
-                              </AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menu</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Ver Documentos
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Editar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
+                                    <UserX className="mr-2 h-4 w-4" />
+                                    <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => handleOpenDeleteModal(user)}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Excluir
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -697,51 +689,33 @@ function AdminDashboard() {
                                         <div className="text-sm text-muted-foreground">{user.email}</div>
                                     </div>
                                 </div>
-                                 <AlertDialog>
-                                  <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" className="h-8 w-8 p-0">
-                                              <span className="sr-only">Abrir menu</span>
-                                              <MoreHorizontal className="h-4 w-4" />
-                                          </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
-                                              <FileText className="mr-2 h-4 w-4" />
-                                              Ver Documentos
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
-                                              <Edit className="mr-2 h-4 w-4" />
-                                              Editar
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
-                                            <UserX className="mr-2 h-4 w-4" />
-                                            <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
-                                          </DropdownMenuItem>
-                                          <DropdownMenuSeparator />
-                                          <AlertDialogTrigger asChild>
-                                               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                  <Trash2 className="mr-2 h-4 w-4" />
-                                                  Excluir
-                                              </DropdownMenuItem>
-                                          </AlertDialogTrigger>
-                                      </DropdownMenuContent>
-                                  </DropdownMenu>
-                                  <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                              Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
-                                          </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
-                                              Sim, excluir usuário
-                                          </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                  </AlertDialogContent>
-                              </AlertDialog>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Abrir menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Ver Documentos
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            Editar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
+                                        <UserX className="mr-2 h-4 w-4" />
+                                        <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => handleOpenDeleteModal(user)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Excluir
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                             <Separator/>
                              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -1079,6 +1053,24 @@ function AdminDashboard() {
                         </DialogFooter>
                     </form>
                 </Form>
+            </DialogContent>
+        </Dialog>
+        <Dialog open={isDeleteUserModalOpen} onOpenChange={setIsDeleteUserModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Você tem certeza?</DialogTitle>
+                    <DialogDescription>
+                        Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{selectedUser?.name}</span> do banco de dados.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Cancelar</Button>
+                    </DialogClose>
+                    <Button onClick={handleDeleteUser} variant="destructive">
+                        Sim, excluir usuário
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
         <RideRequestsDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />

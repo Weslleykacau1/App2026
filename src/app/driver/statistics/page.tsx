@@ -73,7 +73,7 @@ function StatisticsPage() {
             <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/driver')}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold mx-auto">Estatísticas e Ganhos</h1>
+            <h1 className="text-lg font-semibold mx-auto">{t('profile.history.title')}</h1>
             <div className="w-8"></div>
         </div>
       </header>
@@ -161,7 +161,3 @@ function StatisticsPage() {
 }
 
 export default withAuth(StatisticsPage, ["driver"]);
-
-    
-
-    

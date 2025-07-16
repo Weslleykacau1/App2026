@@ -6,8 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +22,8 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+
 
 function DriverProfilePage() {
     const router = useRouter();
@@ -35,8 +36,8 @@ function DriverProfilePage() {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingVehicle, setIsEditingVehicle] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
 
-    const [activeTab, setActiveTab] = useState("profile");
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
     const [vehicleData, setVehicleData] = useState({ model: '', licensePlate: '', color: '', year: '' });
@@ -85,15 +86,18 @@ function DriverProfilePage() {
             setIsLoading(false);
         }
     };
+    
+    useEffect(() => {
+        fetchProfileData();
+    }, [user, t, language]);
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
-        fetchProfileData();
-    }, [theme, user, t]);
+    }, [theme]);
 
 
      useEffect(() => {
-        if (activeTab === 'upload-photo') {
+        if (isPhotoModalOpen) {
           const getCameraPermission = async () => {
             try {
               const stream = await navigator.mediaDevices.getUserMedia({video: true});
@@ -118,7 +122,7 @@ function DriverProfilePage() {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
-    }, [activeTab, toast, t]);
+    }, [isPhotoModalOpen, toast, t]);
 
     const takePhoto = () => {
         const video = videoRef.current;
@@ -222,318 +226,298 @@ function DriverProfilePage() {
             setProfileData({ ...profileData, photoUrl: photoDataUrl });
             toast({ title: t('toast.photo_saved_title'), description: t('toast.photo_saved_desc') });
             setPhotoDataUrl(null);
-            setActiveTab('profile');
+            setIsPhotoModalOpen(false);
         } catch (error) {
             toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.photo_save_error_desc') });
         }
     }
+    
+    const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
+        <>
+            <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={onClick}>
+                <div className="flex items-center gap-4">
+                    {icon}
+                    <div className="text-left">
+                        <p className="font-semibold">{text}</p>
+                        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
+                    </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <Separator />
+        </>
+    );
 
     if (!user || isLoading) {
          return <div className="flex h-screen w-full items-center justify-center">{t('common.loading')}</div>;
     }
 
-    
-    if (activeTab === 'upload-photo') {
-        return (
-            <div className="flex flex-col min-h-screen bg-muted/40">
-                <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-                    <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                        <Button variant="ghost" size="icon" onClick={() => setActiveTab('profile')}>
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <h1 className="text-lg font-semibold">{t('profile.change_photo')}</h1>
-                        <div className="w-9 h-9"></div>
-                    </div>
-                </header>
-                <main className="flex-1 py-6 container mx-auto px-4">
-                     <div className="flex flex-col items-center space-y-4">
-                        <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
-                            <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
-                            {photoDataUrl && (
-                                <img src={photoDataUrl} alt={t('profile.your_photo_alt')} className="w-full h-full object-cover"/>
-                            )}
-                            {!(hasCameraPermission) && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
-                                    <Alert variant="destructive">
-                                        <AlertTitle>{t('profile.camera_unavailable_title')}</AlertTitle>
-                                        <AlertDescription>
-                                            {t('profile.camera_unavailable_desc')}
-                                        </AlertDescription>
-                                    </Alert>
-                                </div>
-                            )}
-                        </div>
-                        <canvas ref={photoRef} className="hidden"></canvas>
-                        <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
-
-                        
-                        {photoDataUrl ? (
-                            <div className="flex flex-col space-y-2 w-full max-w-sm">
-                                <Button onClick={handleSavePhoto}>{t('profile.save_photo')}</Button>
-                                <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>{t('profile.take_another')}</Button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-                                <Button onClick={takePhoto} disabled={!hasCameraPermission}>
-                                    <Camera className="mr-2"/> {t('profile.take_photo_btn')}
-                                </Button>
-                                <Button variant="outline" onClick={() => galleryInputRef.current?.click()}>
-                                    <Library className="mr-2"/> {t('profile.choose_from_gallery')}
-                                </Button>
-                            </div>
-                        )}
-                        { !photoDataUrl && <Button variant="ghost" onClick={() => setActiveTab('profile')}>{t('common.cancel')}</Button> }
-                    </div>
-                </main>
-            </div>
-        )
-    }
-
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
             <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-                    <Button variant="default" className="h-10 w-10 p-0 rounded-lg" onClick={() => router.back()}>
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-lg font-semibold">{t('profile.title')}</h1>
-                    <Button variant="ghost" size="icon" onClick={logout} className="h-10 w-10 rounded-lg">
+                     <Button variant="ghost" size="icon" onClick={logout}>
                         <LogOut className="h-5 w-5" />
                     </Button>
                 </div>
             </header>
             
             <main className="flex-1 py-6 container mx-auto px-4">
-                 <Tabs defaultValue="profile" className="w-full" onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-4 bg-muted/60 rounded-lg p-1">
-                        <TabsTrigger value="profile">{t('profile.tabs.profile')}</TabsTrigger>
-                        <TabsTrigger value="vehicle">{t('profile.tabs.vehicle')}</TabsTrigger>
-                        <TabsTrigger value="documents">{t('profile.tabs.documents')}</TabsTrigger>
-                        <TabsTrigger value="settings"><Settings/></TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="profile" className="mt-6">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="relative mb-4">
-                                <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                                    <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
-                                    <AvatarFallback>
-                                        <User className="h-12 w-12 text-muted-foreground" />
-                                    </AvatarFallback>
-                                </Avatar>
-                                <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setActiveTab('upload-photo')}>
-                                    <Camera className="h-4 w-4"/>
-                                </Button>
-                            </div>
-                            <h2 className="text-2xl font-bold">{profileData.name}</h2>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                                <span className="font-semibold text-muted-foreground">4.8</span>
-                            </div>
-                             <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
-                             <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
-                        </div>
+                <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-4">
+                        <Avatar className="h-28 w-28 border-4 border-background shadow-md">
+                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
+                            <AvatarFallback>
+                                <User className="h-12 w-12 text-muted-foreground" />
+                            </AvatarFallback>
+                        </Avatar>
+                        <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setIsPhotoModalOpen(true)}>
+                            <Camera className="h-4 w-4"/>
+                        </Button>
+                    </div>
+                    <h2 className="text-2xl font-bold">{profileData.name}</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Star className="h-5 w-5 text-yellow-400 fill-current" />
+                        <span className="font-semibold text-muted-foreground">4.8</span>
+                    </div>
+                        <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
+                        <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
+                </div>
 
-                        <Card className="mt-8">
-                            <CardContent className="p-6">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-lg font-semibold">{t('profile.personal_info')}</h3>
-                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingProfile ? handleSaveProfile() : setIsEditingProfile(true)}>
-                                        {isEditingProfile ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                        {isEditingProfile ? t('common.save') : t('common.edit')}
+                <Card className="mt-8">
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">{t('profile.personal_info')}</CardTitle>
+                             <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingProfile ? handleSaveProfile() : setIsEditingProfile(true)}>
+                                {isEditingProfile ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
+                                {isEditingProfile ? t('common.save') : t('common.edit')}
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label htmlFor="name">{t('profile.form.full_name')}</Label>
+                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="email">{t('profile.form.email')}</Label>
+                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="phone">{t('profile.form.phone')}</Label>
+                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                 <Card className="mt-6">
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">{t('profile.vehicle.title')}</CardTitle>
+                             <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingVehicle ? handleSaveVehicle() : setIsEditingVehicle(true)}>
+                                {isEditingVehicle ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
+                                {isEditingVehicle ? t('common.save') : t('common.edit')}
+                            </Button>
+                        </div>
+                        <CardDescription>{t('profile.vehicle.description')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                            <div>
+                            <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
+                            <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
+                            <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
+                            <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                        <div>
+                            <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
+                            <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="text-lg">{t('profile.documents.title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{t('profile.documents.cnh_title')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
+                                </div>
+                                <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{t('profile.documents.crlv_title')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
+                                </div>
+                                    <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                    {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
+                                    {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                </Badge>
+                            </div>
+                            <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
+                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2"><Settings className="h-5 w-5"/> Configurações</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-4">
+                                <Moon className="h-6 w-6 text-muted-foreground mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.dark_mode')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
+                                </div>
+                                <Switch
+                                    checked={isDarkMode}
+                                    onCheckedChange={handleThemeChange}
+                                />
+                            </div>
+                            <Separator />
+                            <div className="flex items-start justify-between gap-4">
+                                <Bell className="h-6 w-6 text-muted-foreground mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
+                                </div>
+                                <Switch defaultChecked />
+                            </div>
+                            <Separator />
+                            <div className="flex items-start justify-between gap-4">
+                                <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.location')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.location_desc')}</p>
+                                </div>
+                                <Switch defaultChecked />
+                            </div>
+                            <Separator />
+                            <div className="flex items-center justify-between gap-4">
+                                <Globe className="h-6 w-6 text-muted-foreground" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.language')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.language_desc')}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
+                                        <SelectTrigger className="w-[120px]">
+                                            <SelectValue placeholder="Idioma" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="pt">Português</SelectItem>
+                                            <SelectItem value="en">English</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                 <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="text-lg">{t('profile.settings.privacy_title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                            <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-4">
+                                <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.privacy_share_data')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
+                                </div>
+                                <Switch defaultChecked />
+                            </div>
+                            <Separator />
+                            <div className="flex items-start justify-between gap-4">
+                                <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
+                                </div>
+                                <Switch />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
+                    <DialogContent>
+                        <DialogHeader><DialogTitle>{t('profile.change_photo')}</DialogTitle></DialogHeader>
+                        <div className="flex flex-col items-center space-y-4 py-4">
+                            <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
+                                <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
+                                {photoDataUrl && (
+                                    <img src={photoDataUrl} alt={t('profile.your_photo_alt')} className="w-full h-full object-cover"/>
+                                )}
+                                {hasCameraPermission === false && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
+                                        <Alert variant="destructive">
+                                            <AlertTitle>{t('profile.camera_unavailable_title')}</AlertTitle>
+                                            <AlertDescription>
+                                                {t('profile.camera_unavailable_desc')}
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
+                                )}
+                            </div>
+                            <canvas ref={photoRef} className="hidden"></canvas>
+                            <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
+
+                            
+                            {photoDataUrl ? (
+                                <div className="flex flex-col space-y-2 w-full max-w-sm">
+                                    <Button onClick={handleSavePhoto}>{t('profile.save_photo')}</Button>
+                                    <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>{t('profile.take_another')}</Button>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                                    <Button onClick={takePhoto} disabled={!hasCameraPermission}>
+                                        <Camera className="mr-2"/> {t('profile.take_photo_btn')}
+                                    </Button>
+                                    <Button variant="outline" onClick={() => galleryInputRef.current?.click()}>
+                                        <Library className="mr-2"/> {t('profile.choose_from_gallery')}
                                     </Button>
                                 </div>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label htmlFor="name">{t('profile.form.full_name')}</Label>
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="email">{t('profile.form.email')}</Label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="phone">{t('profile.form.phone')}</Label>
-                                        <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn("pl-10", !isEditingProfile && "bg-muted border-none")} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="vehicle">
-                        <div className="space-y-6 mt-6">
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle className="text-lg">{t('profile.vehicle.title')}</CardTitle>
-                                        <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingVehicle ? handleSaveVehicle() : setIsEditingVehicle(true)}>
-                                            {isEditingVehicle ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                            {isEditingVehicle ? t('common.save') : t('common.edit')}
-                                        </Button>
-                                    </div>
-                                    <CardDescription>{t('profile.vehicle.description')}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                     <div>
-                                        <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
-                                        <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
-                                        <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
-                                        <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
-                                        <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            )}
                         </div>
-                    </TabsContent>
-                    <TabsContent value="documents">
-                        <div className="space-y-6 mt-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">{t('profile.documents.title')}</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="p-4 border rounded-lg">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium">{t('profile.documents.cnh_title')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
-                                            </div>
-                                            <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                                {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
-                                                {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                            </Badge>
-                                        </div>
-                                        <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
-                                        <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
-                                    </div>
-                                    <div className="p-4 border rounded-lg">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium">{t('profile.documents.crlv_title')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
-                                            </div>
-                                             <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                                {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
-                                                {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                            </Badge>
-                                        </div>
-                                        <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
-                                        <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="settings">
-                       <div className="space-y-6 mt-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2"><Settings /></CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <Moon className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.dark_mode')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
-                                            </div>
-                                            <Switch
-                                                checked={isDarkMode}
-                                                onCheckedChange={handleThemeChange}
-                                            />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-start justify-between gap-4">
-                                            <Bell className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
-                                            </div>
-                                            <Switch defaultChecked />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-start justify-between gap-4">
-                                            <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.location')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.location_desc')}</p>
-                                            </div>
-                                            <Switch defaultChecked />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between gap-4">
-                                            <Globe className="h-6 w-6 text-muted-foreground" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.language')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.language_desc')}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
-                                                    <SelectTrigger className="w-[120px]">
-                                                        <SelectValue placeholder="Idioma" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="pt">Português</SelectItem>
-                                                        <SelectItem value="en">English</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">{t('profile.settings.privacy_title')}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                     <div className="space-y-4">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.privacy_share_data')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
-                                            </div>
-                                            <Switch defaultChecked />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-start justify-between gap-4">
-                                            <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
-                                            <div className="flex-1">
-                                                <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
-                                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
-                                            </div>
-                                            <Switch />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                       </div>
-                    </TabsContent>
-                </Tabs>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">{t('common.cancel')}</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </main>
         </div>
     );
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    

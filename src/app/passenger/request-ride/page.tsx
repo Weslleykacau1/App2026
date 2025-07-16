@@ -545,7 +545,7 @@ function RequestRidePage() {
              </Card>
          ) : rideStatus === 'pending' ? (
             <AlertDialog open={true}>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-center">Procurando por um motorista</AlertDialogTitle>
                         <AlertDialogDescription className="text-center">

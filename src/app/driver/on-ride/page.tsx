@@ -36,12 +36,15 @@ interface RideData {
 const mockDriverLocation = { lat: -3.7327, lng: -38.5267 };
 const CURRENT_RIDE_KEY = 'current_ride_data';
 
+type RidePhase = 'to_pickup' | 'to_destination';
+
 function OnRidePage() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const [rideData, setRideData] = useState<RideData | null>(null);
+  const [ridePhase, setRidePhase] = useState<RidePhase>('to_pickup');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,7 +77,9 @@ function OnRidePage() {
       properties: {},
       geometry: {
           type: 'LineString',
-          coordinates: rideData.route.coordinates
+          coordinates: ridePhase === 'to_pickup'
+            ? [mockDriverLocation, rideData.route.pickup].map(p => [p.lng, p.lat]) as LngLatLike[]
+            : rideData.route.coordinates
       }
   } : null;
 
@@ -84,13 +89,13 @@ function OnRidePage() {
 
   const handleOpenWaze = () => {
     if (!rideData) return;
-    const { lat, lng } = rideData.route.pickup;
+    const { lat, lng } = ridePhase === 'to_pickup' ? rideData.route.pickup : rideData.route.destination;
     window.open(`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`, '_blank');
   };
 
   const handleOpenGoogleMaps = () => {
     if (!rideData) return;
-    const { lat, lng } = rideData.route.pickup;
+    const { lat, lng } = ridePhase === 'to_pickup' ? rideData.route.pickup : rideData.route.destination;
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
   
@@ -104,6 +109,20 @@ function OnRidePage() {
     toast({
         title: "Em breve",
         description: "Funcionalidade de chat em desenvolvimento.",
+    });
+  };
+
+  const handleStartRide = () => {
+    setRidePhase('to_destination');
+    if (mapRef.current && rideData) {
+        mapRef.current.fitBounds(
+            [rideData.route.pickup, rideData.route.destination].map(p => [p.lng, p.lat]) as [LngLatLike, LngLatLike],
+            { padding: 80, duration: 1000 }
+        );
+    }
+    toast({
+      title: "Viagem iniciada!",
+      description: "Boa viagem até o destino final.",
     });
   };
 
@@ -199,8 +218,17 @@ function OnRidePage() {
         <Card className="w-full max-w-lg mx-auto rounded-2xl shadow-2xl overflow-hidden">
           <CardContent className="p-4 space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">Embarque em:</p>
-              <p className="font-bold text-lg">{rideData.pickupAddress}</p>
+              {ridePhase === 'to_pickup' ? (
+                 <>
+                    <p className="text-sm text-muted-foreground">Buscar passageiro em:</p>
+                    <p className="font-bold text-lg">{rideData.pickupAddress}</p>
+                 </>
+              ) : (
+                <>
+                    <p className="text-sm text-muted-foreground">Destino Final:</p>
+                    <p className="font-bold text-lg">{rideData.destination}</p>
+                </>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
                <Button onClick={handleOpenWaze} className="h-14 text-base bg-sky-500 hover:bg-sky-600 text-white">
@@ -210,27 +238,33 @@ function OnRidePage() {
                     Maps
                 </Button>
             </div>
-             <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full h-12 text-base">
-                        Finalizar Corrida
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Recebimento</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Você recebeu o valor de <strong>{rideData.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> do passageiro?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleFinishRide}>
-                            Confirmar Recebimento
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {ridePhase === 'to_pickup' ? (
+                <Button onClick={handleStartRide} className="w-full h-12 text-base">
+                    Cheguei / Iniciar Corrida
+                </Button>
+            ) : (
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full h-12 text-base">
+                            Finalizar Corrida
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar Recebimento</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Você recebeu o valor de <strong>{rideData.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> do passageiro?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleFinishRide}>
+                                Confirmar Recebimento
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )}
           </CardContent>
         </Card>
       </div>

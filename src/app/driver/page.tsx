@@ -27,6 +27,7 @@ const surgeZones = [
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const DRIVER_ONLINE_STATUS_KEY = 'driver_online_status';
+const NOTIFICATION_SOUND_URL = "https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3";
 
 
 function DriverDashboard() {
@@ -47,6 +48,8 @@ function DriverDashboard() {
   const [showEarnings, setShowEarnings] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [pendingRidesCount, setPendingRidesCount] = useState(0);
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isInitialLoad = useRef(true);
 
 
    useEffect(() => {
@@ -76,12 +79,19 @@ function DriverDashboard() {
     
     const q = query(collection(db, "rides"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        setPendingRidesCount(querySnapshot.size);
+        const newCount = querySnapshot.size;
+        
+        if (!isInitialLoad.current && newCount > pendingRidesCount) {
+             notificationAudioRef.current?.play().catch(e => console.error("Error playing sound:", e));
+        }
+
+        setPendingRidesCount(newCount);
+        isInitialLoad.current = false;
     });
     
     return () => unsubscribe();
 
-   }, []);
+   }, [pendingRidesCount]);
    
    const handleSetOnlineStatus = (status: boolean) => {
        setIsOnline(status);
@@ -199,6 +209,7 @@ function DriverDashboard() {
   
   return (
       <div className="h-screen w-screen relative overflow-hidden flex flex-col">
+          <audio ref={notificationAudioRef} src={NOTIFICATION_SOUND_URL} preload="auto" />
           <div className="flex-1 relative">
             <MapGL
                 ref={mapRef}
@@ -359,3 +370,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

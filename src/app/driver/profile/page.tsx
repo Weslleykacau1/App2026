@@ -373,17 +373,11 @@ function DriverProfilePage() {
                         <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div className="grid grid-cols-1 gap-6 mt-8">
                      <Button variant="outline" className="h-auto py-4" onClick={handleOpenHistory}>
                         <div className="flex flex-col items-center gap-2">
                            <History className="h-8 w-8 text-primary"/>
                            <p className="font-semibold">{t('profile.history.title')}</p>
-                        </div>
-                    </Button>
-                     <Button variant="outline" className="h-auto py-4">
-                        <div className="flex flex-col items-center gap-2">
-                           <Shield className="h-8 w-8 text-primary"/>
-                           <p className="font-semibold">Segurança</p>
                         </div>
                     </Button>
                 </div>
@@ -557,7 +551,7 @@ function DriverProfilePage() {
                 </Card>
                 
                 <div className="mt-8">
-                     <Button variant="destructive" className="w-full h-12" onClick={logout}>
+                    <Button variant="destructive" className="w-full h-12" onClick={logout}>
                         <LogOut className="mr-2 h-5 w-5" />
                         Terminar Sessão
                     </Button>

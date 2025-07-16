@@ -294,7 +294,9 @@ function DriverProfilePage() {
                             <div className="relative mb-4">
                                 <Avatar className="h-28 w-28 border-4 border-background shadow-md">
                                     <AvatarImage src={photoDataUrl || "https://placehold.co/112x112.png"} data-ai-hint="person avatar" />
-                                    <AvatarFallback>{getInitials(profileData.name)}</AvatarFallback>
+                                    <AvatarFallback>
+                                        <User className="h-12 w-12 text-muted-foreground" />
+                                    </AvatarFallback>
                                 </Avatar>
                                 <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setActiveTab('upload-photo')}>
                                     <Camera className="h-4 w-4"/>
@@ -508,3 +510,5 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    

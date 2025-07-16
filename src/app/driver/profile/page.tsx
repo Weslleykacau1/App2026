@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus, Shield } from "lucide-react";
+import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus, Shield, History } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -330,6 +330,21 @@ function DriverProfilePage() {
                         <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                     <Button variant="outline" className="h-auto py-4" onClick={() => router.push('/driver/history')}>
+                        <div className="flex flex-col items-center gap-2">
+                           <History className="h-8 w-8 text-primary"/>
+                           <p className="font-semibold">{t('profile.history.title')}</p>
+                        </div>
+                    </Button>
+                     <Button variant="outline" className="h-auto py-4">
+                        <div className="flex flex-col items-center gap-2">
+                           <Shield className="h-8 w-8 text-primary"/>
+                           <p className="font-semibold">Segurança</p>
+                        </div>
+                    </Button>
+                </div>
+
                 <Card className="mt-8">
                      <CardHeader className="flex flex-row items-center justify-between">
                          <div>
@@ -494,15 +509,6 @@ function DriverProfilePage() {
                                 <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
                             </div>
                             <Switch defaultChecked />
-                        </div>
-                        <Separator />
-                        <div className="flex items-start justify-between gap-4">
-                            <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
-                            <div className="flex-1">
-                                <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
-                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
-                            </div>
-                            <Switch />
                         </div>
                     </CardContent>
                 </Card>

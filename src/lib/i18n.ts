@@ -83,8 +83,6 @@ export const translations = {
           privacy_title: "Privacidade e Segurança",
           privacy_share_data: "Compartilhar dados de viagem",
           privacy_share_data_desc: "Permitir análise para melhorar o serviço",
-          privacy_visibility: "Visibilidade do perfil",
-          privacy_visibility_desc: "Mostrar perfil para outros usuários"
       }
     },
     toast: {
@@ -192,8 +190,6 @@ export const translations = {
           privacy_title: "Privacy and Security",
           privacy_share_data: "Share trip data",
           privacy_share_data_desc: "Allow analysis to improve the service",
-          privacy_visibility: "Profile visibility",
-          privacy_visibility_desc: "Show profile to other users"
       }
     },
     toast: {

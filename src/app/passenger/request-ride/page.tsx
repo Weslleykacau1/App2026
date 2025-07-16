@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
+import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 
 type RideCategory = "viagem" | "executive";
@@ -469,15 +470,7 @@ function RequestRidePage() {
          <Map mapRef={mapRef} showMovingCar={!!foundDriver} destination={selectedDestination?.center as LngLatLike | undefined} pickup={selectedPickup?.center as LngLatLike | undefined} route={route}/>
        </div>
 
-      <header className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-center pointer-events-none">
-        <Button
-            variant="default"
-            size="icon"
-            className="h-12 w-12 rounded-full shadow-lg pointer-events-auto bg-card text-card-foreground hover:bg-card/90"
-            onClick={() => router.push('/passenger/profile')}
-        >
-            <Menu className="h-6 w-6" />
-        </Button>
+      <header className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-end items-center pointer-events-none">
         <Button
             variant="default"
             size="icon"
@@ -488,7 +481,7 @@ function RequestRidePage() {
         </Button>
       </header>
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-2 space-y-2">
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-24 space-y-2">
          {foundDriver ? (
              <Card className="shadow-2xl rounded-2xl">
                  <CardContent className="p-4 space-y-4">
@@ -711,6 +704,7 @@ function RequestRidePage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        <BottomNavBar role="passenger" />
     </div>
   );
 }

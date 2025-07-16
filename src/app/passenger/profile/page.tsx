@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -19,13 +19,13 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getItem, setItem } from "@/lib/storage";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
-
+import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 const RERIDE_REQUEST_KEY = 'reride_request';
 
@@ -120,7 +120,9 @@ function ProfilePage() {
     };
     
     useEffect(() => {
-        fetchProfileData();
+        if (user) {
+            fetchProfileData();
+        }
     }, [user, language]);
     
      useEffect(() => {
@@ -207,10 +209,10 @@ function ProfilePage() {
                 cpf: profileData.cpf
             });
             toast({ title: "Informações Salvas!" });
+             setIsEditing(false);
         } catch (error) {
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
         }
-        setIsEditing(false);
     };
 
     const handleSavePhoto = async () => {
@@ -259,10 +261,28 @@ function ProfilePage() {
             toast({ title: 'Endereço salvo!' });
             setAddressInput("");
             setAddressTypeToSet(null);
+            setOpenModal(null);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro ao salvar', description: 'Não foi possível salvar o endereço.' });
         }
     };
+
+    const handleOpenModal = (modal: ModalType) => {
+        if (modal === 'history' && router.pathname !== '/passenger/profile') {
+            router.push('/passenger/profile?showHistory=true');
+        } else {
+            setOpenModal(modal);
+        }
+    };
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('showHistory') === 'true') {
+            setOpenModal('history');
+            // Clean up URL
+            router.replace('/passenger/profile', undefined);
+        }
+    }, [router]);
 
     const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
         <>
@@ -297,20 +317,31 @@ function ProfilePage() {
     if (!user || isLoading) {
       return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
     }
+    
+    const handleCloseModal = () => {
+        setOpenModal(null);
+        setIsEditing(false); // Reset editing state when closing any modal
+    }
+
 
     const ModalContent = () => {
         if (openModal === 'personal-data') return (
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Dados pessoais</DialogTitle>
+                    <div className="flex justify-between items-center">
+                        <DialogTitle>Dados pessoais</DialogTitle>
+                        {isEditing ? (
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
+                                <Save className="h-4 w-4"/> Salvar
+                            </Button>
+                        ): (
+                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
+                                <Edit className="h-4 w-4"/> Editar
+                            </Button>
+                        )}
+                    </div>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                     <div className="flex justify-end">
-                        <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}>
-                            {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                            {isEditing ? 'Salvar' : 'Editar'}
-                        </Button>
-                    </div>
                     <div>
                         <Label htmlFor="name">Nome Completo</Label>
                         <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
@@ -328,7 +359,6 @@ function ProfilePage() {
                         <Input id="cpf" value={profileData.cpf} onChange={(e) => setProfileData({...profileData, cpf: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
                     </div>
                 </div>
-                <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Fechar</Button></DialogClose></DialogFooter>
             </DialogContent>
         );
 
@@ -490,25 +520,17 @@ function ProfilePage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
-            <header className="bg-background">
-                <div className="container mx-auto px-4 h-16 flex items-center">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                </div>
-            </header>
-            
-            <main className="flex-1 pb-6 container mx-auto px-4">
+            <main className="flex-1 pb-24 container mx-auto px-4">
                 {/* Profile Header */}
                 <div className="flex flex-col items-center text-center my-6">
                     <div className="relative">
-                        <Avatar className="h-24 w-24 border-4 border-background shadow-md" onClick={() => setOpenModal('upload-photo')}>
+                        <Avatar className="h-24 w-24 border-4 border-background shadow-md">
                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                             <AvatarFallback>
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
-                        <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 bg-green-500 rounded-full flex items-center justify-center text-white border-2 border-background">
+                        <button onClick={() => handleOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
                             <Plus className="h-4 w-4" />
                         </button>
                     </div>
@@ -530,11 +552,11 @@ function ProfilePage() {
                 {/* Account Section */}
                 <Card className="mb-6">
                     <CardContent className="p-2">
-                        {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => setOpenModal('personal-data'))}
-                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => setOpenModal('history'))}
-                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => setOpenModal('documents'))}
-                        {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => setOpenModal('security'))}
-                        {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => setOpenModal('login-security'))}
+                        {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => handleOpenModal('personal-data'))}
+                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => handleOpenModal('history'))}
+                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => handleOpenModal('documents'))}
+                        {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => handleOpenModal('security'))}
+                        {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => handleOpenModal('login-security'))}
                     </CardContent>
                 </Card>
 
@@ -554,16 +576,17 @@ function ProfilePage() {
                  <Card>
                     <CardContent className="p-2">
                         {renderSettingsItem(<Moon className="h-5 w-5 text-muted-foreground"/>, "Modo escuro", <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />)}
-                        {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => setOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
-                        {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => setOpenModal('communication'))}
-                        {renderMenuItem(<LogOut className="h-5 w-5 text-muted-foreground"/>, "Terminar sessão", logout)}
+                        {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => handleOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
+                        {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => handleOpenModal('communication'))}
+                        {renderMenuItem(<LogOut className="h-5 w-5 text-destructive"/>, "Terminar sessão", logout)}
                     </CardContent>
                 </Card>
             </main>
 
-            <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && setOpenModal(null)}>
+            <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
                 <ModalContent />
             </Dialog>
+            <BottomNavBar role="passenger" />
         </div>
     );
 }

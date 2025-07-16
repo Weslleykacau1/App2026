@@ -10,6 +10,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recha
 import { ArrowLeft, Car, DollarSign } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
+import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 const initialWeeklyData = [
   { name: "Seg", total: 0 },
@@ -66,15 +67,11 @@ function StatisticsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold">Estatísticas</h1>
-          <div className="w-9 h-9"></div> {/* Placeholder for alignment */}
+        <div className="container mx-auto px-4 h-16 flex items-center justify-center">
+          <h1 className="text-lg font-semibold">Estatísticas e Ganhos</h1>
         </div>
       </header>
-      <main className="flex-1 py-6 container mx-auto px-4">
+      <main className="flex-1 py-6 container mx-auto px-4 pb-24">
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -152,6 +149,7 @@ function StatisticsPage() {
           </CardContent>
         </Card>
       </main>
+      <BottomNavBar role="driver" />
     </div>
   );
 }

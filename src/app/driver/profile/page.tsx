@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight } from "lucide-react";
+import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
+import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 
 type ModalType = 'profile' | 'vehicle' | 'documents' | 'settings' | 'privacy' | 'upload-photo' | null;
@@ -90,8 +91,10 @@ function DriverProfilePage() {
     };
     
     useEffect(() => {
-        fetchProfileData();
-    }, [user, t, language]);
+        if (user) {
+            fetchProfileData();
+        }
+    }, [user, language]);
 
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
@@ -195,10 +198,10 @@ function DriverProfilePage() {
                 phone: profileData.phone,
             });
             toast({ title: t('toast.info_saved_title'), description: t('toast.info_saved_desc') });
+            setIsEditing(false);
         } catch (error) {
             toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.info_save_error_desc') });
         }
-        setIsEditing(false);
     };
 
     const handleSaveVehicle = async () => {
@@ -213,10 +216,10 @@ function DriverProfilePage() {
                 vehicle_year: vehicleData.year,
             });
             toast({ title: t('toast.info_saved_title'), description: t('toast.vehicle_info_saved_desc') });
+             setIsEditing(false);
         } catch (error) {
              toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.vehicle_info_save_error_desc') });
         }
-        setIsEditing(false);
     }
 
     const handleSavePhoto = async () => {
@@ -267,10 +270,15 @@ function DriverProfilePage() {
                         <DialogHeader>
                             <div className="flex justify-between items-center">
                                 <DialogTitle>{t('profile.personal_info')}</DialogTitle>
-                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}>
-                                    {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                    {isEditing ? t('common.save') : t('common.edit')}
-                                </Button>
+                                {isEditing ? (
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveProfile}>
+                                        <Save className="h-4 w-4"/> {t('common.save')}
+                                    </Button>
+                                ): (
+                                     <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
+                                        <Edit className="h-4 w-4"/> {t('common.edit')}
+                                    </Button>
+                                )}
                             </div>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
@@ -295,10 +303,15 @@ function DriverProfilePage() {
                         <DialogHeader>
                              <div className="flex justify-between items-center">
                                 <DialogTitle>{t('profile.vehicle.title')}</DialogTitle>
-                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveVehicle() : setIsEditing(true)}>
-                                    {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                    {isEditing ? t('common.save') : t('common.edit')}
-                                </Button>
+                                {isEditing ? (
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={handleSaveVehicle}>
+                                        <Save className="h-4 w-4"/>{t('common.save')}
+                                    </Button>
+                                ) : (
+                                    <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => setIsEditing(true)}>
+                                        <Edit className="h-4 w-4"/>{t('common.edit')}
+                                    </Button>
+                                )}
                             </div>
                             <DialogDescription>{t('profile.vehicle.description')}</DialogDescription>
                         </DialogHeader>
@@ -480,30 +493,20 @@ function DriverProfilePage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
-            <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-lg font-semibold">{t('profile.title')}</h1>
-                    <div className="w-9"></div>
-                </div>
-            </header>
-            
             <main className="flex-1 py-6 container mx-auto px-4">
                 <div className="flex flex-col items-center text-center">
-                    <div className="relative mb-4">
+                     <div className="relative">
                         <Avatar className="h-28 w-28 border-4 border-background shadow-md">
                             <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                             <AvatarFallback>
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
-                        <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setOpenModal('upload-photo')}>
-                            <Camera className="h-4 w-4"/>
-                        </Button>
+                         <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
+                            <Plus className="h-5 w-5" />
+                        </button>
                     </div>
-                    <h2 className="text-2xl font-bold">{profileData.name}</h2>
+                    <h2 className="text-2xl font-bold mt-4">{profileData.name}</h2>
                     <div className="flex items-center gap-2 mt-1">
                         <Star className="h-5 w-5 text-yellow-400 fill-current" />
                         <span className="font-semibold text-muted-foreground">4.8 (Nota)</span>
@@ -532,9 +535,10 @@ function DriverProfilePage() {
                 </div>
             </main>
             
-             <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
+            <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
                 <ModalContent />
             </Dialog>
+             <BottomNavBar role="driver" />
         </div>
     );
 }

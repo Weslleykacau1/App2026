@@ -15,6 +15,7 @@ import { AvailableRidesDrawer } from '@/components/available-rides-drawer';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { BottomNavBar } from '@/components/bottom-nav-bar';
 
 
 const surgeZones = [
@@ -219,15 +220,6 @@ function DriverDashboard() {
           </MapGL>
 
           <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-transparent z-20 pointer-events-none">
-            <Button 
-                variant="default" 
-                size="icon" 
-                className="h-12 w-12 rounded-full shadow-lg pointer-events-auto bg-card text-card-foreground hover:bg-card/90"
-                onClick={() => router.push('/driver/profile')}
-            >
-                <Menu className="h-6 w-6" />
-            </Button>
-            
             <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
                  <div className="flex items-center gap-2">
                     <p className="text-xl font-bold">
@@ -257,7 +249,7 @@ function DriverDashboard() {
             </Button>
           </header>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
+          <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 space-y-4">
                 <div className="absolute bottom-[7rem] left-4 right-4 z-10 flex justify-between pointer-events-none">
                    <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -318,6 +310,7 @@ function DriverDashboard() {
                </div>
           </div>
           <AvailableRidesDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+          <BottomNavBar role="driver" />
       </div>
   );
 }

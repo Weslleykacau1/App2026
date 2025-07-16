@@ -70,14 +70,19 @@ export default function SignupPage() {
           email: values.email,
           role: values.role,
           status: 'Ativo',
-          verification: 'Pendente'
+          verification: 'Pendente',
+          photoUrl: '',
+          cnhUrl: '',
+          crlvUrl: '',
+          identityDocumentUrl: '',
+          addressProofUrl: '',
         });
         
         toast({
-          title: "Cadastro realizado com sucesso!",
-          description: "Seus documentos estão em análise. Você já pode fazer login.",
+          title: "Cadastro realizado!",
+          description: "Agora, por favor, envie seus documentos para verificação.",
         });
-        router.push(`/signup/documents?role=${values.role}`);
+        router.push(`/signup/documents?role=${values.role}&userId=${user.uid}`);
 
       }
     } catch (error: any) {

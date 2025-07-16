@@ -25,6 +25,11 @@ interface User {
   vehicle_license_plate?: string;
   vehicle_color?: string;
   vehicle_year?: string;
+  photoUrl?: string;
+  cnhUrl?: string;
+  crlvUrl?: string;
+  identityDocumentUrl?: string;
+  addressProofUrl?: string;
 }
 
 interface LoginCredentials {

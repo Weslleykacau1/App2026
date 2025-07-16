@@ -37,7 +37,7 @@ function DriverProfilePage() {
 
     const [activeTab, setActiveTab] = useState("profile");
 
-    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
     const [vehicleData, setVehicleData] = useState({ model: '', licensePlate: '', color: '', year: '' });
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,6 +63,8 @@ function DriverProfilePage() {
                     email: data.email || '',
                     phone: data.phone || '+55 11 98888-7777',
                     photoUrl: data.photoUrl || '',
+                    cnhUrl: data.cnhUrl || '',
+                    crlvUrl: data.crlvUrl || '',
                 });
                 setVehicleData({
                     model: data.vehicle_model || 'Toyota Corolla',
@@ -154,13 +156,24 @@ function DriverProfilePage() {
         setIsDarkMode(checked);
     };
     
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, documentName: string) => {
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, documentName: 'cnhUrl' | 'crlvUrl') => {
         const file = event.target.files?.[0];
-        if (file) {
-            toast({
-                title: "Arquivo Selecionado",
-                description: `${documentName}: ${file.name}`,
-            });
+        if (file && user) {
+            // In a real app, you'd upload this to Firebase Storage and get a URL.
+            // For now, we'll simulate it with a placeholder.
+            const placeholderUrl = `https://placehold.co/800x600.png?text=${documentName}`;
+            
+            try {
+                const docRef = doc(db, "profiles", user.id);
+                await updateDoc(docRef, { [documentName]: placeholderUrl });
+                setProfileData(prev => ({ ...prev, [documentName]: placeholderUrl }));
+                toast({
+                    title: "Documento Enviado",
+                    description: `Seu ${documentName === 'cnhUrl' ? 'CNH' : 'CRLV'} foi enviado para análise.`,
+                });
+            } catch (error) {
+                toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar o documento." });
+            }
         }
     };
 
@@ -218,11 +231,6 @@ function DriverProfilePage() {
          return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
     }
 
-    const getInitials = (name: string) => {
-        const names = name.split(' ');
-        const initials = names.map(n => n[0]).join('');
-        return initials.toUpperCase();
-    }
     
     if (activeTab === 'upload-photo') {
         return (
@@ -407,9 +415,12 @@ function DriverProfilePage() {
                                                 <p className="font-medium">CNH</p>
                                                 <p className="text-sm text-muted-foreground">Carteira de Motorista</p>
                                             </div>
-                                            <Badge variant="secondary" className="gap-1.5 bg-green-100 text-green-800 border-green-300"><CheckSquare className="h-4 w-4"/> Verificado</Badge>
+                                            <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                                {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
+                                                {profileData.cnhUrl ? 'Verificado' : 'Pendente'}
+                                            </Badge>
                                         </div>
-                                        <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'CNH')} accept="image/*,.pdf" />
+                                        <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
                                         <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> Enviar novo arquivo</Button>
                                     </div>
                                     <div className="p-4 border rounded-lg">
@@ -418,9 +429,12 @@ function DriverProfilePage() {
                                                 <p className="font-medium">CRLV</p>
                                                 <p className="text-sm text-muted-foreground">Documento do Veículo</p>
                                             </div>
-                                             <Badge variant="secondary" className="gap-1.5 bg-green-100 text-green-800 border-green-300"><CheckSquare className="h-4 w-4"/> Verificado</Badge>
+                                             <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                                {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
+                                                {profileData.crlvUrl ? 'Verificado' : 'Pendente'}
+                                            </Badge>
                                         </div>
-                                        <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'CRLV')} accept="image/*,.pdf" />
+                                        <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
                                         <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> Enviar novo arquivo</Button>
                                     </div>
                                 </CardContent>

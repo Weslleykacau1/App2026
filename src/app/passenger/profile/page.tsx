@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, MoreVertical, MessageCircle, AlertCircle, RefreshCcw } from "lucide-react";
+import { ArrowLeft, Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, MoreVertical, MessageCircle, AlertCircle, RefreshCcw, CheckSquare } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,7 @@ function ProfilePage() {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
 
-    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '' });
     const [isDarkMode, setIsDarkMode] = useState(false);
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +91,9 @@ function ProfilePage() {
                     email: data.email || '',
                     phone: data.phone || '+55 11 99999-8888',
                     cpf: data.cpf || '123.456.789-00',
-                    photoUrl: data.photoUrl || ''
+                    photoUrl: data.photoUrl || '',
+                    identityDocumentUrl: data.identityDocumentUrl || '',
+                    addressProofUrl: data.addressProofUrl || '',
                 });
             } else {
                  throw new Error("Perfil não encontrado.");
@@ -178,13 +180,21 @@ function ProfilePage() {
         setIsDarkMode(checked);
     };
     
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, documentName: string) => {
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, documentName: 'identityDocumentUrl' | 'addressProofUrl') => {
         const file = event.target.files?.[0];
-        if (file) {
-            toast({
-                title: "Arquivo Selecionado",
-                description: `${documentName}: ${file.name}`,
-            });
+        if (file && user) {
+            const placeholderUrl = `https://placehold.co/800x600.png?text=${documentName}`;
+            try {
+                const docRef = doc(db, "profiles", user.id);
+                await updateDoc(docRef, { [documentName]: placeholderUrl });
+                setProfileData(prev => ({ ...prev, [documentName]: placeholderUrl }));
+                toast({
+                    title: "Documento Enviado",
+                    description: `Seu documento foi enviado para análise.`,
+                });
+            } catch (error) {
+                toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar o documento." });
+            }
         }
     };
 
@@ -239,13 +249,6 @@ function ProfilePage() {
     }
 
 
-    const getInitials = (name: string) => {
-        if (!name) return '';
-        const names = name.split(' ');
-        const initials = names.map(n => n[0]).join('');
-        return initials.toUpperCase();
-    }
-    
     if (activeTab === 'upload-photo') {
         return (
             <div className="flex flex-col min-h-screen bg-muted/40">
@@ -463,9 +466,12 @@ function ProfilePage() {
                                                 <p className="font-medium">Documento de Identidade (RG/CPF)</p>
                                                 <p className="text-sm text-muted-foreground">Para verificação de conta</p>
                                             </div>
-                                            <Badge variant="destructive">Pendente</Badge>
+                                             <Badge variant={profileData.identityDocumentUrl ? 'secondary' : 'destructive'} className={cn(profileData.identityDocumentUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                                {profileData.identityDocumentUrl && <CheckSquare className="h-4 w-4"/>}
+                                                {profileData.identityDocumentUrl ? 'Verificado' : 'Pendente'}
+                                            </Badge>
                                         </div>
-                                        <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'Documento de Identidade')} accept="image/*,.pdf" />
+                                        <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'identityDocumentUrl')} accept="image/*,.pdf" />
                                         <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>Enviar arquivo</Button>
                                     </div>
                                     <div className="p-4 border rounded-lg">
@@ -474,9 +480,12 @@ function ProfilePage() {
                                                 <p className="font-medium">Comprovante de Endereço</p>
                                                 <p className="text-sm text-muted-foreground">Opcional, para segurança</p>
                                             </div>
-                                            <Badge variant="destructive">Pendente</Badge>
+                                             <Badge variant={profileData.addressProofUrl ? 'secondary' : 'destructive'} className={cn(profileData.addressProofUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                                {profileData.addressProofUrl && <CheckSquare className="h-4 w-4"/>}
+                                                {profileData.addressProofUrl ? 'Verificado' : 'Pendente'}
+                                            </Badge>
                                         </div>
-                                        <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'Comprovante de Endereço')} accept="image/*,.pdf" />
+                                        <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'addressProofUrl')} accept="image/*,.pdf" />
                                         <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>Enviar arquivo</Button>
                                     </div>
                                 </CardContent>

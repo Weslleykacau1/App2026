@@ -2,44 +2,86 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Car, User, ArrowLeft, Upload, FileCheck } from "lucide-react";
+import { Car, User, ArrowLeft, Upload, FileCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Suspense } from "react";
+import React, { Suspense, useState, ChangeEvent } from "react";
+import { useAuth } from "@/context/auth-context";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+interface DocumentFiles {
+    cnh?: File;
+    crlv?: File;
+    identity?: File;
+}
 
 function DocumentUploadForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const userId = searchParams.get('userId');
     const { toast } = useToast();
+    const [files, setFiles] = useState<DocumentFiles>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, documentName: string) => {
+    const handleFileSelect = (event: ChangeEvent<HTMLInputElement>, documentName: keyof DocumentFiles) => {
         const file = event.target.files?.[0];
         if (file) {
+            setFiles(prev => ({ ...prev, [documentName]: file }));
             toast({
                 title: "Arquivo Selecionado",
-                description: `${documentName}: ${file.name}`,
+                description: `${file.name}`,
             });
         }
     };
     
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        router.push("/signup/pending");
+        if (!userId) {
+            toast({ variant: "destructive", title: "Erro", description: "ID do usuário não encontrado." });
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // In a real app, you'd upload these files to Firebase Storage
+            // and get the download URLs. For now, we'll just create placeholder URLs.
+            const dataToUpdate: { [key: string]: string } = {};
+
+            if (role === 'driver') {
+                if (files.cnh) dataToUpdate.cnhUrl = `https://placeholder.co/doc.png?text=CNH`;
+                if (files.crlv) dataToUpdate.crlvUrl = `https://placeholder.co/doc.png?text=CRLV`;
+            } else if (role === 'passenger') {
+                if (files.identity) dataToUpdate.identityDocumentUrl = `https://placeholder.co/doc.png?text=ID`;
+            }
+            
+            const userDocRef = doc(db, "profiles", userId);
+            await updateDoc(userDocRef, dataToUpdate);
+            
+            router.push("/signup/pending");
+
+        } catch (error) {
+            console.error("Error saving documents:", error);
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar os documentos." });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const renderDriverDocuments = () => (
         <>
             <div className="space-y-2">
                 <Label htmlFor="cnh">CNH (Carteira de Motorista)</Label>
-                <Input id="cnh" type="file" onChange={(e) => handleFileSelect(e, 'CNH')} accept="image/*,.pdf" className="h-auto"/>
+                <Input id="cnh" type="file" onChange={(e) => handleFileSelect(e, 'cnh')} accept="image/*,.pdf" className="h-auto" required/>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="crlv">CRLV (Documento do Veículo)</Label>
-                <Input id="crlv" type="file" onChange={(e) => handleFileSelect(e, 'CRLV')} accept="image/*,.pdf" className="h-auto"/>
+                <Input id="crlv" type="file" onChange={(e) => handleFileSelect(e, 'crlv')} accept="image/*,.pdf" className="h-auto" required/>
             </div>
         </>
     );
@@ -47,7 +89,7 @@ function DocumentUploadForm() {
     const renderPassengerDocuments = () => (
          <div className="space-y-2">
             <Label htmlFor="identity">Documento de Identidade (Frente e Verso)</Label>
-            <Input id="identity" type="file" onChange={(e) => handleFileSelect(e, 'Documento de Identidade')} accept="image/*,.pdf" className="h-auto"/>
+            <Input id="identity" type="file" onChange={(e) => handleFileSelect(e, 'identity')} accept="image/*,.pdf" className="h-auto" required/>
         </div>
     );
 
@@ -70,9 +112,9 @@ function DocumentUploadForm() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {role === 'driver' && renderDriverDocuments()}
                         {role === 'passenger' && renderPassengerDocuments()}
-                        <Button type="submit" className="w-full !mt-8 h-12 text-lg font-bold">
-                            <Upload className="mr-2 h-5 w-5"/>
-                            Enviar Documentos
+                        <Button type="submit" className="w-full !mt-8 h-12 text-lg font-bold" disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Upload className="mr-2 h-5 w-5"/>}
+                            {isSubmitting ? 'Enviando...' : 'Enviar Documentos'}
                         </Button>
                     </form>
                 </CardContent>

@@ -17,13 +17,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setItem, getItem, removeItem } from "@/lib/storage";
 import { Label } from "@/components/ui/label";
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc, onSnapshot } from "firebase/firestore";
 import Image from "next/image";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
+import { viagemCarImage, executiveCarImage } from "@/lib/images";
 
 
 type RideCategory = "viagem" | "executive";
@@ -561,9 +561,9 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                    <div className="grid grid-cols-2 gap-2 px-1">
-                        <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEkAAAAkCAYAAAAZAd6WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANYSURBVGhD7Zk/aBNBFMb/t52G4CRpIAgWQaNYBEvBwlpaCFjYKEoU6xAFweKjIiIKgoWFFoK1aOFPBDs7sQoWIghYpIUgWASh7yLw/L/3Iu2ul5ALgm/e9/vY7e7f7+5u9k/0+y2v1wvnFwsvqdVqvF6v8Qv2u6y0XCgUcDqduFyusLlc4XA4sNlsfO9/Uq/XeDwe/H4/nU4H9oA96PV6uN1u+Xw+zGYzIpHw6vO+v9Tr9XC5XDAYDAaDweJ7/tq7vV4vbreb0+lc4E4kEgaDwX0FhUJh8Uo3Go3weDzabDY+46G/w+FwwuNxEolE8N2JRAKHwwGFQkGv13v/7/p9vj1G4vF40Gg0NBqN9Pt9tVoNnU5nMSYSiZDL5UKhUMDtdh/g6e/vLzqdDhaLpTQ5nU7k83lCoRB2ux2xWKy0BGGxWODz+bRaLdputxKJBCqVCrVazWJsNhv5fJ5QKAQ+nw+r1Wg0GoxGIzqdDrlcDi6XC6lUarG2dDqdfD7vE4lEyOVyhUAgwGq1YrPZMDs7+7U4Pz+fTqfjE4lEuFwuuFwuKJVKhEIh6PV6tFotOByO1vPj4+NxEAhE8DEcDuPj42M8Hh84nU4sFovR6/Xo9/tYLBa0Wi2hUAj5fL7oAwqFAj6fD7VaDUajEYPBgN1uRyaTIRqN/q14PB4PSqWS1uPz+dAqlQilUolwOExn53A4xHE8E6lUKtQqlT7geZ7R+Hy+T6VSEQtGoxGdTocpFArovV4vTqdzaWzBYBCxWMzm+xSJRBAIBNBqtTiZTOBwOBAKhQSDQUqlEqVSCZ1O5zEWhULI5/MKhQKBQCDQarVYDAYsFgsGg0Gr1SKVSiGVSoVCoUD8oVQqEQgEMJvNkMlkEAgEsNlsSKVSNBpNoVDI5XLBZrOh1+txuVwIBoM4HI609Xg8HnQ6HZVKhUwmQyqVwmKxQCaTIZPJEAqFEM/ns1hLJBJBJpMpl8txsVgQCoUQCASIRCLY7XZEIhHyeTzZbJZarf5awuFwyGw2w+VywWQyIRKJEAqF0Gq1GAwGBINBCoUCnU4Hk8lEoVAIRqMRoVAIjUbDbrdjsVhQq9XweDxIpVJEIhH0ej2FQgFm0+u1GAwG/wHj/pT5+XyGAAAAAElFTkSuQmCC" alt="Viagem Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
-                        <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEkAAAAkCAYAAAAZAd6WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANYSURBVGhD7Zk/aBNBFMb/t52G4CRpIAgWQaNYBEvBwlpaCFjYKEoU6xAFweKjIiIKgoWFFoK1aOFPBDs7sQoWIghYpIUgWASh7yLw/L/3Iu2ul5ALgm/e9/vY7e7f7+5u9k/0+y2v1wvnFwsvqdVqvF6v8Qv2u6y0XCgUcDqduFyusLlc4XA4sNlsfO9/Uq/XeDwe/H4/nU4H9oA96PV6uN1u+Xw+zGYzIpHw6vO+v9Tr9XC5XDAYDAaDweJ7/tq7vV4vbreb0+lc4E4kEgaDwX0FhUJh8Uo3Go3weDzabDY+46G/w+FwwuNxEolE8N2JRAKHwwGFQkGv13v/7/p9vj1G4vF40Gg0NBqN9Pt9tVoNnU5nMSYSiZDL5UKhUMDtdh/g6e/vLzqdDhaLpTQ5nU7k83lCoRB2ux2xWKy0BGGxWODz+bRaLdputxKJBCqVCrVazWJsNhv5fJ5QKAQ+nw+r1Wg0GoxGIzqdDrlcDi6XC6lUarG2dDqdfD7vE4lEyOVyhUAgwGq1YrPZMDs7+7U4Pz+fTqfjE4lEuFwuuFwuKJVKhEIh6PV6tFotOByO1vPj4+NxEAhE8DEcDuPj42M8Hh84nU4sFovR6/Xo9/tYLBa0Wi2hUAj5fL7oAwqFAj6fD7VaDUajEYPBgN1uRyaTIRqN/q14PB4PSqWS1uPz+dAqlQilUolwOExn53A4xHE8E6lUKtQqlT7geZ7R+Hy+T6VSEQtGoxGdTocpFArovV4vTqdzaWzBYBCxWMzm+xSJRBAIBNBqtTiZTOBwOBAKhQSDQUqlEqVSCZ1O5zEWhULI5/MKhQKBQCDQarVYDAYsFgsGg0Gr1SKVSiGVSoVCoUD8oVQqEQgEMJvNkMlkEAgEsNlsSKVSNBpNoVDI5XLBZrOh1+txuVwIBoM4HI609Xg8HnQ6HZVKhUwmQyqVwmKxQCaTIZPJEAqFEM/ns1hLJBJBJpMpl8txsVgQCoUQCASIRCLY7XZEIhHyeTzZbJZarf5awuFwyGw2w+VywWQyIRKJEAqF0Gq1GAwGBINBCoUCnU4Hk8lEoVAIRqMRoVAIjUbDbrdjsVhQq9XweDxIpVJEIhH0ej2FQgFm0+u1GAwG/wHj/pT5+XyGAAAAAElFTkSuQmCC" data-ai-hint="car luxury" alt="Executive Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                   <div className="grid grid-cols-2 gap-2 px-1">
+                        <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src={viagemCarImage} alt="Viagem Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
+                        <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src={executiveCarImage} alt="Executive Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="h-full col-span-2 justify-between">

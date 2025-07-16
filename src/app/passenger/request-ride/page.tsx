@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import type { MapRef, LngLatLike } from "react-map-gl";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
@@ -121,9 +120,6 @@ function RequestRidePage() {
 
   const [homeAddress, setHomeAddress] = useState<string | null>(null);
   const [workAddress, setWorkAddress] = useState<string | null>(null);
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
-  const [addressInput, setAddressInput] = useState("");
   const [fareConfig, setFareConfig] = useState<AppFareConfig>(defaultFareConfig);
 
 
@@ -454,41 +450,23 @@ function RequestRidePage() {
   };
 
   const handleSavedAddressClick = async (type: AddressType) => {
-        const address = type === 'home' ? homeAddress : workAddress;
-        if (address) {
-            setDestinationInput(address);
-            const suggestion = await geocodeAddress(address);
-            if (suggestion) {
-                handleSelectSuggestion(suggestion, 'destination');
-            } else {
-                toast({ variant: 'destructive', title: 'Endereço não encontrado', description: 'Não foi possível localizar este endereço no mapa.' });
-            }
+    const address = type === 'home' ? homeAddress : workAddress;
+    if (address) {
+        setDestinationInput(address);
+        const suggestion = await geocodeAddress(address);
+        if (suggestion) {
+            handleSelectSuggestion(suggestion, 'destination');
         } else {
-            setAddressTypeToSet(type);
-            setIsAddressModalOpen(true);
+            toast({ variant: 'destructive', title: 'Endereço não encontrado', description: 'Não foi possível localizar este endereço no mapa.' });
         }
-    };
-
-    const handleSaveAddress = async () => {
-        if (!user || !addressTypeToSet || !addressInput) return;
-        
-        const fieldToUpdate = addressTypeToSet === 'home' ? 'homeAddress' : 'workAddress';
-        try {
-            const userDocRef = doc(db, "profiles", user.id);
-            await updateDoc(userDocRef, { [fieldToUpdate]: addressInput });
-
-            if (addressTypeToSet === 'home') setHomeAddress(addressInput);
-            else setWorkAddress(addressInput);
-
-            toast({ title: 'Endereço salvo!', description: `Seu endereço de ${addressTypeToSet === 'home' ? 'casa' : 'trabalho'} foi atualizado.` });
-            setIsAddressModalOpen(false);
-            setAddressInput("");
-            setAddressTypeToSet(null);
-        } catch (error) {
-            console.error('Error saving address:', error);
-            toast({ variant: 'destructive', title: 'Erro ao salvar', description: 'Não foi possível salvar o endereço.' });
-        }
-    };
+    } else {
+        toast({
+            title: 'Endereço não cadastrado',
+            description: `Por favor, adicione seu endereço de ${type === 'home' ? 'casa' : 'trabalho'} na tela de Perfil.`,
+            duration: 5000,
+        });
+    }
+};
 
     const resetRideState = () => {
         removeItem(RIDE_REQUEST_KEY);
@@ -725,36 +703,9 @@ function RequestRidePage() {
           )}
       </div>
 
-      <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Salvar Endereço de {addressTypeToSet === 'home' ? 'Casa' : 'Trabalho'}</DialogTitle>
-                    <DialogDescription>
-                        Digite e salve seu endereço para acessá-lo rapidamente no futuro.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    <Label htmlFor="address-input">Endereço Completo</Label>
-                    <Input 
-                        id="address-input" 
-                        value={addressInput} 
-                        onChange={(e) => setAddressInput(e.target.value)}
-                        placeholder="Ex: Av. Paulista, 1000, São Paulo - SP"
-                    />
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">Cancelar</Button>
-                    </DialogClose>
-                    <Button onClick={handleSaveAddress} disabled={!addressInput}>Salvar Endereço</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
         <BottomNavBar role="passenger" />
     </div>
   );
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
-    

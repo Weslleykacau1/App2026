@@ -266,15 +266,41 @@ function DriverDashboard() {
             </header>
 
             <div className="absolute bottom-24 right-4 z-10 space-y-4">
-                 <Button
-                    onClick={() => setIsOnline(!isOnline)}
-                    className={cn(
-                        "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto",
-                        isOnline ? "bg-green-500 hover:bg-green-600" : "bg-secondary hover:bg-secondary/80"
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <Button
+                            className={cn(
+                                "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto",
+                                isOnline ? "bg-green-500 hover:bg-green-600" : "bg-secondary hover:bg-secondary/80"
+                            )}
+                            onClick={(e) => {
+                                if (!isOnline) {
+                                    setIsOnline(true);
+                                } else {
+                                    // Let the AlertDialog handle the logic
+                                }
+                            }}
+                        >
+                           <span>{isOnline ? "Online" : "Offline"}</span>
+                        </Button>
+                    </AlertDialogTrigger>
+                    {isOnline && (
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Ficar offline?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Você não receberá novas solicitações de corrida enquanto estiver offline.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => setIsOnline(false)}>
+                                    Sim, ficar offline
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
                     )}
-                >
-                    <span>{isOnline ? "Online" : "Offline"}</span>
-                </Button>
+                </AlertDialog>
             </div>
             
              <div className="absolute bottom-24 left-4 z-10">

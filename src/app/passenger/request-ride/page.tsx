@@ -62,7 +62,6 @@ function RequestRidePage() {
   
   const [pickupInput, setPickupInput] = useState("Procurando você no mapa...");
   const [destinationInput, setDestinationInput] = useState("");
-  const [fareOffer, setFareOffer] = useState(0);
   const [tripDistance, setTripDistance] = useState(0);
   const [farePerKm, setFarePerKm] = useState(0);
 
@@ -85,7 +84,7 @@ function RequestRidePage() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [currentRideId, setCurrentRideId] = useState<string | null>(null);
   const [rideStatus, setRideStatus] = useState<string | null>(null);
-
+  const [fare, setFare] = useState(0);
 
   const [homeAddress, setHomeAddress] = useState<string | null>(null);
   const [workAddress, setWorkAddress] = useState<string | null>(null);
@@ -252,7 +251,7 @@ function RequestRidePage() {
     setPickupInput(value);
     setSelectedPickup(null);
     setRoute(null);
-    setFareOffer(0);
+    setFare(0);
     debouncedFetchPickupSuggestions(value);
   };
   
@@ -261,7 +260,7 @@ function RequestRidePage() {
     setDestinationInput(value);
     setSelectedDestination(null);
     setRoute(null);
-    setFareOffer(0);
+    setFare(0);
     debouncedFetchDestinationSuggestions(value);
   };
 
@@ -302,7 +301,7 @@ function RequestRidePage() {
             
             const baseFare = distanceInKm * ratePerKm;
             
-            setFareOffer(baseFare);
+            setFare(baseFare);
             
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
@@ -310,7 +309,7 @@ function RequestRidePage() {
         }
       } else {
         setRoute(null);
-        setFareOffer(0);
+        setFare(0);
       }
     }
     calculateRoute();
@@ -347,7 +346,7 @@ function RequestRidePage() {
         
         setIsRequesting(true);
 
-        const finalFare = fareOffer;
+        const finalFare = fare;
 
         try {
              const rideDocRef = await addDoc(collection(db, "rides"), {
@@ -434,7 +433,7 @@ function RequestRidePage() {
         setFoundDriver(null);
         setRoute(null);
         setDestinationInput("");
-        setFareOffer(0);
+        setFare(0);
         setSelectedDestination(null);
         setRideStatus(null);
     }
@@ -476,7 +475,7 @@ function RequestRidePage() {
     </div>
   );
   
-  const finalFare = fareOffer;
+  const finalFare = fare;
 
 
   return (
@@ -521,7 +520,7 @@ function RequestRidePage() {
                             <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
                          </div>
                      </div>
-                     {rideStatus === 'accepted' && (
+                      {rideStatus === "accepted" && (
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="outline" className="w-full">Cancelar Corrida</Button>
@@ -539,7 +538,7 @@ function RequestRidePage() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                     )}
+                      )}
                  </CardContent>
              </Card>
          ) : rideStatus === 'pending' ? (
@@ -562,20 +561,22 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                   <div className="flex items-center gap-2">
+                   <div className="px-1">
                         <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
                             <CarouselContent className="-ml-2">
                                 <CarouselItem className="pl-2 basis-1/2">
-                                    <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
+                                     <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src="https://placehold.co/100x60.png" data-ai-hint="car modern" alt="Viagem Car" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
                                 </CarouselItem>
                                 <CarouselItem className="pl-2 basis-1/2">
-                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="https://placehold.co/100x60.png" alt="Executive Car" data-ai-hint="car modern" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="https://placehold.co/100x60.png" alt="Executive Car" data-ai-hint="car luxury" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                                 </CarouselItem>
                             </CarouselContent>
                         </Carousel>
+                   </div>
+                   <div className="px-1">
                         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="h-full flex-1 w-auto min-w-[140px] justify-between text-left p-2">
+                                <Button variant="outline" className="h-11 w-full justify-between">
                                     <div className="flex items-center gap-2">
                                         {paymentIcons[paymentMethod]}
                                         <p className="font-semibold text-xs">{paymentMethod}</p>
@@ -604,7 +605,6 @@ function RequestRidePage() {
                             </PopoverContent>
                         </Popover>
                    </div>
-
                    
                    <div className="space-y-2 px-1">
                         <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
@@ -665,7 +665,7 @@ function RequestRidePage() {
                         </div>
 
 
-                        {fareOffer > 0 && (
+                        {fare > 0 && (
                             <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
                                 <div className="flex justify-between items-center">
                                     <Label htmlFor="fare" className="text-base font-bold">
@@ -682,7 +682,7 @@ function RequestRidePage() {
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold" variant="default" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                      <Button className="w-full h-12 text-base font-bold" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
                         {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Solicitar Corrida
                       </Button>

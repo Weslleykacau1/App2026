@@ -22,7 +22,10 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
+
+
+type ModalType = 'profile' | 'vehicle' | 'documents' | 'settings' | 'privacy' | 'upload-photo' | null;
 
 
 function DriverProfilePage() {
@@ -33,10 +36,9 @@ function DriverProfilePage() {
     const { language, changeLanguage, t } = useLanguage();
     
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [isEditingProfile, setIsEditingProfile] = useState(false);
-    const [isEditingVehicle, setIsEditingVehicle] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+    const [openModal, setOpenModal] = useState<ModalType>(null);
+    const [isEditing, setIsEditing] = useState(false);
 
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', photoUrl: '', cnhUrl: '', crlvUrl: '' });
@@ -97,7 +99,7 @@ function DriverProfilePage() {
 
 
      useEffect(() => {
-        if (isPhotoModalOpen) {
+        if (openModal === 'upload-photo') {
           const getCameraPermission = async () => {
             try {
               const stream = await navigator.mediaDevices.getUserMedia({video: true});
@@ -122,7 +124,7 @@ function DriverProfilePage() {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
-    }, [isPhotoModalOpen, toast, t]);
+    }, [openModal, toast, t]);
 
     const takePhoto = () => {
         const video = videoRef.current;
@@ -196,7 +198,7 @@ function DriverProfilePage() {
         } catch (error) {
             toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.info_save_error_desc') });
         }
-        setIsEditingProfile(false);
+        setIsEditing(false);
     };
 
     const handleSaveVehicle = async () => {
@@ -214,7 +216,7 @@ function DriverProfilePage() {
         } catch (error) {
              toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.vehicle_info_save_error_desc') });
         }
-        setIsEditingVehicle(false);
+        setIsEditing(false);
     }
 
     const handleSavePhoto = async () => {
@@ -226,7 +228,7 @@ function DriverProfilePage() {
             setProfileData({ ...profileData, photoUrl: photoDataUrl });
             toast({ title: t('toast.photo_saved_title'), description: t('toast.photo_saved_desc') });
             setPhotoDataUrl(null);
-            setIsPhotoModalOpen(false);
+            setOpenModal(null);
         } catch (error) {
             toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.photo_save_error_desc') });
         }
@@ -251,152 +253,123 @@ function DriverProfilePage() {
     if (!user || isLoading) {
          return <div className="flex h-screen w-full items-center justify-center">{t('common.loading')}</div>;
     }
-
-    return (
-        <div className="flex flex-col min-h-screen bg-muted/40">
-            <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-lg font-semibold">{t('profile.title')}</h1>
-                     <Button variant="ghost" size="icon" onClick={logout}>
-                        <LogOut className="h-5 w-5" />
-                    </Button>
-                </div>
-            </header>
-            
-            <main className="flex-1 py-6 container mx-auto px-4">
-                <div className="flex flex-col items-center text-center">
-                    <div className="relative mb-4">
-                        <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
-                            <AvatarFallback>
-                                <User className="h-12 w-12 text-muted-foreground" />
-                            </AvatarFallback>
-                        </Avatar>
-                        <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setIsPhotoModalOpen(true)}>
-                            <Camera className="h-4 w-4"/>
-                        </Button>
-                    </div>
-                    <h2 className="text-2xl font-bold">{profileData.name}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                        <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                        <span className="font-semibold text-muted-foreground">4.8 (Nota)</span>
-                    </div>
-                        <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
-                        <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
-                </div>
-
-                <Card className="mt-8">
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle className="text-lg">{t('profile.personal_info')}</CardTitle>
-                             <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingProfile ? handleSaveProfile() : setIsEditingProfile(true)}>
-                                {isEditingProfile ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                {isEditingProfile ? t('common.save') : t('common.edit')}
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <Label htmlFor="name">{t('profile.form.full_name')}</Label>
-                            <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
-                        </div>
-                        <div>
-                            <Label htmlFor="email">{t('profile.form.email')}</Label>
-                            <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
-                        </div>
-                        <div>
-                            <Label htmlFor="phone">{t('profile.form.phone')}</Label>
-                            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditingProfile} className={cn(!isEditingProfile && "bg-muted border-none")} />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                 <Card className="mt-6">
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle className="text-lg">{t('profile.vehicle.title')}</CardTitle>
-                             <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditingVehicle ? handleSaveVehicle() : setIsEditingVehicle(true)}>
-                                {isEditingVehicle ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                {isEditingVehicle ? t('common.save') : t('common.edit')}
-                            </Button>
-                        </div>
-                        <CardDescription>{t('profile.vehicle.description')}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+    
+    const handleCloseModal = () => {
+        setOpenModal(null);
+        setIsEditing(false); // Reset editing state when closing any modal
+    }
+    
+    const ModalContent = () => {
+        switch(openModal) {
+            case 'profile':
+                return (
+                    <DialogContent>
+                        <DialogHeader>
+                            <div className="flex justify-between items-center">
+                                <DialogTitle>{t('profile.personal_info')}</DialogTitle>
+                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}>
+                                    {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
+                                    {isEditing ? t('common.save') : t('common.edit')}
+                                </Button>
+                            </div>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
                             <div>
-                            <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
-                            <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                        </div>
-                        <div>
-                            <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
-                            <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                        </div>
-                        <div>
-                            <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
-                            <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                        </div>
-                        <div>
-                            <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
-                            <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditingVehicle} className={cn(!isEditingVehicle && "bg-muted border-none")} />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="mt-6">
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t('profile.documents.title')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="p-4 border rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium">{t('profile.documents.cnh_title')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
-                                </div>
-                                <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                    {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
-                                    {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                </Badge>
+                                <Label htmlFor="name">{t('profile.form.full_name')}</Label>
+                                <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
                             </div>
-                            <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
-                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
-                        </div>
-                        <div className="p-4 border rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium">{t('profile.documents.crlv_title')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
-                                </div>
-                                    <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
-                                    {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
-                                    {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
-                                </Badge>
+                            <div>
+                                <Label htmlFor="email">{t('profile.form.email')}</Label>
+                                <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
                             </div>
-                            <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
-                            <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                            <div>
+                                <Label htmlFor="phone">{t('profile.form.phone')}</Label>
+                                <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <Card className="mt-6">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2"><Settings className="h-5 w-5"/> Configurações</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    </DialogContent>
+                );
+            case 'vehicle':
+                 return (
+                    <DialogContent>
+                        <DialogHeader>
+                             <div className="flex justify-between items-center">
+                                <DialogTitle>{t('profile.vehicle.title')}</DialogTitle>
+                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveVehicle() : setIsEditing(true)}>
+                                    {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
+                                    {isEditing ? t('common.save') : t('common.edit')}
+                                </Button>
+                            </div>
+                            <DialogDescription>{t('profile.vehicle.description')}</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div>
+                                <Label htmlFor="model">{t('profile.vehicle.form.model')}</Label>
+                                <Input id="model" value={vehicleData.model} onChange={(e) => setVehicleData({...vehicleData, model: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="license-plate">{t('profile.vehicle.form.license_plate')}</Label>
+                                <Input id="license-plate" value={vehicleData.licensePlate} onChange={(e) => setVehicleData({...vehicleData, licensePlate: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="color">{t('profile.vehicle.form.color')}</Label>
+                                <Input id="color" value={vehicleData.color} onChange={(e) => setVehicleData({...vehicleData, color: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="year">{t('profile.vehicle.form.year')}</Label>
+                                <Input id="year" type="number" value={vehicleData.year} onChange={(e) => setVehicleData({...vehicleData, year: e.target.value})} disabled={!isEditing} className={cn(!isEditing && "bg-muted border-none")} />
+                            </div>
+                        </div>
+                    </DialogContent>
+                );
+            case 'documents':
+                 return (
+                    <DialogContent>
+                        <DialogHeader><DialogTitle>{t('profile.documents.title')}</DialogTitle></DialogHeader>
+                        <div className="space-y-6 py-4">
+                            <div className="p-4 border rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">{t('profile.documents.cnh_title')}</p>
+                                        <p className="text-sm text-muted-foreground">{t('profile.documents.cnh_desc')}</p>
+                                    </div>
+                                    <Badge variant={profileData.cnhUrl ? 'secondary' : 'destructive'} className={cn(profileData.cnhUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                        {profileData.cnhUrl && <CheckSquare className="h-4 w-4"/>}
+                                        {profileData.cnhUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                    </Badge>
+                                </div>
+                                <input type="file" ref={cnhInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'cnhUrl')} accept="image/*,.pdf" />
+                                <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => cnhInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                            </div>
+                            <div className="p-4 border rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">{t('profile.documents.crlv_title')}</p>
+                                        <p className="text-sm text-muted-foreground">{t('profile.documents.crlv_desc')}</p>
+                                    </div>
+                                        <Badge variant={profileData.crlvUrl ? 'secondary' : 'destructive'} className={cn(profileData.crlvUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
+                                        {profileData.crlvUrl && <CheckSquare className="h-4 w-4"/>}
+                                        {profileData.crlvUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
+                                    </Badge>
+                                </div>
+                                <input type="file" ref={crlvInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'crlvUrl')} accept="image/*,.pdf" />
+                                <Button variant="outline" className="w-full mt-4 gap-2" onClick={() => crlvInputRef.current?.click()}><Upload className="h-4 w-4"/> {t('profile.documents.upload_btn')}</Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                );
+            case 'settings':
+                 return (
+                    <DialogContent>
+                        <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings className="h-5 w-5"/> Configurações</DialogTitle></DialogHeader>
+                        <div className="space-y-4 py-4">
                             <div className="flex items-start justify-between gap-4">
                                 <Moon className="h-6 w-6 text-muted-foreground mt-1" />
                                 <div className="flex-1">
                                     <p className="font-medium">{t('profile.settings.dark_mode')}</p>
                                     <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
                                 </div>
-                                <Switch
-                                    checked={isDarkMode}
-                                    onCheckedChange={handleThemeChange}
-                                />
+                                <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />
                             </div>
                             <Separator />
                             <div className="flex items-start justify-between gap-4">
@@ -407,7 +380,7 @@ function DriverProfilePage() {
                                 </div>
                                 <Switch defaultChecked />
                             </div>
-                            <Separator />
+                             <Separator />
                             <div className="flex items-start justify-between gap-4">
                                 <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
                                 <div className="flex-1">
@@ -421,30 +394,23 @@ function DriverProfilePage() {
                                 <Globe className="h-6 w-6 text-muted-foreground" />
                                 <div className="flex-1">
                                     <p className="font-medium">{t('profile.settings.language')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.language_desc')}</p>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
-                                        <SelectTrigger className="w-[120px]">
-                                            <SelectValue placeholder="Idioma" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pt">Português</SelectItem>
-                                            <SelectItem value="en">English</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
+                                    <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pt">Português</SelectItem>
+                                        <SelectItem value="en">English</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-
-                 <Card className="mt-6">
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t('profile.settings.privacy_title')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                            <div className="space-y-4">
+                    </DialogContent>
+                );
+             case 'privacy':
+                return (
+                     <DialogContent>
+                        <DialogHeader><DialogTitle>{t('profile.settings.privacy_title')}</DialogTitle></DialogHeader>
+                        <div className="space-y-4 py-4">
                             <div className="flex items-start justify-between gap-4">
                                 <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
                                 <div className="flex-1">
@@ -463,10 +429,10 @@ function DriverProfilePage() {
                                 <Switch />
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
+                    </DialogContent>
+                );
+             case 'upload-photo':
+                return (
                     <DialogContent>
                         <DialogHeader><DialogTitle>{t('profile.change_photo')}</DialogTitle></DialogHeader>
                         <div className="flex flex-col items-center space-y-4 py-4">
@@ -479,17 +445,13 @@ function DriverProfilePage() {
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
                                         <Alert variant="destructive">
                                             <AlertTitle>{t('profile.camera_unavailable_title')}</AlertTitle>
-                                            <AlertDescription>
-                                                {t('profile.camera_unavailable_desc')}
-                                            </AlertDescription>
+                                            <AlertDescription>{t('profile.camera_unavailable_desc')}</AlertDescription>
                                         </Alert>
                                     </div>
                                 )}
                             </div>
                             <canvas ref={photoRef} className="hidden"></canvas>
                             <input type="file" ref={galleryInputRef} className="hidden" onChange={handleGalleryFileSelect} accept="image/*" />
-
-                            
                             {photoDataUrl ? (
                                 <div className="flex flex-col space-y-2 w-full max-w-sm">
                                     <Button onClick={handleSavePhoto}>{t('profile.save_photo')}</Button>
@@ -507,13 +469,72 @@ function DriverProfilePage() {
                             )}
                         </div>
                         <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">{t('common.cancel')}</Button>
-                            </DialogClose>
+                            <DialogClose asChild><Button type="button" variant="outline">{t('common.cancel')}</Button></DialogClose>
                         </DialogFooter>
                     </DialogContent>
-                </Dialog>
+                );
+            default:
+                return null;
+        }
+    }
+
+    return (
+        <div className="flex flex-col min-h-screen bg-muted/40">
+            <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <h1 className="text-lg font-semibold">{t('profile.title')}</h1>
+                    <div className="w-9"></div>
+                </div>
+            </header>
+            
+            <main className="flex-1 py-6 container mx-auto px-4">
+                <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-4">
+                        <Avatar className="h-28 w-28 border-4 border-background shadow-md">
+                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
+                            <AvatarFallback>
+                                <User className="h-12 w-12 text-muted-foreground" />
+                            </AvatarFallback>
+                        </Avatar>
+                        <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-background" onClick={() => setOpenModal('upload-photo')}>
+                            <Camera className="h-4 w-4"/>
+                        </Button>
+                    </div>
+                    <h2 className="text-2xl font-bold">{profileData.name}</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Star className="h-5 w-5 text-yellow-400 fill-current" />
+                        <span className="font-semibold text-muted-foreground">4.8 (Nota)</span>
+                    </div>
+                        <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
+                        <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
+                </div>
+
+                <Card className="mt-8">
+                     <CardContent className="p-2">
+                         {renderMenuItem(<User className="h-5 w-5 text-muted-foreground" />, t('profile.personal_info'), () => setOpenModal('profile'))}
+                         {renderMenuItem(<Car className="h-5 w-5 text-muted-foreground" />, t('profile.vehicle.title'), () => setOpenModal('vehicle'))}
+                         {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, t('profile.documents.title'), () => setOpenModal('documents'))}
+                     </CardContent>
+                </Card>
+                
+                 <Card className="mt-6">
+                    <CardContent className="p-2">
+                         {renderMenuItem(<Settings className="h-5 w-5 text-muted-foreground"/>, "Configurações", () => setOpenModal('settings'))}
+                         {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, t('profile.settings.privacy_title'), () => setOpenModal('privacy'))}
+                     </CardContent>
+                </Card>
+                
+                <div className="mt-8">
+                     {renderMenuItem(<LogOut className="h-5 w-5 text-destructive" />, "Terminar Sessão", logout)}
+                </div>
             </main>
+            
+             <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
+                <ModalContent />
+            </Dialog>
         </div>
     );
 }

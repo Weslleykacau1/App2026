@@ -250,7 +250,7 @@ function ProfilePageContent() {
             return;
         }
         setItem(RERIDE_REQUEST_KEY, { pickup: ride.pickup, destination: ride.destination });
-        router.push('/passenger');
+        router.push('/passenger/request-ride');
     };
 
     const handleOpenAddressModal = (type: AddressType) => {
@@ -384,14 +384,14 @@ function ProfilePageContent() {
                     <h1 className="text-2xl font-bold mt-4">{profileData.name}</h1>
                 </div>
 
-                {/* Calendar Banner */}
-                <Card className="bg-green-100/50 dark:bg-green-900/20 border-green-200 dark:border-green-800 shadow-sm mb-6">
+                {/* Safety Banner */}
+                <Card className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-sm mb-6">
                     <CardContent className="p-4 flex items-center gap-4">
-                        <div className="bg-green-500 text-white h-10 w-10 flex items-center justify-center rounded-lg">
-                           <Calendar className="h-6 w-6"/>
+                        <div className="bg-blue-500 text-white h-10 w-10 flex items-center justify-center rounded-lg">
+                           <ShieldCheck className="h-6 w-6"/>
                         </div>
-                        <p className="flex-1 font-medium text-green-800 dark:text-green-200">
-                           Associe o calendário para sugestões personalizadas
+                        <p className="flex-1 font-medium text-blue-800 dark:text-blue-200">
+                           Lembre-se de usar sempre o cinto de segurança.
                         </p>
                     </CardContent>
                 </Card>
@@ -549,3 +549,5 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
+
+    

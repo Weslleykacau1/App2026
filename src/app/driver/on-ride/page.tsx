@@ -122,10 +122,10 @@ function OnRidePage() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
   
-  const handleOpenWhatsApp = () => {
+  const handleCallPassenger = () => {
     if (!rideData || !rideData.passenger.phone) return;
     const passengerPhone = rideData.passenger.phone;
-    window.open(`https://wa.me/${passengerPhone}`, '_blank');
+    window.open(`tel:${passengerPhone}`, '_blank');
   };
   
   const handleOpenChat = () => {
@@ -247,8 +247,8 @@ function OnRidePage() {
               <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleOpenChat}>
                 <MessageCircle />
               </Button>
-               <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleOpenWhatsApp}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path><path d="M14.05 2.9A15.9 15.9 0 0 1 21.1 10m-7.05.05a11.3 11.3 0 0 1 7.05 7.05"></path></svg>
+               <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleCallPassenger}>
+                <Phone />
               </Button>
             </div>
           </CardContent>

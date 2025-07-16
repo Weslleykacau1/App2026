@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell, TestTube2, X } from "lucide-react";
+import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell, TestTube2, X, Filter } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getItem, setItem } from '@/lib/storage';
@@ -16,7 +16,11 @@ import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { BottomNavBar } from '@/components/bottom-nav-bar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 
+type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
 
 const surgeZones = [
   { lat: -3.742, lng: -38.512, price: 14 }, // Aldeota
@@ -28,6 +32,7 @@ const surgeZones = [
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const DRIVER_ONLINE_STATUS_KEY = 'driver_online_status';
 const NOTIFICATION_SOUND_URL = "https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3";
+const PAYMENT_PREFERENCES_KEY = 'driver_payment_preferences';
 
 
 function DriverDashboard() {
@@ -50,9 +55,19 @@ function DriverDashboard() {
   const [pendingRidesCount, setPendingRidesCount] = useState(0);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const isInitialLoad = useRef(true);
+  const [paymentPreferences, setPaymentPreferences] = useState<Record<PaymentMethod, boolean>>({
+    'Máquina de Cartão': true,
+    'PIX': true,
+    'Dinheiro': true,
+  });
 
+  useEffect(() => {
+    // Load payment preferences
+    const savedPreferences = getItem<Record<PaymentMethod, boolean>>(PAYMENT_PREFERENCES_KEY);
+    if (savedPreferences) {
+        setPaymentPreferences(savedPreferences);
+    }
 
-   useEffect(() => {
      // Get initial location
      navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -196,6 +211,13 @@ function DriverDashboard() {
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
+  
+  const handlePaymentPreferenceChange = (method: PaymentMethod, checked: boolean) => {
+      const newPreferences = { ...paymentPreferences, [method]: checked };
+      setPaymentPreferences(newPreferences);
+      setItem(PAYMENT_PREFERENCES_KEY, newPreferences);
+  };
+
 
   if (!mapboxToken) {
     return (
@@ -236,7 +258,7 @@ function DriverDashboard() {
                 {surgeZones.map((zone, index) => (
                      <Marker key={index} longitude={zone.lng} latitude={zone.lat} anchor="center">
                           <div className="bg-destructive/80 text-white font-bold text-sm px-3 py-1.5 rounded-full shadow-lg border-2 border-background">
-                              ${zone.price}
+                              R${zone.price}
                           </div>
                      </Marker>
                 ))}
@@ -280,9 +302,35 @@ function DriverDashboard() {
                     >
                         <LocateFixed className="h-6 w-6" />
                     </Button>
-                     <Button onClick={handleTestRide} variant="secondary" size="icon" className="h-12 w-12 rounded-full shadow-lg">
-                        <TestTube2 className="h-6 w-6" />
-                    </Button>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="default" size="icon" className="h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90">
+                                <Filter className="h-6 w-6" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64" align="end">
+                            <div className="space-y-4">
+                               <div className="space-y-1">
+                                    <h4 className="font-medium leading-none">Métodos de Pagamento</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        Escolha os tipos de corrida que deseja receber.
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    {(Object.keys(paymentPreferences) as PaymentMethod[]).map((method) => (
+                                        <div key={method} className="flex items-center space-x-2">
+                                            <Checkbox 
+                                                id={method} 
+                                                checked={paymentPreferences[method]}
+                                                onCheckedChange={(checked) => handlePaymentPreferenceChange(method, !!checked)}
+                                            />
+                                            <Label htmlFor={method} className="cursor-pointer">{method}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                     </Popover>
                </div>
             </header>
 
@@ -296,7 +344,7 @@ function DriverDashboard() {
                                Online
                             </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="rounded-xl">
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Ficar offline?</AlertDialogTitle>
                                 <AlertDialogDescription>
@@ -331,7 +379,7 @@ function DriverDashboard() {
                             <Shield className="h-7 w-7" />
                         </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="rounded-xl">
                         <AlertDialogHeader>
                             <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
                             <AlertDialogDescription>
@@ -346,13 +394,13 @@ function DriverDashboard() {
                         </AlertDialogCancel>
                         <div className="grid grid-cols-1 gap-4 py-4">
                             <a href="tel:190" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg">
+                                <Button variant="destructive" className="w-full h-12 text-lg rounded-lg">
                                     <Phone className="mr-2 h-5 w-5" />
                                     Ligar para a Polícia (190)
                                 </Button>
                             </a>
                                 <a href="tel:192" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg">
+                                <Button variant="destructive" className="w-full h-12 text-lg rounded-lg">
                                     <Phone className="mr-2 h-5 w-5" />
                                     Ligar para o SAMU (192)
                                 </Button>

@@ -18,7 +18,7 @@ interface SavedLocation {
     address: string;
 }
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -252,3 +252,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    

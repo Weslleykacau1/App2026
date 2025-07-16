@@ -332,9 +332,9 @@ function RequestRidePage() {
   };
     
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
-        "Máquina de Cartão": <CreditCard className="h-5 w-5"/>,
-        "PIX": <Landmark className="h-5 w-5"/>,
-        "Dinheiro": <Wallet className="h-5 w-5"/>
+        "Máquina de Cartão": <CreditCard className="h-5 w-5 text-muted-foreground"/>,
+        "PIX": <Landmark className="h-5 w-5 text-muted-foreground"/>,
+        "Dinheiro": <Wallet className="h-5 w-5 text-muted-foreground"/>
     }
 
     const handleConfirmRequest = async () => {
@@ -560,11 +560,11 @@ function RequestRidePage() {
                    <div className="space-y-2 px-1">
                         <div className="flex gap-2">
                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
-                                <Home className="h-5 w-5 mr-2"/>
+                                <Home className="h-5 w-5 mr-2 text-primary"/>
                                 Casa
                             </Button>
-                                <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
-                                <Briefcase className="h-5 w-5 mr-2"/>
+                            <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
+                                <Briefcase className="h-5 w-5 mr-2 text-primary"/>
                                 Trabalho
                             </Button>
                         </div>

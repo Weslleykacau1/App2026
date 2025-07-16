@@ -13,6 +13,7 @@ export const translations = {
     },
     profile: {
       title: "Perfil",
+      logout_btn: "Terminar Sessão",
       change_photo: "Alterar Foto",
       your_photo_alt: "Sua foto",
       camera_unavailable_title: "Câmera Indisponível",
@@ -29,11 +30,22 @@ export const translations = {
           phone: "Whatsapp",
           cpf: "CPF"
       },
-      tabs: {
-          profile: "Perfil",
-          vehicle: "Veículo",
-          documents: "Documentos",
-          history: "Histórico"
+      address: {
+        saved_locations: "Locais salvos",
+        home: "Casa",
+        work: "Trabalho",
+        add_home: "Insira a morada de casa",
+        add_work: "Insira a morada do trabalho",
+        add_new: "Adicionar um local",
+        edit_home_title: "Editar endereço de Casa",
+        edit_work_title: "Editar endereço de Trabalho",
+        add_new_title: "Adicionar novo local",
+        edit_saved_title: "Editar local salvo",
+        location_name: "Nome do Local",
+        location_name_placeholder: "Ex: Academia, Casa da mãe",
+        full_address: "Endereço Completo",
+        full_address_placeholder: "Ex: Av. Paulista, 1000, São Paulo",
+        save_address_btn: "Salvar Endereço"
       },
       vehicle: {
           title: "Gerenciamento de Veículo",
@@ -62,18 +74,21 @@ export const translations = {
       history: {
           title: "Histórico de Corridas",
           description: "Veja os detalhes de suas viagens anteriores.",
-          from: "De",
-          to: "Para",
+          from: "De:",
+          to: "Para:",
           status: {
               concluída: "Concluída",
               cancelada: "Cancelada"
           },
           request_again_btn: "Solicitar Novamente",
-          no_rides: "Nenhuma corrida no seu histórico ainda."
+          no_rides: "Suas viagens aparecerão aqui.",
+          load_error_desc: "Não foi possível carregar o histórico."
       },
       settings: {
+          title: "Configurações",
           dark_mode: "Modo Escuro",
           dark_mode_desc: "Alterne entre o tema claro e escuro",
+          notifications: "Notificações",
           notification_sounds: "Sons de notificação de novos pedidos de viagem",
           notification_sounds_desc: "Receba notificações de novas viagens na lista de solicitações",
           location: "Compartilhar Localização",
@@ -104,7 +119,11 @@ export const translations = {
         photo_saved_desc: "Sua foto de perfil foi atualizada.",
         photo_save_error_desc: "Não foi possível salvar sua foto.",
         reride_cancelled_title: "Não é possível repetir",
-        reride_cancelled_desc: "Esta corrida foi cancelada."
+        reride_cancelled_desc: "Esta corrida foi cancelada.",
+        address_saved_title: "Endereço salvo!",
+        address_save_error_desc: "Não foi possível salvar o endereço.",
+        location_removed_title: "Local removido!",
+        location_remove_error_desc: "Não foi possível remover o local."
     }
   },
   en: {
@@ -120,6 +139,7 @@ export const translations = {
     },
     profile: {
       title: "Profile",
+      logout_btn: "Log Out",
       change_photo: "Change Photo",
       your_photo_alt: "Your photo",
       camera_unavailable_title: "Camera Unavailable",
@@ -136,11 +156,22 @@ export const translations = {
           phone: "Whatsapp",
           cpf: "ID Number (CPF)"
       },
-      tabs: {
-          profile: "Profile",
-          vehicle: "Vehicle",
-          documents: "Documents",
-          history: "History"
+      address: {
+        saved_locations: "Saved Locations",
+        home: "Home",
+        work: "Work",
+        add_home: "Add home address",
+        add_work: "Add work address",
+        add_new: "Add a new place",
+        edit_home_title: "Edit home address",
+        edit_work_title: "Edit work address",
+        add_new_title: "Add new place",
+        edit_saved_title: "Edit saved place",
+        location_name: "Location Name",
+        location_name_placeholder: "E.g. Gym, Mom's house",
+        full_address: "Full Address",
+        full_address_placeholder: "E.g. 123 Main St, New York, NY",
+        save_address_btn: "Save Address"
       },
       vehicle: {
           title: "Vehicle Management",
@@ -169,18 +200,21 @@ export const translations = {
       history: {
           title: "Ride History",
           description: "See the details of your past trips.",
-          from: "From",
-          to: "To",
+          from: "From:",
+          to: "To:",
           status: {
               concluída: "Completed",
               cancelada: "Canceled"
           },
           request_again_btn: "Request Again",
-          no_rides: "No rides in your history yet."
+          no_rides: "Your trips will appear here.",
+          load_error_desc: "Could not load ride history."
       },
       settings: {
+          title: "Settings",
           dark_mode: "Dark Mode",
           dark_mode_desc: "Switch between light and dark theme",
+          notifications: "Notifications",
           notification_sounds: "Notification sounds for new ride requests",
           notification_sounds_desc: "Receive notifications for new trips in the requests list",
           location: "Share Location",
@@ -211,7 +245,11 @@ export const translations = {
         photo_saved_desc: "Your profile picture has been updated.",
         photo_save_error_desc: "Could not save your photo.",
         reride_cancelled_title: "Cannot re-ride",
-        reride_cancelled_desc: "This ride was cancelled."
+        reride_cancelled_desc: "This ride was cancelled.",
+        address_saved_title: "Address saved!",
+        address_save_error_desc: "Could not save the address.",
+        location_removed_title: "Location removed!",
+        location_remove_error_desc: "Could not remove location."
     }
   },
 };
@@ -232,5 +270,7 @@ type DotNestedKeys<T> = (T extends object ?
 
 
 export type TranslationKey = DotNestedKeys<typeof translations.pt>;
+
+    
 
     

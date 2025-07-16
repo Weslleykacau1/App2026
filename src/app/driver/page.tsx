@@ -197,6 +197,8 @@ function DriverDashboard() {
                 onMove={evt => setViewState(evt.viewState)}
                 style={{width: '100%', height: '100%'}}
                 mapStyle={mapStyle}
+                // The bottom padding is to ensure map controls like attribution don't get hidden by our custom UI
+                padding={{ bottom: 200 }} 
             >
                 <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
                 {userLocation && (
@@ -249,52 +251,52 @@ function DriverDashboard() {
                   )}
               </Button>
             </header>
-
-            <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between pointer-events-none">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
-                            <Shield className="h-7 w-7" />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="grid grid-cols-1 gap-4 py-4">
-                            <a href="tel:190" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg">
-                                    <Phone className="mr-2 h-5 w-5" />
-                                    Ligar para a Polícia (190)
-                                </Button>
-                            </a>
-                                <a href="tel:192" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg">
-                                    <Phone className="mr-2 h-5 w-5" />
-                                    Ligar para o SAMU (192)
-                                </Button>
-                            </a>
-                        </div>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-                <Button
-                      variant="default"
-                      size="icon"
-                      className="h-14 w-14 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
-                      onClick={handleLocateUser}
-                  >
-                      <LocateFixed className="h-6 w-6" />
-                </Button>
-            </div>
           </div>
           
-          <div className="z-10 bg-background/80 backdrop-blur-sm p-4 border-t border-border">
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm p-4 pt-2 border-t border-border pb-[calc(4rem+env(safe-area-inset-bottom))]">
+             <div className="flex justify-between items-center mb-4">
+                  <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
+                              <Shield className="h-7 w-7" />
+                          </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>Contato de Emergência</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                  Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <div className="grid grid-cols-1 gap-4 py-4">
+                              <a href="tel:190" className="w-full">
+                                  <Button variant="destructive" className="w-full h-12 text-lg">
+                                      <Phone className="mr-2 h-5 w-5" />
+                                      Ligar para a Polícia (190)
+                                  </Button>
+                              </a>
+                                  <a href="tel:192" className="w-full">
+                                  <Button variant="destructive" className="w-full h-12 text-lg">
+                                      <Phone className="mr-2 h-5 w-5" />
+                                      Ligar para o SAMU (192)
+                                  </Button>
+                              </a>
+                          </div>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          </AlertDialogFooter>
+                      </AlertDialogContent>
+                  </AlertDialog>
+                  <Button
+                        variant="default"
+                        size="icon"
+                        className="h-14 w-14 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
+                        onClick={handleLocateUser}
+                    >
+                        <LocateFixed className="h-6 w-6" />
+                  </Button>
+              </div>
+
               <div className="flex justify-center items-center gap-4">
                   <Button onClick={handleTestRide} variant="secondary" className="h-16 rounded-full px-8 text-lg font-bold transition-colors duration-300 shadow-2xl">
                       Corrida Teste

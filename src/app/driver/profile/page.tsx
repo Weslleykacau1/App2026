@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 
-type ModalType = 'settings' | 'privacy' | 'upload-photo' | null;
+type ModalType = 'upload-photo' | null;
 
 
 function DriverProfilePage() {
@@ -246,22 +246,6 @@ function DriverProfilePage() {
         }
     }
     
-    const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
-        <>
-            <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={onClick}>
-                <div className="flex items-center gap-4">
-                    {icon}
-                    <div className="text-left">
-                        <p className="font-semibold">{text}</p>
-                        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
-                    </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <Separator />
-        </>
-    );
-
     if (!user || isLoading) {
          return <div className="flex h-screen w-full items-center justify-center">{t('common.loading')}</div>;
     }
@@ -272,79 +256,6 @@ function DriverProfilePage() {
     
     const ModalContent = () => {
         switch(openModal) {
-            case 'settings':
-                 return (
-                    <DialogContent>
-                        <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings className="h-5 w-5"/> Configurações</DialogTitle></DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="flex items-start justify-between gap-4">
-                                <Moon className="h-6 w-6 text-muted-foreground mt-1" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.dark_mode')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
-                                </div>
-                                <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />
-                            </div>
-                            <Separator />
-                            <div className="flex items-start justify-between gap-4">
-                                <Bell className="h-6 w-6 text-muted-foreground mt-1" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
-                                </div>
-                                <Switch defaultChecked />
-                            </div>
-                             <Separator />
-                            <div className="flex items-start justify-between gap-4">
-                                <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.location')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.location_desc')}</p>
-                                </div>
-                                <Switch defaultChecked />
-                            </div>
-                            <Separator />
-                            <div className="flex items-center justify-between gap-4">
-                                <Globe className="h-6 w-6 text-muted-foreground" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.language')}</p>
-                                </div>
-                                <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
-                                    <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="pt">Português</SelectItem>
-                                        <SelectItem value="en">English</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </DialogContent>
-                );
-             case 'privacy':
-                return (
-                     <DialogContent>
-                        <DialogHeader><DialogTitle>{t('profile.settings.privacy_title')}</DialogTitle></DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="flex items-start justify-between gap-4">
-                                <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.privacy_share_data')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
-                                </div>
-                                <Switch defaultChecked />
-                            </div>
-                            <Separator />
-                            <div className="flex items-start justify-between gap-4">
-                                <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
-                                <div className="flex-1">
-                                    <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
-                                    <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
-                                </div>
-                                <Switch />
-                            </div>
-                        </div>
-                    </DialogContent>
-                );
              case 'upload-photo':
                 return (
                     <DialogContent>
@@ -521,14 +432,85 @@ function DriverProfilePage() {
                 </Card>
                 
                  <Card className="mt-6">
-                    <CardContent className="p-2">
-                         {renderMenuItem(<Settings className="h-5 w-5 text-muted-foreground"/>, "Configurações", () => setOpenModal('settings'))}
-                         {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, t('profile.settings.privacy_title'), () => setOpenModal('privacy'))}
-                     </CardContent>
+                    <CardHeader>
+                        <CardTitle>Configurações</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                            <Moon className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.dark_mode')}</p>
+                                <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
+                            </div>
+                            <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />
+                        </div>
+                        <Separator />
+                        <div className="flex items-start justify-between gap-4">
+                            <Bell className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.notification_sounds')}</p>
+                                <p className="text-sm text-muted-foreground">{t('profile.settings.notification_sounds_desc')}</p>
+                            </div>
+                            <Switch defaultChecked />
+                        </div>
+                            <Separator />
+                        <div className="flex items-start justify-between gap-4">
+                            <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.location')}</p>
+                                <p className="text-sm text-muted-foreground">{t('profile.settings.location_desc')}</p>
+                            </div>
+                            <Switch defaultChecked />
+                        </div>
+                        <Separator />
+                        <div className="flex items-center justify-between gap-4">
+                            <Globe className="h-6 w-6 text-muted-foreground" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.language')}</p>
+                            </div>
+                            <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
+                                <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pt">Português</SelectItem>
+                                    <SelectItem value="en">English</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="mt-6">
+                     <CardHeader>
+                        <CardTitle>{t('profile.settings.privacy_title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                            <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.privacy_share_data')}</p>
+                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
+                            </div>
+                            <Switch defaultChecked />
+                        </div>
+                        <Separator />
+                        <div className="flex items-start justify-between gap-4">
+                            <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                                <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
+                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
+                            </div>
+                            <Switch />
+                        </div>
+                    </CardContent>
                 </Card>
                 
                 <div className="mt-8">
-                     {renderMenuItem(<LogOut className="h-5 w-5 text-destructive" />, "Terminar Sessão", logout)}
+                     <Button variant="ghost" className="w-full h-auto justify-center items-center py-4 px-2 text-destructive hover:text-destructive" onClick={logout}>
+                        <div className="flex items-center gap-4">
+                           <LogOut className="h-5 w-5" />
+                           <p className="font-semibold">Terminar Sessão</p>
+                        </div>
+                    </Button>
                 </div>
             </main>
             

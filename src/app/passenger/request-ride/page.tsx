@@ -52,7 +52,21 @@ interface Suggestion {
 
 const RIDE_REQUEST_KEY = 'passenger_current_ride';
 const RERIDE_REQUEST_KEY = 'reride_request';
-const ADMIN_FARES_KEY = 'admin_fares_data';
+
+const fareConfig = {
+    executive: {
+        baseFare: 2.50,
+        costPerMinute: 0.30,
+        costPerKm: 1.20,
+        bookingFee: 2.00,
+    },
+    comfort: {
+        baseFare: 3.50,
+        costPerMinute: 0.45,
+        costPerKm: 1.50,
+        bookingFee: 2.00,
+    }
+}
 
 
 function RequestRidePage() {
@@ -64,9 +78,7 @@ function RequestRidePage() {
   
   const [pickupInput, setPickupInput] = useState("Procurando você no mapa...");
   const [destinationInput, setDestinationInput] = useState("");
-  const [tripDistance, setTripDistance] = useState(0);
-  const [farePerKm, setFarePerKm] = useState(0);
-
+  
   const [pickupSuggestions, setPickupSuggestions] = useState<Suggestion[]>([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState<Suggestion[]>([]);
   
@@ -299,15 +311,16 @@ function RequestRidePage() {
             setRoute(routeGeom);
             
             const distanceInKm = currentRoute.distance / 1000;
-            setTripDistance(distanceInKm);
+            const timeInMinutes = currentRoute.duration / 60;
+            
+            const categoryFares = fareConfig[rideCategory];
 
-            const adminFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY) || { comfort: '1.80', executive: '2.20' };
-            const ratePerKm = rideCategory === 'comfort' ? parseFloat(adminFares.comfort) : parseFloat(adminFares.executive);
-            setFarePerKm(ratePerKm);
-            
-            const baseFare = distanceInKm * ratePerKm;
-            
-            setFare(baseFare);
+            const totalFare = categoryFares.baseFare 
+                              + (categoryFares.costPerMinute * timeInMinutes)
+                              + (categoryFares.costPerKm * distanceInKm)
+                              + categoryFares.bookingFee;
+
+            setFare(totalFare);
             
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
@@ -347,8 +360,6 @@ function RequestRidePage() {
         
         setIsRequesting(true);
 
-        const finalFare = fare;
-
         try {
              const rideDocRef = await addDoc(collection(db, "rides"), {
                 passengerId: user.id,
@@ -364,7 +375,7 @@ function RequestRidePage() {
                     lat: selectedDestination.center[1],
                     lng: selectedDestination.center[0]
                 },
-                fare: finalFare,
+                fare: fare,
                 category: rideCategory,
                 paymentMethod: paymentMethod,
                 status: "pending",
@@ -687,3 +698,6 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
+
+
+    

@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff } from "lucide-react";
+import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { getItem, setItem } from '@/lib/storage';
 
 const surgeZones = [
@@ -269,52 +267,24 @@ function DriverDashboard() {
                   </AlertDialog>
               </div>
 
-              <div className="flex justify-between items-center bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-sm">
-                  <div className="flex items-center gap-1">
-                     <Button variant="ghost" className="rounded-full px-4" onClick={handleTestRide}>
-                        Corrida Teste
-                      </Button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                        <Switch
-                            id="online-status"
-                            checked={isOnline}
-                            onCheckedChange={setIsOnline}
-                            className="h-12 w-24 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-muted"
-                        >
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={cn("h-6 w-6 transition-colors", isOnline ? "text-white" : "text-muted-foreground")}
-                            >
-                                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 2 12Z" stroke="currentColor" strokeWidth="2"/>
-                                <path d="M12 2V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                <path d="M12 19V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                <path d="M5 12H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                <path d="M22 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            </svg>
-                        </Switch>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                      <Button 
-                        onClick={() => router.push('/driver/statistics')}
-                        variant="ghost" 
-                        size="icon" 
-                        className="rounded-full h-12 w-12"
-                      >
-                          <BarChart2 className="h-6 w-6"/>
-                      </Button>
-                  </div>
-              </div>
+               <div className="flex justify-center items-center">
+                    <Button
+                        onClick={() => setIsOnline(!isOnline)}
+                        className={cn(
+                            "h-14 rounded-full px-8 text-lg font-bold text-white transition-colors duration-300 flex items-center gap-3",
+                            isOnline ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
+                        )}
+                    >
+                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 2 12Z" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                        {isOnline ? "Ficar Offline" : "Ficar Online"}
+                    </Button>
+               </div>
           </div>
       </div>
   );
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

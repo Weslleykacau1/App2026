@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield, ListVideo } from "lucide-react";
+import { Users, Car, DollarSign, ShieldCheck, MoreHorizontal, FileCheck2, AlertCircle, X, Check, FileText, Settings, Save, UserPlus, Moon, ThumbsUp, ThumbsDown, Trash2, UserX, Edit, User as UserIcon, Shield, ListVideo, Zap } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -30,7 +30,7 @@ import { getItem, setItem } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { RideRequestsDrawer } from "@/components/ride-requests-drawer";
 import { Separator } from "@/components/ui/separator";
@@ -116,6 +116,7 @@ function AdminDashboard() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [isEndRidesDialogOpen, setIsEndRidesDialogOpen] = useState(false);
   const [fares, setFares] = useState({ comfort: "1.80", executive: "2.20" });
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -395,6 +396,37 @@ function AdminDashboard() {
     }
   };
 
+  const handleEndAllRides = async () => {
+      try {
+        const ridesRef = collection(db, 'rides');
+        const q = query(ridesRef, where('status', 'in', ['pending', 'accepted', 'arrived']));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            toast({ title: 'Nenhuma corrida ativa', description: 'Não há corridas para encerrar.' });
+            setIsEndRidesDialogOpen(false);
+            return;
+        }
+
+        const batch = writeBatch(db);
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { status: 'cancelled' });
+        });
+
+        await batch.commit();
+
+        toast({
+            title: 'Sucesso!',
+            description: `${querySnapshot.size} corridas ativas foram encerradas.`,
+        });
+      } catch (error) {
+        console.error('Error ending all rides:', error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível encerrar as corridas.' });
+      } finally {
+        setIsEndRidesDialogOpen(false);
+      }
+  };
+
 
   const mapStyle = resolvedTheme === 'dark' 
     ? 'mapbox://styles/mapbox/dark-v11' 
@@ -481,6 +513,21 @@ function AdminDashboard() {
                         <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full sm:w-auto">
+                                    <Zap className="mr-2 h-4 w-4"/>
+                                    Ações do Sistema
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                 <DropdownMenuItem onClick={() => setIsEndRidesDialogOpen(true)}>
+                                    <X className="mr-2 h-4 w-4" />
+                                    Encerrar Corridas Ativas
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                          <Button variant="outline" onClick={() => setIsDrawerOpen(true)} className="w-full sm:w-auto">
                             <ListVideo className="mr-2 h-4 w-4" />
                             Corridas em Tempo Real
@@ -1073,6 +1120,24 @@ function AdminDashboard() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        
+        <AlertDialog open={isEndRidesDialogOpen} onOpenChange={setIsEndRidesDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Encerrar todas as corridas ativas?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Esta ação definirá o status de todas as corridas 'pending', 'accepted' ou 'arrived' para 'cancelled'. Isso é útil para fins de teste.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleEndAllRides} className="bg-destructive hover:bg-destructive/90">
+                        Sim, encerrar corridas
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <RideRequestsDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
       </TooltipProvider>
     </AppLayout>

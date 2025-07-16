@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const fetchUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> => {
+    if (!firebaseUser?.uid) return null;
     const docRef = doc(db, "profiles", firebaseUser.uid);
     const docSnap = await getDoc(docRef);
 

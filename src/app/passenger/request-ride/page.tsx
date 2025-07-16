@@ -657,9 +657,9 @@ function RequestRidePage() {
                         <RideCategoryCard type="comfort" name="Comfort" seats={4} description="4 lugares, porta-malas maior" icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
                         <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                     </div>
-                     <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-4 gap-2 px-1">
+                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="flex flex-col gap-2 px-1">
                         <Label htmlFor="Cartão" className={cn(
-                            "col-span-2 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                            "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
                             paymentMethod === 'Cartão' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
                         )}>
                             <RadioGroupItem value="Cartão" id="Cartão" className="sr-only" />
@@ -668,26 +668,28 @@ function RequestRidePage() {
                                 <span className="font-semibold">Cartão</span>
                             </div>
                         </Label>
-                        <Label htmlFor="PIX" className={cn(
-                             "col-span-1 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
-                             paymentMethod === 'PIX' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
-                        )}>
-                             <RadioGroupItem value="PIX" id="PIX" className="sr-only" />
-                             <div className="flex items-center gap-2">
-                                 {paymentIcons['PIX']}
-                                <span className="font-semibold">PIX</span>
-                             </div>
-                        </Label>
-                         <Label htmlFor="Dinheiro" className={cn(
-                             "col-span-1 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
-                             paymentMethod === 'Dinheiro' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
-                        )}>
-                             <RadioGroupItem value="Dinheiro" id="Dinheiro" className="sr-only" />
-                             <div className="flex items-center gap-2">
-                                 {paymentIcons['Dinheiro']}
-                                <span className="font-semibold">Dinheiro</span>
-                             </div>
-                        </Label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Label htmlFor="PIX" className={cn(
+                                "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                paymentMethod === 'PIX' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                            )}>
+                                <RadioGroupItem value="PIX" id="PIX" className="sr-only" />
+                                <div className="flex items-center gap-2">
+                                    {paymentIcons['PIX']}
+                                    <span className="font-semibold">PIX</span>
+                                </div>
+                            </Label>
+                            <Label htmlFor="Dinheiro" className={cn(
+                                "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                paymentMethod === 'Dinheiro' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                            )}>
+                                <RadioGroupItem value="Dinheiro" id="Dinheiro" className="sr-only" />
+                                <div className="flex items-center gap-2">
+                                    {paymentIcons['Dinheiro']}
+                                    <span className="font-semibold">Dinheiro</span>
+                                </div>
+                            </Label>
+                        </div>
                     </RadioGroup>
                     
                     <div className="flex items-center gap-2 px-1">
@@ -724,3 +726,4 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
+

@@ -575,6 +575,16 @@ function RequestRidePage() {
                     </RadioGroup>
                    
                    <div className="space-y-2 px-1">
+                        <div className="flex gap-2">
+                            <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
+                                <Home className="h-5 w-5 mr-2"/>
+                                Casa
+                            </Button>
+                                <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
+                                <Briefcase className="h-5 w-5 mr-2"/>
+                                Trabalho
+                            </Button>
+                        </div>
                         <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
                             <PopoverAnchor asChild>
                                 <div className="relative flex items-center">
@@ -621,18 +631,6 @@ function RequestRidePage() {
                             </PopoverContent>
                         </Popover>
 
-                        <div className="flex gap-2">
-                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
-                                <Home className="h-5 w-5 mr-2"/>
-                                Casa
-                            </Button>
-                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
-                                <Briefcase className="h-5 w-5 mr-2"/>
-                                Trabalho
-                            </Button>
-                        </div>
-
-
                         {fare > 0 && (
                             <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
                                 <div className="flex justify-between items-center">
@@ -653,14 +651,6 @@ function RequestRidePage() {
                       <Button className="w-full h-12 text-base font-bold" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
                         {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Solicitar Corrida
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-12 w-12 flex-shrink-0 bg-muted border-none"
-                        onClick={() => router.push('/passenger/profile')}
-                       >
-                          <Settings2 />
                       </Button>
                   </div>
 

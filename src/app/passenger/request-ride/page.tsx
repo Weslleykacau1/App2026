@@ -101,6 +101,9 @@ function RequestRidePage() {
         const rideData = docSnap.data();
         if (rideData) {
             setRideStatus(rideData.status);
+            if (rideData.status === 'arrived') {
+                toast({ title: "Seu motorista chegou!", description: "Estamos prontos para partir." });
+            }
         }
         if (rideData && rideData.status === 'accepted' && !foundDriver) {
            const driverInfo: FoundDriver = {
@@ -116,8 +119,6 @@ function RequestRidePage() {
           setFoundDriver(driverInfo);
           setItem(RIDE_REQUEST_KEY, { rideId: currentRideId, driver: driverInfo });
           toast({ title: "Motorista encontrado!", description: `${driverInfo.name} está a caminho.` });
-        } else if (rideData && rideData.status === 'arrived') {
-            toast({ title: "Seu motorista chegou!", description: "Estamos prontos para partir." });
         }
         else if (rideData && rideData.status === 'finished') {
           // Ride finished, navigate to rating page
@@ -561,16 +562,49 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                    <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
-                        <CarouselContent className="-ml-2">
-                            <CarouselItem className="pl-2 basis-1/2">
-                                <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
-                            </CarouselItem>
-                            <CarouselItem className="pl-2 basis-1/2">
-                                <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
-                            </CarouselItem>
-                        </CarouselContent>
-                    </Carousel>
+                   <div className="flex items-center gap-2">
+                        <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
+                            <CarouselContent className="-ml-2">
+                                <CarouselItem className="pl-2 basis-1/2">
+                                    <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
+                                </CarouselItem>
+                                <CarouselItem className="pl-2 basis-1/2">
+                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                                </CarouselItem>
+                            </CarouselContent>
+                        </Carousel>
+                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="h-full flex-1 w-auto min-w-[140px] justify-between text-left p-2">
+                                    <div className="flex items-center gap-2">
+                                        {paymentIcons[paymentMethod]}
+                                        <p className="font-semibold text-xs">{paymentMethod}</p>
+                                    </div>
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground"/>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                                <div className="space-y-1">
+                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Máquina de Cartão")}>
+                                        <CreditCard className="h-6 w-6 text-primary"/>
+                                        <div>
+                                            <p className="font-semibold">Máquina de Cartão</p>
+                                            <p className="text-xs text-muted-foreground text-left">Pagar ao motorista</p>
+                                        </div>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>
+                                        <Landmark className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">PIX</p>
+                                    </Button>
+                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Dinheiro")}>
+                                        <Wallet className="h-6 w-6 text-primary"/>
+                                        <p className="font-semibold">Dinheiro</p>
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                   </div>
+
                    
                    <div className="space-y-2 px-1">
                         <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
@@ -630,37 +664,6 @@ function RequestRidePage() {
                             </Button>
                         </div>
 
-
-                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full h-11 justify-between">
-                                    <div className="flex items-center gap-3">
-                                        {paymentIcons[paymentMethod]}
-                                        <p className="font-semibold">{paymentMethod}</p>
-                                    </div>
-                                    <ChevronDown className="h-5 w-5 text-muted-foreground"/>
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
-                                <div className="space-y-1">
-                                    <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Máquina de Cartão")}>
-                                        <CreditCard className="h-6 w-6 text-primary"/>
-                                        <div>
-                                            <p className="font-semibold">Máquina de Cartão</p>
-                                            <p className="text-xs text-muted-foreground text-left">Pagar ao motorista</p>
-                                        </div>
-                                    </Button>
-                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("PIX")}>
-                                        <Landmark className="h-6 w-6 text-primary"/>
-                                        <p className="font-semibold">PIX</p>
-                                    </Button>
-                                     <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto" onClick={() => handleSelectPayment("Dinheiro")}>
-                                        <Wallet className="h-6 w-6 text-primary"/>
-                                        <p className="font-semibold">Dinheiro</p>
-                                    </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
 
                         {fareOffer > 0 && (
                             <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">

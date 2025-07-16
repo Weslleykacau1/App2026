@@ -561,19 +561,17 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                   <div className="px-1">
+                   <div className="px-1 space-y-2">
                         <Carousel opts={{ align: "start", slidesToScroll: 'auto' }} className="w-full">
                             <CarouselContent className="-ml-2">
                                 <CarouselItem className="pl-2 basis-1/2">
-                                     <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src="https://placehold.co/100x60.png" data-ai-hint="car modern" alt="Viagem Car" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
+                                     <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Image src="https://placehold.co/50x30.png" data-ai-hint="car modern" alt="Viagem Car" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
                                 </CarouselItem>
                                 <CarouselItem className="pl-2 basis-1/2">
-                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="https://placehold.co/100x60.png" alt="Executive Car" data-ai-hint="car luxury" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="https://placehold.co/50x30.png" alt="Executive Car" data-ai-hint="car luxury" width={50} height={30} className="w-full h-auto object-contain rounded-md" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                                 </CarouselItem>
                             </CarouselContent>
                         </Carousel>
-                   </div>
-                   <div className="px-1">
                         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="h-11 w-full justify-between">

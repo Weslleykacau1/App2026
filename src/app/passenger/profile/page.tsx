@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -62,8 +62,9 @@ const rideHistory = [
 type ModalType = 'personal-data' | 'security' | 'login-security' | 'saved-locations' | 'language' | 'communication' | 'upload-photo' | 'history' | 'documents' | null;
 type AddressType = 'home' | 'work';
 
-function ProfilePage() {
+function ProfilePageContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user, logout, fetchUserProfile } = useAuth();
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
@@ -267,22 +268,13 @@ function ProfilePage() {
         }
     };
 
-    const handleOpenModal = (modal: ModalType) => {
-        if (modal === 'history' && router.pathname !== '/passenger/profile') {
-            router.push('/passenger/profile?showHistory=true');
-        } else {
-            setOpenModal(modal);
-        }
-    };
-
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('showHistory') === 'true') {
+        if (searchParams.get('showHistory') === 'true') {
             setOpenModal('history');
-            // Clean up URL
-            router.replace('/passenger/profile', undefined);
+            // Clean up URL by removing the query parameter
+            router.replace('/passenger/profile', { scroll: false });
         }
-    }, [router]);
+    }, [searchParams, router]);
 
     const renderMenuItem = (icon: React.ReactNode, text: string, onClick: () => void, subtext?: string) => (
         <>
@@ -530,7 +522,7 @@ function ProfilePage() {
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
-                        <button onClick={() => handleOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
+                        <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
                             <Plus className="h-4 w-4" />
                         </button>
                     </div>
@@ -552,11 +544,11 @@ function ProfilePage() {
                 {/* Account Section */}
                 <Card className="mb-6">
                     <CardContent className="p-2">
-                        {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => handleOpenModal('personal-data'))}
-                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => handleOpenModal('history'))}
-                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => handleOpenModal('documents'))}
-                        {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => handleOpenModal('security'))}
-                        {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => handleOpenModal('login-security'))}
+                        {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => setOpenModal('personal-data'))}
+                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => setOpenModal('history'))}
+                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => setOpenModal('documents'))}
+                        {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => setOpenModal('security'))}
+                        {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => setOpenModal('login-security'))}
                     </CardContent>
                 </Card>
 
@@ -573,11 +565,16 @@ function ProfilePage() {
                 </Card>
                 
                 {/* Other Settings Section */}
-                 <Card>
+                 <Card className="mb-6">
                     <CardContent className="p-2">
                         {renderSettingsItem(<Moon className="h-5 w-5 text-muted-foreground"/>, "Modo escuro", <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />)}
-                        {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => handleOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
-                        {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => handleOpenModal('communication'))}
+                        {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => setOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
+                        {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => setOpenModal('communication'))}
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardContent className="p-2">
                         {renderMenuItem(<LogOut className="h-5 w-5 text-destructive"/>, "Terminar sessão", logout)}
                     </CardContent>
                 </Card>
@@ -591,4 +588,13 @@ function ProfilePage() {
     );
 }
 
-export default withAuth(ProfilePage, ["passenger"]);
+
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={<div>Carregando...</div>}>
+            <ProfilePageContent />
+        </Suspense>
+    )
+}
+
+    

@@ -3,8 +3,7 @@
 
 import { cn } from "@/lib/utils";
 import { Home, History, User } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useLanguage } from "@/context/language-context";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface BottomNavBarProps {
     role: "passenger" | "driver";
@@ -13,26 +12,33 @@ interface BottomNavBarProps {
 export function BottomNavBar({ role }: BottomNavBarProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     const menuItems = role === 'passenger' ? [
-        { href: '/passenger/request-ride', label: 'Início', icon: Home },
-        { href: '/passenger/profile?showHistory=true', label: 'Viagens', icon: History },
-        { href: '/passenger/profile', label: 'Conta', icon: User },
+        { href: '/passenger/request-ride', label: 'Início', icon: Home, id: 'home' },
+        { href: '/passenger/profile?showHistory=true', label: 'Viagens', icon: History, id: 'history' },
+        { href: '/passenger/profile', label: 'Conta', icon: User, id: 'account' },
     ] : [
-        { href: '/driver', label: 'Início', icon: Home },
-        { href: '/driver/statistics', label: 'Viagens', icon: History },
-        { href: '/driver/profile', label: 'Conta', icon: User },
+        { href: '/driver', label: 'Início', icon: Home, id: 'home' },
+        { href: '/driver/statistics', label: 'Viagens', icon: History, id: 'history' },
+        { href: '/driver/profile', label: 'Conta', icon: User, id: 'account' },
     ];
     
-    const isItemActive = (href: string) => {
-        // Special case for profile to not be active when history is shown
-        if (href === '/passenger/profile' && pathname === '/passenger/profile' && new URLSearchParams(window.location.search).has('showHistory')) {
-            return false;
+    const isItemActive = (item: typeof menuItems[0]) => {
+        const hasShowHistory = searchParams.has('showHistory');
+
+        if (item.id === 'history') {
+            return pathname === '/passenger/profile' && hasShowHistory;
         }
-        if (href.includes('?')) {
-            return pathname === href.split('?')[0] && new URLSearchParams(window.location.search).has('showHistory');
+
+        if (item.id === 'account') {
+             if (role === 'passenger') {
+                return pathname === '/passenger/profile' && !hasShowHistory;
+            }
+            return pathname === item.href;
         }
-        return pathname === href;
+
+        return pathname === item.href;
     };
 
 
@@ -41,7 +47,7 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
             <div className="container mx-auto flex h-16 max-w-md items-center justify-around px-2">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = isItemActive(item.href);
+                    const isActive = isItemActive(item);
                     return (
                          <button
                             key={item.href}
@@ -60,3 +66,5 @@ export function BottomNavBar({ role }: BottomNavBarProps) {
         </div>
     )
 }
+
+    

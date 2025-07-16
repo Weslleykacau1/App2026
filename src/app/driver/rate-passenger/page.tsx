@@ -117,3 +117,5 @@ function RatePassengerPage() {
 }
 
 export default withAuth(RatePassengerPage, ["driver"]);
+
+    

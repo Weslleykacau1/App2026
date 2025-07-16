@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MapGL, { Marker, Source, Layer, LngLatLike, MapRef } from 'react-map-gl';
 import type {LineLayer} from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { MapPin, MessageCircle, Phone, Flag, Star } from "lucide-react";
+import { MapPin, Phone, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { setItem, getItem, removeItem } from "@/lib/storage";
@@ -122,7 +122,7 @@ function OnRidePage() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
   
-  const handleOpenWhatsApp = () => {
+    const handleOpenWhatsApp = () => {
      if (rideData?.passenger.phone) {
         window.open(`https://wa.me/${rideData.passenger.phone}`, '_blank');
     } else {
@@ -257,7 +257,6 @@ function OnRidePage() {
                     className="h-6 w-6 text-green-500"
                     >
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    <path d="m19.23 8.3-1.33 2.65a.51.51 0 0 0-.06.33c0 .28.22.5.5.5h2.16a.5.5 0 0 0 .5-.5V8.8c0-.28-.22-.5-.5-.5h-1.47a.5.5 0 0 0-.4.8zM14.25 13.3a.5.5 0 0 0-.5.5v2.37a.5.5 0 0 0 .5.5h2.37a.5.5 0 0 0 .5-.5v-2.37a.5.5 0 0 0-.5-.5h-2.37zm-5-5a.5.5 0 0 0-.5.5v2.37a.5.5 0 0 0 .5.5h2.37a.5.5 0 0 0 .5-.5V8.8a.5.5 0 0 0-.5-.5H9.25z" />
                 </svg>
                 </Button>
             </div>
@@ -324,3 +323,5 @@ function OnRidePage() {
 }
 
 export default withAuth(OnRidePage, ["driver"]);
+
+    

@@ -33,6 +33,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { RideRequestsDrawer } from "@/components/ride-requests-drawer";
+import { Separator } from "@/components/ui/separator";
 
 
 type UserRole = "passageiro" | "motorista" | "admin";
@@ -372,18 +373,18 @@ function AdminDashboard() {
            <RadioGroup
             defaultValue="total"
             onValueChange={(value: string) => setSelectedPeriod(value as TimePeriod)}
-            className="grid grid-cols-4 gap-2 rounded-lg bg-muted p-1 text-center text-sm"
+            className="grid grid-cols-4 gap-2 rounded-lg bg-muted p-1 text-center text-sm w-full max-w-sm"
             >
                 <Label htmlFor="r1" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === 'total' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>Total</Label>
                 <RadioGroupItem value="total" id="r1" className="sr-only" />
                 
-                <Label htmlFor="r2" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '7d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>Últimos 7 dias</Label>
+                <Label htmlFor="r2" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '7d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>7d</Label>
                 <RadioGroupItem value="7d" id="r2" className="sr-only" />
 
-                <Label htmlFor="r3" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '15d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>Últimos 15 dias</Label>
+                <Label htmlFor="r3" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '15d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>15d</Label>
                 <RadioGroupItem value="15d" id="r3" className="sr-only" />
 
-                <Label htmlFor="r4" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '30d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>Últimos 30 dias</Label>
+                <Label htmlFor="r4" className={`cursor-pointer rounded-md p-2 transition-colors ${selectedPeriod === '30d' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}>30d</Label>
                 <RadioGroupItem value="30d" id="r4" className="sr-only" />
             </RadioGroup>
         </div>
@@ -441,8 +442,8 @@ function AdminDashboard() {
                         <CardTitle>Gerenciamento de Usuários</CardTitle>
                         <CardDescription>Visualize, edite e gerencie todos os usuários no sistema.</CardDescription>
                     </div>
-                    <div className="flex gap-2 items-center">
-                         <Button variant="outline" onClick={() => setIsDrawerOpen(true)}>
+                    <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+                         <Button variant="outline" onClick={() => setIsDrawerOpen(true)} className="w-full sm:w-auto">
                             <ListVideo className="mr-2 h-4 w-4" />
                             Corridas em Tempo Real
                             {pendingRidesCount > 0 && (
@@ -451,7 +452,7 @@ function AdminDashboard() {
                          </Button>
                         <Dialog open={isAddUserModalOpen} onOpenChange={(isOpen) => { setIsAddUserModalOpen(isOpen); if (!isOpen) form.reset(); }}>
                             <DialogTrigger asChild>
-                                <Button>
+                                <Button className="w-full sm:w-auto">
                                     <UserPlus className="mr-2 h-4 w-4" />
                                     Adicionar Usuário
                                 </Button>
@@ -526,11 +527,11 @@ function AdminDashboard() {
                                             </FormItem>
                                             )}
                                         />
-                                        <DialogFooter className="pt-4">
+                                        <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
                                             <DialogClose asChild>
-                                                <Button type="button" variant="outline">Cancelar</Button>
+                                                <Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button>
                                             </DialogClose>
-                                            <Button type="submit">Criar Usuário</Button>
+                                            <Button type="submit" className="w-full sm:w-auto">Criar Usuário</Button>
                                         </DialogFooter>
                                     </form>
                                 </Form>
@@ -540,114 +541,214 @@ function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Usuário</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-center">Verificação</TableHead>
-                      <TableHead className="text-center">Ações Pendentes</TableHead>
-                      <TableHead><span className="sr-only">Menu</span></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar>
-                               <AvatarFallback className="bg-muted text-muted-foreground">
-                                    {roleIcons[user.role]}
-                               </AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div className="font-medium">{user.name}</div>
-                                <div className="text-sm text-muted-foreground">{user.email}</div>
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-center">Perfil</TableHead>
+                        <TableHead className="text-center">Ações Pendentes</TableHead>
+                        <TableHead><span className="sr-only">Menu</span></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                 <AvatarFallback className="bg-muted text-muted-foreground">
+                                      {roleIcons[user.role]}
+                                 </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                  <div className="font-medium">{user.name}</div>
+                                  <div className="text-sm text-muted-foreground">{user.email}</div>
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                         <TableCell>
-                           <Tooltip>
-                                <TooltipTrigger>
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip>
+                                  <TooltipTrigger>
+                                      <Badge variant={user.status === 'Ativo' ? 'secondary' : 'destructive'}>
+                                          {user.status}
+                                      </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                      <p>{user.status}</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TableCell>
+                          <TableCell className="text-center">
+                              <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
+                                  {roleTranslations[user.role as UserRole] || user.role}
+                              </Badge>
+                          </TableCell>
+                          <TableCell>
+                              {user.verification === 'Pendente' && user.role !== 'admin' ? (
+                                  <div className="flex gap-2 justify-center">
+                                      <Button size="sm" variant="destructive" onClick={() => handleVerification(user.id, 'Rejeitado')}>
+                                          <ThumbsDown className="mr-2 h-4 w-4"/> Rejeitar
+                                      </Button>
+                                      <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleVerification(user.id, 'Verificado')}>
+                                        <ThumbsUp className="mr-2 h-4 w-4"/> Aprovar
+                                      </Button>
+                                  </div>
+                              ) : (
+                                  <div className="text-center text-muted-foreground">-</div>
+                              )}
+                          </TableCell>
+                          <TableCell>
+                              <AlertDialog>
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" className="h-8 w-8 p-0">
+                                              <span className="sr-only">Abrir menu</span>
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                              <FileText className="mr-2 h-4 w-4" />
+                                              Ver Documentos
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
+                                              <Edit className="mr-2 h-4 w-4" />
+                                              Editar
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
+                                            <UserX className="mr-2 h-4 w-4" />
+                                            <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <AlertDialogTrigger asChild>
+                                               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                  <Trash2 className="mr-2 h-4 w-4" />
+                                                  Excluir
+                                              </DropdownMenuItem>
+                                          </AlertDialogTrigger>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                                  <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                              Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
+                                          </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
+                                              Sim, excluir usuário
+                                          </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                  </AlertDialogContent>
+                              </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                 {/* Mobile Cards */}
+                 <div className="grid gap-4 md:hidden">
+                    {users.map((user) => (
+                        <Card key={user.id} className="p-4 space-y-4">
+                             <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarFallback className="bg-muted text-muted-foreground">
+                                            {roleIcons[user.role]}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-medium">{user.name}</div>
+                                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                                    </div>
+                                </div>
+                                 <AlertDialog>
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" className="h-8 w-8 p-0">
+                                              <span className="sr-only">Abrir menu</span>
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
+                                              <FileText className="mr-2 h-4 w-4" />
+                                              Ver Documentos
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
+                                              <Edit className="mr-2 h-4 w-4" />
+                                              Editar
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
+                                            <UserX className="mr-2 h-4 w-4" />
+                                            <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <AlertDialogTrigger asChild>
+                                               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                  <Trash2 className="mr-2 h-4 w-4" />
+                                                  Excluir
+                                              </DropdownMenuItem>
+                                          </AlertDialogTrigger>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                                  <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                              Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
+                                          </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
+                                              Sim, excluir usuário
+                                          </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                  </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                            <Separator/>
+                             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium">Status:</span>
                                     <Badge variant={user.status === 'Ativo' ? 'secondary' : 'destructive'}>
                                         {user.status}
                                     </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{user.status}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TableCell>
-                        <TableCell className="text-center">
-                            <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
-                                {roleTranslations[user.role as UserRole] || user.role}
-                            </Badge>
-                        </TableCell>
-                         <TableCell>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <span className="font-medium">Perfil:</span>
+                                     <Badge variant={user.role === 'admin' ? 'default' : user.role === 'motorista' ? 'secondary' : 'outline'}>
+                                        {roleTranslations[user.role as UserRole] || user.role}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <Separator/>
                             {user.verification === 'Pendente' && user.role !== 'admin' ? (
-                                <div className="flex gap-2 justify-center">
-                                    <Button size="sm" variant="destructive" onClick={() => handleVerification(user.id, 'Rejeitado')}>
-                                        <ThumbsDown className="mr-2 h-4 w-4"/> Rejeitar
-                                    </Button>
-                                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleVerification(user.id, 'Verificado')}>
-                                       <ThumbsUp className="mr-2 h-4 w-4"/> Aprovar
-                                    </Button>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <p className="font-medium text-sm w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">Ações Pendentes:</p>
+                                    <div className="flex gap-2 w-full">
+                                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleVerification(user.id, 'Rejeitado')}>
+                                            <ThumbsDown className="mr-2 h-4 w-4"/> Rejeitar
+                                        </Button>
+                                        <Button size="sm" className="bg-green-600 hover:bg-green-700 flex-1" onClick={() => handleVerification(user.id, 'Verificado')}>
+                                            <ThumbsUp className="mr-2 h-4 w-4"/> Aprovar
+                                        </Button>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="text-center text-muted-foreground">-</div>
+                                <div className="text-center text-muted-foreground text-sm">- Sem ações pendentes -</div>
                             )}
-                        </TableCell>
-                        <TableCell>
-                            <AlertDialog>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <span className="sr-only">Abrir menu</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => handleOpenDocuments(user)}>
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            Ver Documentos
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            Editar
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleToggleSuspendUser(user)}>
-                                          <UserX className="mr-2 h-4 w-4" />
-                                          <span>{user.status === "Ativo" ? "Suspender" : "Reativar"}</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <AlertDialogTrigger asChild>
-                                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Excluir
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Essa ação não pode ser desfeita. Isso irá excluir permanentemente o perfil de <span className="font-bold">{user.name}</span> do banco de dados.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
-                                            Sim, excluir usuário
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </TableCell>
-                      </TableRow>
+                        </Card>
                     ))}
-                  </TableBody>
-                </Table>
+                 </div>
               </CardContent>
             </Card>
              <Card>

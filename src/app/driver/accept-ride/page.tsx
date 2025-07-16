@@ -37,13 +37,15 @@ interface RideRequest {
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const CURRENT_RIDE_KEY = 'current_ride_data';
+const NOTIFICATION_SOUND_URL = "https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3";
+
 
 function AcceptRidePage() {
   const { resolvedTheme } = useTheme();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const router = useRouter();
   const [timeLeft, setTimeLeft] = useState(15);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [rideData, setRideData] = useState<RideRequest | null>(null);
 
   useEffect(() => {
@@ -143,7 +145,7 @@ function AcceptRidePage() {
 
   return (
     <div className="h-screen w-screen relative">
-      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3" preload="auto" loop />
+      <audio ref={audioRef} src={NOTIFICATION_SOUND_URL} preload="auto" loop />
       <MapGL
         mapboxAccessToken={mapboxToken}
         initialViewState={{

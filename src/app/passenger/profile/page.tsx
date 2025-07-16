@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2, Mic, Languages, Undo2 } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2, Mic, Languages, Undo2, Pencil } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth, User as AuthUser } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -573,7 +573,7 @@ function ProfilePageContent() {
                         <CardTitle className="text-lg">{t('profile.address.saved_locations')}</CardTitle>
                     </CardHeader>
                     <CardContent className="divide-y p-0">
-                        <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('home')}>
+                        <div className="flex items-center justify-between py-3 px-2">
                            <div className="flex items-center gap-4">
                              <Home className="h-5 w-5 text-muted-foreground"/>
                                <div className="text-left">
@@ -581,9 +581,11 @@ function ProfilePageContent() {
                                    <p className="text-xs text-muted-foreground">{profileData.homeAddress || t('profile.address.add_home')}</p>
                                </div>
                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </Button>
-                         <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('work')}>
+                           <Button variant="ghost" size="icon" onClick={() => handleOpenAddressSheet('home')}>
+                               {profileData.homeAddress ? <Pencil className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-primary" />}
+                           </Button>
+                        </div>
+                         <div className="flex items-center justify-between py-3 px-2">
                            <div className="flex items-center gap-4">
                              <Briefcase className="h-5 w-5 text-muted-foreground"/>
                                <div className="text-left">
@@ -591,18 +593,16 @@ function ProfilePageContent() {
                                    <p className="text-xs text-muted-foreground">{profileData.workAddress || t('profile.address.add_work')}</p>
                                </div>
                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </Button>
+                           <Button variant="ghost" size="icon" onClick={() => handleOpenAddressSheet('work')}>
+                               {profileData.workAddress ? <Pencil className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-primary" />}
+                           </Button>
+                        </div>
 
                         {profileData.savedLocations.map(renderCustomLocationItem)}
                         
-                        <Button variant="ghost" className="w-full h-auto justify-between items-center py-4 px-2" onClick={() => handleOpenAddressSheet('custom')}>
-                           <div className="flex items-center gap-4">
-                             <Plus className="h-5 w-5 text-muted-foreground"/>
-                               <div className="text-left">
-                                   <p className="font-semibold">{t('profile.address.add_new')}</p>
-                               </div>
-                           </div>
+                        <Button variant="ghost" className="w-full h-auto justify-start items-center py-4 px-2 gap-4" onClick={() => handleOpenAddressSheet('custom')}>
+                            <Plus className="h-5 w-5 text-primary"/>
+                            <span className="font-semibold text-primary">{t('profile.address.add_new')}</span>
                         </Button>
                     </CardContent>
                 </Card>
@@ -750,5 +750,3 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
-
-    

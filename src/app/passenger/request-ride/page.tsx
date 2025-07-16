@@ -449,25 +449,6 @@ function RequestRidePage() {
         }
   };
 
-  const handleSavedAddressClick = async (type: AddressType) => {
-    const address = type === 'home' ? homeAddress : workAddress;
-    if (address) {
-        setDestinationInput(address);
-        const suggestion = await geocodeAddress(address);
-        if (suggestion) {
-            handleSelectSuggestion(suggestion, 'destination');
-        } else {
-            toast({ variant: 'destructive', title: 'Endereço não encontrado', description: 'Não foi possível localizar este endereço no mapa.' });
-        }
-    } else {
-        toast({
-            title: 'Endereço não cadastrado',
-            description: `Por favor, adicione seu endereço de ${type === 'home' ? 'casa' : 'trabalho'} na tela de Perfil.`,
-            duration: 5000,
-        });
-    }
-};
-
     const resetRideState = () => {
         removeItem(RIDE_REQUEST_KEY);
         setCurrentRideId(null);
@@ -603,16 +584,6 @@ function RequestRidePage() {
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
                    <div className="space-y-2 px-1">
-                        <div className="flex gap-2">
-                            <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
-                                <Home className="h-5 w-5 mr-2 text-primary"/>
-                                Casa
-                            </Button>
-                            <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('work')}>
-                                <Briefcase className="h-5 w-5 mr-2 text-primary"/>
-                                Trabalho
-                            </Button>
-                        </div>
                         <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
                             <PopoverAnchor asChild>
                                 <div className="relative flex items-center">
@@ -641,7 +612,7 @@ function RequestRidePage() {
                                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                   <Input
                                     id="destination"
-                                    placeholder="Para"
+                                    placeholder="Para onde vamos?"
                                     className="pl-10 h-11 text-base bg-muted border-none"
                                     required
                                     value={destinationInput}

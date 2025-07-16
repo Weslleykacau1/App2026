@@ -511,6 +511,7 @@ function RequestRidePage() {
   );
   
   const finalFare = fare;
+  const firstName = user.name.split(' ')[0];
 
 
   return (
@@ -598,7 +599,7 @@ function RequestRidePage() {
                 {!route && (
                     <div className="w-full px-4 mb-2">
                         <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center">
-                            <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
+                            <p className="text-lg font-medium text-card-foreground">Olá, {firstName}</p>
                         </div>
                     </div>
                  )}
@@ -712,5 +713,3 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
-    

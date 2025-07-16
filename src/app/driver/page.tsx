@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell, TestTube2, X, Filter } from "lucide-react";
+import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell, TestTube2, X, Filter, Wallet, CreditCard, Landmark } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getItem, setItem } from '@/lib/storage';
@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 
-type PaymentMethod = "Cartão" | "PIX";
+type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
 
 const surgeZones = [
   { lat: -3.742, lng: -38.512, price: 14 }, // Aldeota
@@ -58,6 +58,7 @@ function DriverDashboard() {
   const [paymentPreferences, setPaymentPreferences] = useState<Record<PaymentMethod, boolean>>({
     'Cartão': true,
     'PIX': true,
+    'Dinheiro': true,
   });
 
   useEffect(() => {
@@ -425,5 +426,3 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

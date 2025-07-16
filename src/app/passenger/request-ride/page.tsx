@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 type RideCategory = "comfort" | "executive";
-type PaymentMethod = "Cartão" | "PIX";
+type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
 type AddressType = 'home' | 'work';
 
 
@@ -412,6 +412,7 @@ function RequestRidePage() {
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
         "Cartão": <CreditCard className="h-5 w-5"/>,
         "PIX": <Landmark className="h-5 w-5"/>,
+        "Dinheiro": <Wallet className="h-5 w-5" />
     }
 
     const handleConfirmRequest = async () => {
@@ -656,7 +657,7 @@ function RequestRidePage() {
                         <RideCategoryCard type="comfort" name="Comfort" seats={4} description="4 lugares, porta-malas maior" icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
                         <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                     </div>
-                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
+                     <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-4 gap-2 px-1">
                         <Label htmlFor="Cartão" className={cn(
                             "col-span-2 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
                             paymentMethod === 'Cartão' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
@@ -675,6 +676,16 @@ function RequestRidePage() {
                              <div className="flex items-center gap-2">
                                  {paymentIcons['PIX']}
                                 <span className="font-semibold">PIX</span>
+                             </div>
+                        </Label>
+                         <Label htmlFor="Dinheiro" className={cn(
+                             "col-span-1 flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                             paymentMethod === 'Dinheiro' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                        )}>
+                             <RadioGroupItem value="Dinheiro" id="Dinheiro" className="sr-only" />
+                             <div className="flex items-center gap-2">
+                                 {paymentIcons['Dinheiro']}
+                                <span className="font-semibold">Dinheiro</span>
                              </div>
                         </Label>
                     </RadioGroup>

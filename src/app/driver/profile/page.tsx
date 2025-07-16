@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus, Shield, History } from "lucide-react";
+import { Star, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, Car, Upload, CheckSquare, Camera, Library, LogOut, Settings, ChevronRight, Plus, Shield, History, ArrowLeft } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -351,6 +351,13 @@ function DriverProfilePage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
+            <header className="sticky top-0 z-10 flex items-center h-16 px-4 border-b bg-background">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/driver')}>
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-lg font-semibold mx-auto">Conta</h1>
+                <div className="w-8"></div>
+            </header>
             <main className="flex-1 py-6 container mx-auto px-4 pb-24">
                 <div className="flex flex-col items-center text-center">
                      <div className="relative">
@@ -605,5 +612,7 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    
 
     

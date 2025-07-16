@@ -67,8 +67,12 @@ function StatisticsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <header className="sticky top-0 z-10 bg-background border-b shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-center">
-          <h1 className="text-lg font-semibold">Estatísticas e Ganhos</h1>
+        <div className="container mx-auto px-4 h-16 flex items-center">
+            <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/driver')}>
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-semibold mx-auto">Estatísticas e Ganhos</h1>
+            <div className="w-8"></div>
         </div>
       </header>
       <main className="flex-1 py-6 container mx-auto px-4 pb-24">
@@ -155,5 +159,7 @@ function StatisticsPage() {
 }
 
 export default withAuth(StatisticsPage, ["driver"]);
+
+    
 
     

@@ -448,6 +448,13 @@ function ProfilePageContent() {
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
+            <header className="sticky top-0 z-10 flex items-center h-16 px-4 border-b bg-background">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/passenger/request-ride')}>
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-lg font-semibold mx-auto">Conta</h1>
+                <div className="w-8"></div>
+            </header>
             <main className="flex-1 pb-24 container mx-auto px-4">
                 <div className="flex flex-col items-center text-center my-6">
                     <div className="relative">
@@ -744,5 +751,7 @@ export default function ProfilePage() {
     )
 }
  
+
+    
 
     

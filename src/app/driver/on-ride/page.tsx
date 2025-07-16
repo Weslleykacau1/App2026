@@ -232,7 +232,7 @@ function OnRidePage() {
           <CardContent className="p-4 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={rideData.passenger.avatarUrl} data-ai-hint="person avatar" />
+                <AvatarImage src={rideData.passenger.avatarUrl || undefined} data-ai-hint="person avatar" />
                 <AvatarFallback>{rideData.passenger.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>

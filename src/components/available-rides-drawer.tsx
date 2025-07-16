@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData, Timestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, Timestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -20,6 +20,7 @@ interface RideRequest {
     id: string;
     passengerId: string;
     passengerName: string;
+    passengerPhotoUrl?: string;
     driverId?: string; // Driver is not assigned yet
     driverName?: string;
     pickupAddress: string;
@@ -82,10 +83,16 @@ export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawe
 
         try {
             const rideDocRef = doc(db, "rides", ride.id);
+            // Get the driver's profile to add their details to the ride
+            const driverProfileSnap = await getDoc(doc(db, "profiles", driver.id));
+            const driverProfile = driverProfileSnap.data();
+
             await updateDoc(rideDocRef, {
                 driverId: driver.id,
                 driverName: driver.name,
-                status: 'accepted'
+                status: 'accepted',
+                driverVehicleModel: driverProfile?.vehicle_model || 'N/A',
+                driverVehiclePlate: driverProfile?.vehicle_license_plate || 'N/A',
             });
 
             const rideDataForDriver = {
@@ -95,7 +102,7 @@ export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawe
                 destination: ride.destinationAddress,
                 passenger: {
                     name: ride.passengerName,
-                    avatarUrl: `https://placehold.co/80x80.png`, // Should come from passenger profile
+                    avatarUrl: ride.passengerPhotoUrl || '',
                     rating: 4.8, // Should come from passenger profile
                     phone: '5511999999999', // Placeholder phone
                 },

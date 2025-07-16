@@ -91,7 +91,7 @@ function RateDriverPage() {
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader className="text-center">
                     <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-background shadow-md">
-                        <AvatarImage src={driverData.driverAvatar} data-ai-hint="person avatar" />
+                        <AvatarImage src={driverData.driverAvatar || undefined} data-ai-hint="person avatar" />
                         <AvatarFallback>{driverData.driverName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-2xl">Avalie sua viagem com {driverData.driverName}</CardTitle>

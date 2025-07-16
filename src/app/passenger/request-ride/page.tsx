@@ -33,6 +33,7 @@ type AddressType = 'home' | 'work';
 
 
 interface FoundDriver {
+    id: string;
     name: string;
     avatarUrl: string;
     rating: number;
@@ -97,7 +98,7 @@ function RequestRidePage() {
   useEffect(() => {
     // Listener for ride status updates
     if (currentRideId) {
-      const unsubscribe = onSnapshot(doc(db, "rides", currentRideId), (docSnap) => {
+      const unsubscribe = onSnapshot(doc(db, "rides", currentRideId), async (docSnap) => {
         const rideData = docSnap.data();
         if (rideData) {
             setRideStatus(rideData.status);
@@ -106,9 +107,13 @@ function RequestRidePage() {
             }
         }
         if (rideData && rideData.status === 'accepted' && !foundDriver) {
+           const driverProfileSnap = await getDoc(doc(db, 'profiles', rideData.driverId));
+           const driverProfile = driverProfileSnap.data();
+
            const driverInfo: FoundDriver = {
+                id: rideData.driverId,
                 name: rideData.driverName || 'Motorista',
-                avatarUrl: `https://placehold.co/80x80.png`,
+                avatarUrl: driverProfile?.photoUrl || '',
                 rating: rideData.driverRating || 4.9,
                 vehicle: {
                     model: rideData.driverVehicleModel || 'Veículo Padrão',
@@ -124,7 +129,7 @@ function RequestRidePage() {
           // Ride finished, navigate to rating page
           const rideForRating = { 
               driverName: rideData.driverName, 
-              driverAvatar: `https://placehold.co/80x80.png`,
+              driverAvatar: foundDriver?.avatarUrl || '',
               rideId: currentRideId
           };
           setItem('ride_to_rate_driver', rideForRating);
@@ -348,6 +353,7 @@ function RequestRidePage() {
              const rideDocRef = await addDoc(collection(db, "rides"), {
                 passengerId: user.id,
                 passengerName: user.name,
+                passengerPhotoUrl: user.photoUrl || '',
                 pickupAddress: selectedPickup.place_name,
                 destinationAddress: selectedDestination.place_name,
                 pickupCoords: {
@@ -501,7 +507,7 @@ function RequestRidePage() {
                      </div>
                      <div className="flex items-center gap-4">
                          <Avatar className="h-16 w-16">
-                            <AvatarImage src={foundDriver.avatarUrl} data-ai-hint="person avatar"/>
+                            <AvatarImage src={foundDriver.avatarUrl || undefined} data-ai-hint="person avatar"/>
                             <AvatarFallback>{foundDriver.name.charAt(0)}</AvatarFallback>
                          </Avatar>
                          <div className="flex-1">

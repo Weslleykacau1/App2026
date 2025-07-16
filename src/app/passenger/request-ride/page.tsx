@@ -569,7 +569,7 @@ function RequestRidePage() {
                                     <RideCategoryCard type="viagem" name="Viagem" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'viagem'} onSelect={() => setRideCategory('viagem')} />
                                 </CarouselItem>
                                 <CarouselItem className="pl-2 basis-1/2">
-                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-6 w-6" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                                    <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Image src="https://placehold.co/100x60.png" alt="Executive Car" data-ai-hint="car modern" width={100} height={60} className="h-auto w-full object-contain" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                                 </CarouselItem>
                             </CarouselContent>
                         </Carousel>

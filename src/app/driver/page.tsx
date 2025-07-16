@@ -224,12 +224,12 @@ function DriverDashboard() {
             </div>
 
             <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="h-11 w-11 rounded-lg bg-background shadow-lg pointer-events-auto"
+                className="h-14 w-14 rounded-full bg-background/80 backdrop-blur-sm shadow-lg pointer-events-auto"
                 onClick={handleLocateUser}
             >
-                <LocateFixed className="h-5 w-5" />
+                <LocateFixed className="h-6 w-6" />
             </Button>
           </header>
 
@@ -290,7 +290,7 @@ function DriverDashboard() {
                                 className={cn("h-6 w-6 transition-colors", isOnline ? "text-white" : "text-muted-foreground")}
                             >
                                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="2"/>
+                                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 2 12Z" stroke="currentColor" strokeWidth="2"/>
                                 <path d="M12 2V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                                 <path d="M12 19V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                                 <path d="M5 12H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -316,3 +316,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

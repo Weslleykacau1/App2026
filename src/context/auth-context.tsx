@@ -12,6 +12,12 @@ export type UserRole = "passenger" | "driver" | "admin";
 export type VerificationStatus = "Verificado" | "Pendente" | "Rejeitado";
 export type UserStatus = "Ativo" | "Suspenso";
 
+interface SavedLocation {
+    id: string;
+    name: string;
+    address: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -32,6 +38,7 @@ interface User {
   addressProofUrl?: string;
   homeAddress?: string;
   workAddress?: string;
+  savedLocations?: SavedLocation[];
 }
 
 interface LoginCredentials {
@@ -137,6 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           addressProofUrl: '',
           homeAddress: '',
           workAddress: '',
+          savedLocations: [],
         };
 
         await setDoc(doc(db, "profiles", firebaseUser.uid), newUserProfile);

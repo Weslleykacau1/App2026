@@ -100,6 +100,7 @@ export default function SignupPage() {
           addressProofUrl: '',
           homeAddress: '',
           workAddress: '',
+          savedLocations: [],
         });
         
         toast({

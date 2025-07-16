@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -30,25 +30,33 @@ import { BottomNavBar } from "@/components/bottom-nav-bar";
 
 const RERIDE_REQUEST_KEY = 'reride_request';
 
-type ModalType = 'saved-locations' | 'upload-photo' | null;
-type AddressType = 'home' | 'work';
+type ModalType = 'upload-photo' | null;
+type AddressType = 'home' | 'work' | 'custom' | { type: 'edit_custom', id: string };
+
+interface SavedLocation {
+    id: string;
+    name: string;
+    address: string;
+}
 
 function ProfilePageContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { user, logout, fetchUserProfile } = useAuth();
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
     const { language, changeLanguage, t } = useLanguage();
     const [isDarkMode, setIsDarkMode] = useState(false);
 
-    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '', homeAddress: '', workAddress: '' });
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '', homeAddress: '', workAddress: '', savedLocations: [] as SavedLocation[] });
     const [isLoading, setIsLoading] = useState(true);
     const [openModal, setOpenModal] = useState<ModalType>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     
     const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
-    const [addressInput, setAddressInput] = useState("");
+    const [currentAddress, setCurrentAddress] = useState("");
+    const [locationName, setLocationName] = useState("");
+
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
@@ -74,6 +82,7 @@ function ProfilePageContent() {
                     addressProofUrl: data.addressProofUrl || '',
                     homeAddress: data.homeAddress || '',
                     workAddress: data.workAddress || '',
+                    savedLocations: data.savedLocations || [],
                 });
             } else {
                  throw new Error("Perfil não encontrado.");
@@ -218,32 +227,75 @@ function ProfilePageContent() {
         }
     };
     
-    const handleOpenAddressModal = (type: AddressType) => {
+     const handleOpenAddressSheet = (type: AddressType, data?: SavedLocation) => {
         setAddressTypeToSet(type);
-        setAddressInput(type === 'home' ? profileData.homeAddress : profileData.workAddress);
-        setOpenModal('saved-locations');
+        if (type === 'home') {
+            setCurrentAddress(profileData.homeAddress);
+            setLocationName('Casa');
+        } else if (type === 'work') {
+            setCurrentAddress(profileData.workAddress);
+            setLocationName('Trabalho');
+        } else if (type === 'custom') {
+            setCurrentAddress('');
+            setLocationName('');
+        } else if (typeof type === 'object' && type.type === 'edit_custom' && data) {
+            setCurrentAddress(data.address);
+            setLocationName(data.name);
+        }
+        setIsSheetOpen(true);
     };
-    
+
     const handleThemeChange = (checked: boolean) => {
         const newTheme = checked ? 'dark' : 'light';
         setTheme(newTheme);
         setIsDarkMode(checked);
     };
 
-
     const handleSaveAddress = async () => {
         if (!user || !addressTypeToSet) return;
-        const fieldToUpdate = addressTypeToSet === 'home' ? 'homeAddress' : 'workAddress';
+        
         try {
             const userDocRef = doc(db, "profiles", user.id);
-            await updateDoc(userDocRef, { [fieldToUpdate]: addressInput });
-            setProfileData(prev => ({ ...prev, [fieldToUpdate]: addressInput }));
+            let updatedProfileData = { ...profileData };
+
+            if (addressTypeToSet === 'home') {
+                await updateDoc(userDocRef, { homeAddress: currentAddress });
+                updatedProfileData.homeAddress = currentAddress;
+            } else if (addressTypeToSet === 'work') {
+                await updateDoc(userDocRef, { workAddress: currentAddress });
+                 updatedProfileData.workAddress = currentAddress;
+            } else if (addressTypeToSet === 'custom') {
+                const newLocation: SavedLocation = { id: Date.now().toString(), name: locationName, address: currentAddress };
+                const newSavedLocations = [...(profileData.savedLocations || []), newLocation];
+                await updateDoc(userDocRef, { savedLocations: newSavedLocations });
+                updatedProfileData.savedLocations = newSavedLocations;
+            } else if (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') {
+                 const newSavedLocations = profileData.savedLocations.map(loc => 
+                    loc.id === addressTypeToSet.id ? { ...loc, name: locationName, address: currentAddress } : loc
+                );
+                await updateDoc(userDocRef, { savedLocations: newSavedLocations });
+                updatedProfileData.savedLocations = newSavedLocations;
+            }
+
+            setProfileData(updatedProfileData);
             toast({ title: 'Endereço salvo!' });
-            setAddressInput("");
-            setAddressTypeToSet(null);
-            setOpenModal(null);
+            setIsSheetOpen(false);
+
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro ao salvar', description: 'Não foi possível salvar o endereço.' });
+        }
+    };
+    
+    const handleDeleteLocation = async (id: string) => {
+        if (!user) return;
+        try {
+             const newSavedLocations = profileData.savedLocations.filter(loc => loc.id !== id);
+             const userDocRef = doc(db, "profiles", user.id);
+             await updateDoc(userDocRef, { savedLocations: newSavedLocations });
+             setProfileData(prev => ({...prev, savedLocations: newSavedLocations}));
+             toast({title: "Local removido!"});
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Erro ao remover', description: 'Não foi possível remover o local.' });
         }
     };
 
@@ -261,6 +313,29 @@ function ProfilePageContent() {
             </Button>
             <Separator />
         </>
+    );
+
+     const renderCustomLocationItem = (location: SavedLocation) => (
+         <div key={location.id}>
+            <div className="w-full h-auto justify-between items-center py-4 px-2 flex">
+                <div className="flex items-center gap-4 flex-1">
+                    <MapPin className="h-5 w-5 text-muted-foreground"/>
+                    <div className="text-left">
+                        <p className="font-semibold">{location.name}</p>
+                        <p className="text-xs text-muted-foreground">{location.address}</p>
+                    </div>
+                </div>
+                <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenAddressSheet({ type: 'edit_custom', id: location.id }, location)}>
+                        <Edit className="h-4 w-4"/>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteLocation(location.id)}>
+                        <Trash2 className="h-4 w-4"/>
+                    </Button>
+                </div>
+            </div>
+            <Separator />
+         </div>
     );
     
 
@@ -309,6 +384,14 @@ function ProfilePageContent() {
         
         return null;
     }
+    
+     const getSheetTitle = () => {
+        if (!addressTypeToSet) return "";
+        if (addressTypeToSet === 'home') return "Editar endereço de Casa";
+        if (addressTypeToSet === 'work') return "Editar endereço de Trabalho";
+        if (addressTypeToSet === 'custom') return "Adicionar novo local";
+        if (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') return "Editar local salvo";
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
@@ -409,24 +492,18 @@ function ProfilePageContent() {
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card className="mb-6">
-                     <CardHeader>
-                        <CardTitle>Histórico de Viagens</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2">
-                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Ver seu histórico completo", () => router.push('/passenger/history'))}
-                    </CardContent>
-                </Card>
-
+                
                 <Card className="mb-6">
                     <CardHeader>
                         <CardTitle className="text-lg">Locais guardados</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-2">
-                        {renderMenuItem(<Home className="h-5 w-5 text-muted-foreground"/>, profileData.homeAddress || "Insira a morada de casa", () => handleOpenAddressModal('home'))}
-                        {renderMenuItem(<Briefcase className="h-5 w-5 text-muted-foreground"/>, profileData.workAddress || "Insira a morada do trabalho", () => handleOpenAddressModal('work'))}
-                        {renderMenuItem(<Plus className="h-5 w-5 text-muted-foreground"/>, "Adicionar um local", () => toast({title: "Em breve!"}))}
+                    <CardContent className="p-0">
+                        <div className="p-2">
+                             {renderMenuItem(<Home className="h-5 w-5 text-muted-foreground"/>, profileData.homeAddress || "Insira a morada de casa", () => handleOpenAddressSheet('home'))}
+                            {renderMenuItem(<Briefcase className="h-5 w-5 text-muted-foreground"/>, profileData.workAddress || "Insira a morada do trabalho", () => handleOpenAddressSheet('work'))}
+                            {profileData.savedLocations.map(renderCustomLocationItem)}
+                            {renderMenuItem(<Plus className="h-5 w-5 text-muted-foreground"/>, "Adicionar um local", () => handleOpenAddressSheet('custom'))}
+                        </div>
                     </CardContent>
                 </Card>
                 
@@ -474,17 +551,32 @@ function ProfilePageContent() {
                 </Card>
             </main>
 
-            <Sheet open={openModal === 'saved-locations'} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetContent>
                     <SheetHeader>
-                        <SheetTitle>Adicionar Endereço</SheetTitle>
-                        <SheetDescription>
-                            Adicione ou edite seus endereços salvos para um acesso mais rápido.
-                        </SheetDescription>
+                        <SheetTitle>{getSheetTitle()}</SheetTitle>
                     </SheetHeader>
-                    <div className="py-4">
-                        <Label htmlFor="address-input">Endereço de {addressTypeToSet === 'home' ? 'Casa' : 'Trabalho'}</Label>
-                        <Input id="address-input" value={addressInput} onChange={(e) => setAddressInput(e.target.value)} />
+                    <div className="py-4 space-y-4">
+                         {(addressTypeToSet === 'custom' || (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom')) && (
+                            <div>
+                                <Label htmlFor="location-name">Nome do Local</Label>
+                                <Input 
+                                    id="location-name" 
+                                    value={locationName} 
+                                    onChange={(e) => setLocationName(e.target.value)} 
+                                    placeholder="Ex: Academia, Casa da mãe"
+                                />
+                            </div>
+                        )}
+                        <div>
+                            <Label htmlFor="address-input">Endereço Completo</Label>
+                            <Input 
+                                id="address-input" 
+                                value={currentAddress} 
+                                onChange={(e) => setCurrentAddress(e.target.value)} 
+                                placeholder="Ex: Av. Paulista, 1000, São Paulo"
+                            />
+                        </div>
                     </div>
                     <SheetFooter>
                         <SheetClose asChild>
@@ -501,7 +593,6 @@ function ProfilePageContent() {
     );
 }
 
-
 export default function ProfilePage() {
     return (
         <Suspense fallback={<div>Carregando...</div>}>
@@ -509,5 +600,3 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
-
-    

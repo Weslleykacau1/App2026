@@ -153,7 +153,8 @@ function DriverDashboard() {
         passenger: {
             name: 'Passageiro Teste',
             avatarUrl: `https://placehold.co/80x80.png`,
-            rating: 4.8
+            rating: 4.8,
+            phone: '5511999999999'
         },
         route: {
             pickup: { lat: -3.722, lng: -38.50 },
@@ -257,10 +258,10 @@ function DriverDashboard() {
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-                <div className="absolute bottom-[7.5rem] left-4 right-4 z-10 flex justify-between">
+                <div className="absolute bottom-[7rem] left-4 right-4 z-10 flex justify-between pointer-events-none">
                    <AlertDialog>
                       <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl">
+                          <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
                               <Shield className="h-7 w-7" />
                           </Button>
                       </AlertDialogTrigger>
@@ -301,6 +302,9 @@ function DriverDashboard() {
               </div>
               
                <div className="flex justify-center items-center gap-4">
+                     <Button onClick={handleTestRide} variant="secondary" className="h-16 rounded-full px-8 text-lg font-bold transition-colors duration-300 shadow-2xl">
+                        Corrida Teste
+                    </Button>
                     <Button
                         onClick={() => setIsOnline(!isOnline)}
                         className={cn(

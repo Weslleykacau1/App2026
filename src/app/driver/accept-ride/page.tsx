@@ -26,6 +26,7 @@ interface RideRequest {
     name: string;
     avatarUrl: string;
     rating: number;
+    phone: string;
   },
   route: {
     pickup: { lat: number, lng: number };

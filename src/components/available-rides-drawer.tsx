@@ -87,7 +87,8 @@ export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawe
             passenger: {
                 name: ride.passengerName,
                 avatarUrl: `https://placehold.co/80x80.png`,
-                rating: 4.8 // This should come from passenger profile
+                rating: 4.8, // This should come from passenger profile
+                phone: '5511988887777', // Placeholder phone
             },
             driver: {
                 id: driver.id,

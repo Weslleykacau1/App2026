@@ -13,6 +13,7 @@ import { MapPin, MessageCircle, Phone, Flag, Star } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { setItem, getItem, removeItem } from "@/lib/storage";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface RideData {
@@ -21,6 +22,7 @@ interface RideData {
     name: string;
     avatarUrl: string;
     rating: number;
+    phone: string;
   };
   pickupAddress: string;
   destination: string;
@@ -40,6 +42,7 @@ function OnRidePage() {
   const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const [rideData, setRideData] = useState<RideData | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const data = getItem<RideData>(CURRENT_RIDE_KEY);
@@ -89,6 +92,19 @@ function OnRidePage() {
     if (!rideData) return;
     const { lat, lng } = rideData.route.pickup;
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  };
+  
+  const handleOpenWhatsApp = () => {
+    if (!rideData || !rideData.passenger.phone) return;
+    const passengerPhone = rideData.passenger.phone;
+    window.open(`https://wa.me/${passengerPhone}`, '_blank');
+  };
+  
+  const handleOpenChat = () => {
+    toast({
+        title: "Em breve",
+        description: "Funcionalidade de chat em desenvolvimento.",
+    });
   };
 
   const handleFinishRide = () => {
@@ -168,10 +184,10 @@ function OnRidePage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+              <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleOpenChat}>
                 <MessageCircle />
               </Button>
-              <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+              <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleOpenWhatsApp}>
                 <Phone />
               </Button>
             </div>

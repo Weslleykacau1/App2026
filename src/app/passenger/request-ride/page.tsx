@@ -326,7 +326,8 @@ function RequestRidePage() {
                 passenger: {
                     name: user.name,
                     avatarUrl: `https://placehold.co/80x80.png`,
-                    rating: 4.8
+                    rating: 4.8,
+                    phone: user.phone || '5511988887777', // Use registered phone or a fallback
                 },
                  driver: {
                     id: driverDoc.id,
@@ -628,5 +629,3 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
-    

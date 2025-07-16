@@ -126,6 +126,35 @@ function DriverDashboard() {
     }
   };
 
+  const handleTestRide = () => {
+      const testRideRequest = {
+        fare: 25.50,
+        pickupAddress: "Av. Beira Mar, 123, Fortaleza",
+        destination: "Shopping Iguatemi Bosque",
+        tripDistance: 8.2, 
+        tripTime: 20,
+        rideCategory: 'Comfort',
+        passenger: {
+            name: 'Passageiro Teste',
+            avatarUrl: `https://placehold.co/80x80.png`,
+            rating: 4.8
+        },
+        route: {
+            pickup: { lat: -3.722, lng: -38.50 },
+            destination: { lat: -3.755, lng: -38.495 },
+            coordinates: [
+                [-38.5267, -3.7327],
+                [-38.52, -3.735],
+                [-38.51, -3.74],
+                [-38.50, -3.745],
+                [-38.495, -3.755]
+            ]
+        }
+    };
+    setItem(RIDE_REQUEST_KEY, testRideRequest);
+    router.push('/driver/accept-ride');
+  };
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
@@ -251,7 +280,8 @@ function DriverDashboard() {
                   </Button>
               </div>
               
-               <div className="flex justify-center items-center">
+               <div className="flex justify-center items-center gap-4">
+                    <Button variant="outline" onClick={handleTestRide}>Corrida Teste</Button>
                     <Button
                         onClick={() => setIsOnline(!isOnline)}
                         className={cn(
@@ -269,3 +299,5 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    

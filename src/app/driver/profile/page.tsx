@@ -282,7 +282,7 @@ function DriverProfilePage() {
                     <h2 className="text-2xl font-bold">{profileData.name}</h2>
                     <div className="flex items-center gap-2 mt-1">
                         <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                        <span className="font-semibold text-muted-foreground">4.8</span>
+                        <span className="font-semibold text-muted-foreground">4.8 (Nota)</span>
                     </div>
                         <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
                         <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>

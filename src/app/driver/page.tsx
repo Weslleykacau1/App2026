@@ -308,7 +308,7 @@ function DriverDashboard() {
                                 <Filter className="h-6 w-6" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-64" align="end">
+                        <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="end">
                             <div className="space-y-4">
                                <div className="space-y-1">
                                     <h4 className="font-medium leading-none">Métodos de Pagamento</h4>

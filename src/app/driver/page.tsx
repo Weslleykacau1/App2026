@@ -269,11 +269,10 @@ function DriverDashboard() {
                 <Button
                     onClick={() => setIsOnline(!isOnline)}
                     className={cn(
-                        "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center gap-3 shadow-2xl w-auto",
+                        "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto",
                         isOnline ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
                     )}
                 >
-                    <Radio className="h-6 w-6 text-white" />
                     <span>{isOnline ? "Ficar Offline" : "Ficar Online"}</span>
                 </Button>
             </div>
@@ -292,6 +291,12 @@ function DriverDashboard() {
                                 Selecione o serviço de emergência que você deseja contatar. Esta ação abrirá o aplicativo de telefone do seu dispositivo.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
+                         <AlertDialogCancel asChild>
+                            <Button variant="ghost" size="icon" className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Fechar</span>
+                            </Button>
+                        </AlertDialogCancel>
                         <div className="grid grid-cols-1 gap-4 py-4">
                             <a href="tel:190" className="w-full">
                                 <Button variant="destructive" className="w-full h-12 text-lg">
@@ -306,10 +311,6 @@ function DriverDashboard() {
                                 </Button>
                             </a>
                         </div>
-                         <AlertDialogCancel className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Fechar</span>
-                        </AlertDialogCancel>
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
@@ -322,5 +323,7 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
+
+    
 
     

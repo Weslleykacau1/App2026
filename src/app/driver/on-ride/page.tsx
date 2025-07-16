@@ -314,3 +314,5 @@ function OnRidePage() {
 }
 
 export default withAuth(OnRidePage, ["driver"]);
+
+    

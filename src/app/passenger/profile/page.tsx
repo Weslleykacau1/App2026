@@ -136,11 +136,11 @@ function ProfilePageContent() {
             const ridesRef = collection(db, "rides");
             const q = query(
                 ridesRef, 
-                where("passengerId", "==", user.id), 
-                orderBy("createdAt", "desc")
+                where("passengerId", "==", user.id)
             );
             const querySnapshot = await getDocs(q);
             const history: Ride[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
+            history.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
             setRideHistory(history);
         } catch (error) {
              console.error("Error fetching ride history:", error);
@@ -511,9 +511,11 @@ function ProfilePageContent() {
                 </Card>
 
                 <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle>Ações Rápidas</CardTitle>
-                    </CardHeader>
+                     <CardHeader className="flex flex-row items-center justify-between">
+                         <div>
+                             <CardTitle>Ações Rápidas</CardTitle>
+                         </div>
+                     </CardHeader>
                      <CardContent className="grid grid-cols-1 gap-4">
                         <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={handleOpenHistory}>
                            <History className="h-8 w-8 text-primary"/>
@@ -742,3 +744,5 @@ export default function ProfilePage() {
     )
 }
  
+
+    

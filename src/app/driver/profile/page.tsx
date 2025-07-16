@@ -115,11 +115,11 @@ function DriverProfilePage() {
             const ridesRef = collection(db, "rides");
             const q = query(
                 ridesRef, 
-                where("driverId", "==", user.id), 
-                orderBy("createdAt", "desc")
+                where("driverId", "==", user.id)
             );
             const querySnapshot = await getDocs(q);
             const history: Ride[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
+            history.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
             setRideHistory(history);
         } catch (error) {
              console.error("Error fetching ride history:", error);
@@ -608,5 +608,7 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
+
+    
 
     

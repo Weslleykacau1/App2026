@@ -79,10 +79,6 @@ function RatePassengerPage() {
         <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-muted/40">
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader className="text-center">
-                    <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-background shadow-md">
-                        <AvatarImage src={rideData.passenger.avatarUrl} data-ai-hint="person avatar" />
-                        <AvatarFallback>{rideData.passenger.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
                     <CardTitle className="text-2xl">Avalie sua corrida com {rideData.passenger.name}</CardTitle>
                     <CardDescription>
                         Seu feedback ajuda a manter nossa comunidade segura e confiável.

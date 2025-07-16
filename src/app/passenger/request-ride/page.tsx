@@ -84,6 +84,8 @@ function RequestRidePage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Máquina de Cartão");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [currentRideId, setCurrentRideId] = useState<string | null>(null);
+  const [rideStatus, setRideStatus] = useState<string | null>(null);
+
 
   const [homeAddress, setHomeAddress] = useState<string | null>(null);
   const [workAddress, setWorkAddress] = useState<string | null>(null);
@@ -97,6 +99,9 @@ function RequestRidePage() {
     if (currentRideId) {
       const unsubscribe = onSnapshot(doc(db, "rides", currentRideId), (docSnap) => {
         const rideData = docSnap.data();
+        if (rideData) {
+            setRideStatus(rideData.status);
+        }
         if (rideData && rideData.status === 'accepted' && !foundDriver) {
            const driverInfo: FoundDriver = {
                 name: rideData.driverName || 'Motorista',
@@ -186,6 +191,8 @@ function RequestRidePage() {
       setCurrentRideId(pendingRequest.rideId);
       if (pendingRequest.driver) {
         setFoundDriver(pendingRequest.driver);
+      } else {
+        setRideStatus("pending");
       }
     }
   }, [geocodeAddress]);
@@ -363,6 +370,7 @@ function RequestRidePage() {
             });
             
             setCurrentRideId(rideDocRef.id);
+            setRideStatus("pending");
             setItem(RIDE_REQUEST_KEY, { rideId: rideDocRef.id });
 
             toast({
@@ -427,6 +435,7 @@ function RequestRidePage() {
         setDestinationInput("");
         setFareOffer(0);
         setSelectedDestination(null);
+        setRideStatus(null);
     }
 
     const handleCancelRide = async () => {
@@ -511,26 +520,28 @@ function RequestRidePage() {
                             <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
                          </div>
                      </div>
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="w-full">Cancelar Corrida</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Tem certeza que deseja cancelar?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Não</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleCancelRide} className="bg-destructive hover:bg-destructive/90">Sim, cancelar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                     </AlertDialog>
+                     {rideStatus === 'accepted' && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="w-full">Cancelar Corrida</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Tem certeza que deseja cancelar?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Não</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleCancelRide} className="bg-destructive hover:bg-destructive/90">Sim, cancelar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     )}
                  </CardContent>
              </Card>
-         ) : currentRideId ? (
+         ) : rideStatus === 'pending' ? (
             <AlertDialog open={true}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -542,6 +553,9 @@ function RequestRidePage() {
                     <div className="flex justify-center items-center py-8">
                         <Loader2 className="h-16 w-16 animate-spin text-primary" />
                     </div>
+                     <AlertDialogFooter>
+                        <AlertDialogAction onClick={handleCancelRide} className="w-full bg-destructive hover:bg-destructive/90">Cancelar Busca</AlertDialogAction>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
          ) : (

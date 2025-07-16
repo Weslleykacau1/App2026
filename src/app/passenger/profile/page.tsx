@@ -23,6 +23,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getItem, setItem } from "@/lib/storage";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useLanguage } from "@/context/language-context";
 
 const RERIDE_REQUEST_KEY = 'reride_request';
 
@@ -61,13 +62,13 @@ function ProfilePage() {
     const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
+    const { language, changeLanguage, t } = useLanguage();
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '' });
     const [isDarkMode, setIsDarkMode] = useState(false);
     const idInputRef = useRef<HTMLInputElement>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [language, setLanguage] = useState("pt-br");
     const [isLoading, setIsLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState("profile");
@@ -102,8 +103,8 @@ function ProfilePage() {
             console.error("Error fetching profile data:", error);
             toast({
                 variant: "destructive",
-                title: "Erro ao carregar perfil",
-                description: "Não foi possível carregar seus dados.",
+                title: t('toast.profile_load_error_title'),
+                description: t('toast.profile_load_error_desc'),
             });
         } finally {
             setIsLoading(false);
@@ -113,7 +114,7 @@ function ProfilePage() {
     useEffect(() => {
         setIsDarkMode(theme === 'dark');
         fetchProfileData();
-    }, [theme]);
+    }, [theme, t]);
 
      useEffect(() => {
         if (activeTab === 'upload-photo') {
@@ -129,8 +130,8 @@ function ProfilePage() {
               setHasCameraPermission(false);
               toast({
                 variant: 'destructive',
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings to use this feature.',
+                title: t('toast.camera_denied_title'),
+                description: t('toast.camera_denied_desc'),
               });
             }
           };
@@ -141,7 +142,7 @@ function ProfilePage() {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
-    }, [activeTab, toast]);
+    }, [activeTab, toast, t]);
 
     const takePhoto = () => {
         const video = videoRef.current;
@@ -189,11 +190,11 @@ function ProfilePage() {
                 await updateDoc(docRef, { [documentName]: placeholderUrl });
                 setProfileData(prev => ({ ...prev, [documentName]: placeholderUrl }));
                 toast({
-                    title: "Documento Enviado",
-                    description: `Seu documento foi enviado para análise.`,
+                    title: t('toast.doc_sent_title'),
+                    description: t('toast.doc_sent_desc_passenger'),
                 });
             } catch (error) {
-                toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar o documento." });
+                toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.doc_send_error_desc') });
             }
         }
     };
@@ -209,9 +210,9 @@ function ProfilePage() {
                 phone: profileData.phone,
                 cpf: profileData.cpf
             });
-            toast({ title: "Informações Salvas!", description: "Seus dados foram atualizados com sucesso." });
+            toast({ title: t('toast.info_saved_title'), description: t('toast.info_saved_desc') });
         } catch (error) {
-            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as informações." });
+            toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.info_save_error_desc') });
         }
         setIsEditing(false);
     }
@@ -223,11 +224,11 @@ function ProfilePage() {
             const docRef = doc(db, "profiles", user.id);
             await updateDoc(docRef, { photoUrl: photoDataUrl });
             setProfileData({ ...profileData, photoUrl: photoDataUrl });
-            toast({ title: "Foto salva!", description: "Sua foto de perfil foi atualizada." });
+            toast({ title: t('toast.photo_saved_title'), description: t('toast.photo_saved_desc') });
             setPhotoDataUrl(null);
             setActiveTab('profile');
         } catch (error) {
-            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar sua foto." });
+            toast({ variant: "destructive", title: t('toast.error_title'), description: t('toast.photo_save_error_desc') });
         }
     }
     
@@ -235,8 +236,8 @@ function ProfilePage() {
         if (ride.status === 'Cancelada') {
              toast({
                 variant: 'destructive',
-                title: "Não é possível repetir",
-                description: "Esta corrida foi cancelada.",
+                title: t('toast.reride_cancelled_title'),
+                description: t('toast.reride_cancelled_desc'),
             })
             return;
         }
@@ -245,7 +246,7 @@ function ProfilePage() {
     }
 
     if (!user || isLoading) {
-      return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
+      return <div className="flex h-screen w-full items-center justify-center">{t('common.loading')}</div>;
     }
 
 
@@ -257,7 +258,7 @@ function ProfilePage() {
                         <Button variant="ghost" size="icon" onClick={() => setActiveTab('profile')}>
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
-                        <h1 className="text-lg font-semibold">Alterar Foto</h1>
+                        <h1 className="text-lg font-semibold">{t('profile.change_photo')}</h1>
                         <div className="w-9 h-9"></div>
                     </div>
                 </header>
@@ -266,14 +267,14 @@ function ProfilePage() {
                         <div className="w-full max-w-sm aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
                             <video ref={videoRef} className={cn("w-full h-full object-cover", photoDataUrl && "hidden")} autoPlay muted playsInline />
                             {photoDataUrl && (
-                                <img src={photoDataUrl} alt="Sua foto" className="w-full h-full object-cover"/>
+                                <img src={photoDataUrl} alt={t('profile.your_photo_alt')} className="w-full h-full object-cover"/>
                             )}
                              {!(hasCameraPermission) && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-4">
                                     <Alert variant="destructive">
-                                        <AlertTitle>Câmera Indisponível</AlertTitle>
+                                        <AlertTitle>{t('profile.camera_unavailable_title')}</AlertTitle>
                                         <AlertDescription>
-                                            Permita o acesso à câmera para continuar ou escolha uma foto da galeria.
+                                            {t('profile.camera_unavailable_desc')}
                                         </AlertDescription>
                                     </Alert>
                                 </div>
@@ -285,20 +286,20 @@ function ProfilePage() {
                         
                         {photoDataUrl ? (
                             <div className="flex flex-col space-y-2 w-full max-w-sm">
-                                <Button onClick={handleSavePhoto}>Salvar Foto</Button>
-                                <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>Tirar Outra</Button>
+                                <Button onClick={handleSavePhoto}>{t('profile.save_photo')}</Button>
+                                <Button variant="ghost" onClick={() => setPhotoDataUrl(null)}>{t('profile.take_another')}</Button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
                                 <Button onClick={takePhoto} disabled={!hasCameraPermission}>
-                                    <Camera className="mr-2"/> Tirar Foto
+                                    <Camera className="mr-2"/> {t('profile.take_photo_btn')}
                                 </Button>
                                 <Button variant="outline" onClick={() => galleryInputRef.current?.click()}>
-                                    <Library className="mr-2"/> Escolher da Galeria
+                                    <Library className="mr-2"/> {t('profile.choose_from_gallery')}
                                 </Button>
                             </div>
                         )}
-                        { !photoDataUrl && <Button variant="ghost" onClick={() => setActiveTab('profile')}>Cancelar</Button> }
+                        { !photoDataUrl && <Button variant="ghost" onClick={() => setActiveTab('profile')}>{t('common.cancel')}</Button> }
                     </div>
                 </main>
             </div>
@@ -312,7 +313,7 @@ function ProfilePage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-lg font-semibold">Perfil</h1>
+                    <h1 className="text-lg font-semibold">{t('profile.title')}</h1>
                     <Button variant="ghost" size="icon" onClick={logout}>
                         <LogOut className="h-5 w-5" />
                     </Button>
@@ -322,9 +323,9 @@ function ProfilePage() {
             <main className="flex-1 py-6 container mx-auto px-4">
                  <Tabs defaultValue="profile" className="w-full" onValueChange={setActiveTab}>
                     <TabsList className="grid w-full grid-cols-4 bg-muted/60 rounded-lg p-1">
-                        <TabsTrigger value="profile">Perfil</TabsTrigger>
-                        <TabsTrigger value="history">Histórico</TabsTrigger>
-                        <TabsTrigger value="documents">Documentos</TabsTrigger>
+                        <TabsTrigger value="profile">{t('profile.tabs.profile')}</TabsTrigger>
+                        <TabsTrigger value="history">{t('profile.tabs.history')}</TabsTrigger>
+                        <TabsTrigger value="documents">{t('profile.tabs.documents')}</TabsTrigger>
                         <TabsTrigger value="settings"><Settings/></TabsTrigger>
                     </TabsList>
                     <TabsContent value="profile" className="mt-6">
@@ -349,44 +350,44 @@ function ProfilePage() {
                                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
                                 <span className="font-semibold text-muted-foreground">4.8</span>
                             </div>
-                             <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">Passageiro</Badge>
-                             <p className="text-sm text-muted-foreground mt-2">Membro desde Janeiro 2023</p>
+                             <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.passenger')}</Badge>
+                             <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Janeiro 2023' })}</p>
                         </div>
 
                         <Card className="mt-8">
                             <CardContent className="p-6">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-lg font-semibold">Informações Pessoais</h3>
+                                    <h3 className="text-lg font-semibold">{t('profile.personal_info')}</h3>
                                     <Button variant="ghost" size="sm" className="gap-1.5 text-primary" onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}>
                                         {isEditing ? <Save className="h-4 w-4"/> : <Edit className="h-4 w-4"/>}
-                                        {isEditing ? 'Salvar' : 'Editar'}
+                                        {isEditing ? t('common.save') : t('common.edit')}
                                     </Button>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div>
-                                        <Label htmlFor="name">Nome Completo</Label>
+                                        <Label htmlFor="name">{t('profile.form.full_name')}</Label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
-                                        <Label htmlFor="email">Email</Label>
+                                        <Label htmlFor="email">{t('profile.form.email')}</Label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
-                                        <Label htmlFor="phone">Telefone</Label>
+                                        <Label htmlFor="phone">{t('profile.form.phone')}</Label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
                                         </div>
                                     </div>
                                     <div>
-                                        <Label htmlFor="cpf">CPF</Label>
+                                        <Label htmlFor="cpf">{t('profile.form.cpf')}</Label>
                                         <div className="relative">
                                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <Input id="cpf" value={profileData.cpf} onChange={(e) => setProfileData({...profileData, cpf: e.target.value})} disabled={!isEditing} className={cn("pl-10", !isEditing && "bg-muted border-none")} />
@@ -400,8 +401,8 @@ function ProfilePage() {
                         <div className="space-y-4 mt-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2"><History/> Histórico de Corridas</CardTitle>
-                                    <CardDescription>Veja os detalhes de suas viagens anteriores.</CardDescription>
+                                    <CardTitle className="text-lg flex items-center gap-2"><History/> {t('profile.history.title')}</CardTitle>
+                                    <CardDescription>{t('profile.history.description')}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                      {rideHistory.length > 0 ? (
@@ -420,18 +421,18 @@ function ProfilePage() {
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="font-bold text-lg">{ride.fare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                                                         <Badge variant={ride.status === 'Concluída' ? 'secondary' : 'destructive'}>{ride.status}</Badge>
+                                                         <Badge variant={ride.status === 'Concluída' ? 'secondary' : 'destructive'}>{t(`profile.history.status.${ride.status.toLowerCase()}`)}</Badge>
                                                     </div>
                                                 </div>
                                                 <Separator/>
                                                 <div className="space-y-2 text-sm">
                                                     <div className="flex items-start gap-2">
                                                         <MapPin className="h-4 w-4 mt-1 text-primary"/>
-                                                        <p><span className="font-medium text-muted-foreground">De:</span> {ride.pickup}</p>
+                                                        <p><span className="font-medium text-muted-foreground">{t('profile.history.from')}:</span> {ride.pickup}</p>
                                                     </div>
                                                     <div className="flex items-start gap-2">
                                                         <MapPin className="h-4 w-4 mt-1 text-red-500"/>
-                                                         <p><span className="font-medium text-muted-foreground">Para:</span> {ride.destination}</p>
+                                                         <p><span className="font-medium text-muted-foreground">{t('profile.history.to')}:</span> {ride.destination}</p>
                                                     </div>
                                                 </div>
                                                 <Separator/>
@@ -442,12 +443,12 @@ function ProfilePage() {
                                                     disabled={ride.status === 'Cancelada'}
                                                 >
                                                     <RefreshCcw className="mr-2 h-4 w-4"/>
-                                                    Solicitar Novamente
+                                                    {t('profile.history.request_again_btn')}
                                                 </Button>
                                             </div>
                                         ))
                                      ) : (
-                                        <p className="text-muted-foreground text-center py-8">Nenhuma corrida no seu histórico ainda.</p>
+                                        <p className="text-muted-foreground text-center py-8">{t('profile.history.no_rides')}</p>
                                      )}
                                 </CardContent>
                             </Card>
@@ -457,36 +458,36 @@ function ProfilePage() {
                         <div className="space-y-6 mt-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Gerenciamento de Documentos</CardTitle>
+                                    <CardTitle className="text-lg">{t('profile.documents.title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
                                     <div className="p-4 border rounded-lg">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="font-medium">Documento de Identidade (RG/CPF)</p>
-                                                <p className="text-sm text-muted-foreground">Para verificação de conta</p>
+                                                <p className="font-medium">{t('profile.documents.id_title')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.documents.id_desc')}</p>
                                             </div>
                                              <Badge variant={profileData.identityDocumentUrl ? 'secondary' : 'destructive'} className={cn(profileData.identityDocumentUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
                                                 {profileData.identityDocumentUrl && <CheckSquare className="h-4 w-4"/>}
-                                                {profileData.identityDocumentUrl ? 'Verificado' : 'Pendente'}
+                                                {profileData.identityDocumentUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
                                             </Badge>
                                         </div>
                                         <input type="file" ref={idInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'identityDocumentUrl')} accept="image/*,.pdf" />
-                                        <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>Enviar arquivo</Button>
+                                        <Button variant="outline" className="w-full mt-4" onClick={() => idInputRef.current?.click()}>{t('profile.documents.upload_btn')}</Button>
                                     </div>
                                     <div className="p-4 border rounded-lg">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="font-medium">Comprovante de Endereço</p>
-                                                <p className="text-sm text-muted-foreground">Opcional, para segurança</p>
+                                                <p className="font-medium">{t('profile.documents.address_proof_title')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.documents.address_proof_desc')}</p>
                                             </div>
                                              <Badge variant={profileData.addressProofUrl ? 'secondary' : 'destructive'} className={cn(profileData.addressProofUrl && 'gap-1.5 bg-green-100 text-green-800 border-green-300')}>
                                                 {profileData.addressProofUrl && <CheckSquare className="h-4 w-4"/>}
-                                                {profileData.addressProofUrl ? 'Verificado' : 'Pendente'}
+                                                {profileData.addressProofUrl ? t('profile.documents.status_verified') : t('profile.documents.status_pending')}
                                             </Badge>
                                         </div>
                                         <input type="file" ref={addressInputRef} className="hidden" onChange={(e) => handleFileSelect(e, 'addressProofUrl')} accept="image/*,.pdf" />
-                                        <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>Enviar arquivo</Button>
+                                        <Button variant="outline" className="w-full mt-4" onClick={() => addressInputRef.current?.click()}>{t('profile.documents.upload_btn')}</Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -503,8 +504,8 @@ function ProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <Moon className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Modo Escuro</p>
-                                                <p className="text-sm text-muted-foreground">Alterne entre o tema claro e escuro</p>
+                                                <p className="font-medium">{t('profile.settings.dark_mode')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.dark_mode_desc')}</p>
                                             </div>
                                             <Switch
                                                 checked={isDarkMode}
@@ -515,8 +516,8 @@ function ProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <Bell className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Notificações</p>
-                                                <p className="text-sm text-muted-foreground">Receber alertas de viagens e promoções</p>
+                                                <p className="font-medium">{t('profile.settings.notifications')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.notifications_desc')}</p>
                                             </div>
                                             <Switch defaultChecked />
                                         </div>
@@ -524,8 +525,8 @@ function ProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <MapPin className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Compartilhar Localização</p>
-                                                <p className="text-sm text-muted-foreground">Permitir rastreamento durante viagens</p>
+                                                <p className="font-medium">{t('profile.settings.location')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.location_desc')}</p>
                                             </div>
                                             <Switch defaultChecked />
                                         </div>
@@ -533,20 +534,19 @@ function ProfilePage() {
                                         <div className="flex items-center justify-between gap-4">
                                             <Globe className="h-6 w-6 text-muted-foreground" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Idioma</p>
-                                                <p className="text-sm text-muted-foreground">Selecione seu idioma preferido</p>
+                                                <p className="font-medium">{t('profile.settings.language')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.language_desc')}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Select value={language} onValueChange={setLanguage}>
+                                                <Select value={language} onValueChange={(value) => changeLanguage(value as 'pt' | 'en')}>
                                                     <SelectTrigger className="w-[120px]">
                                                         <SelectValue placeholder="Idioma" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="pt-br">Português</SelectItem>
-                                                        <SelectItem value="en-us">English</SelectItem>
+                                                        <SelectItem value="pt">Português</SelectItem>
+                                                        <SelectItem value="en">English</SelectItem>
                                                     </SelectContent>
                                                 </Select>
-                                                <Button size="sm" onClick={() => toast({ title: "Idioma atualizado!" })}>Aplicar</Button>
                                             </div>
                                         </div>
                                     </div>
@@ -555,15 +555,15 @@ function ProfilePage() {
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Privacidade e Segurança</CardTitle>
+                                    <CardTitle className="text-lg">{t('profile.settings.privacy_title')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                      <div className="space-y-4">
                                         <div className="flex items-start justify-between gap-4">
                                             <Share2 className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Compartilhar dados de viagem</p>
-                                                <p className="text-sm text-muted-foreground">Permitir análise para melhorar o serviço</p>
+                                                <p className="font-medium">{t('profile.settings.privacy_share_data')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_share_data_desc')}</p>
                                             </div>
                                             <Switch defaultChecked />
                                         </div>
@@ -571,8 +571,8 @@ function ProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <EyeOff className="h-6 w-6 text-muted-foreground mt-1" />
                                             <div className="flex-1">
-                                                <p className="font-medium">Visibilidade do perfil</p>
-                                                <p className="text-sm text-muted-foreground">Mostrar perfil para outros usuários</p>
+                                                <p className="font-medium">{t('profile.settings.privacy_visibility')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('profile.settings.privacy_visibility_desc')}</p>
                                             </div>
                                             <Switch defaultChecked />
                                         </div>

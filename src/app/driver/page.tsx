@@ -208,7 +208,7 @@ function DriverDashboard() {
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-               <div className="absolute bottom-[9rem] right-4 z-10 space-y-2">
+               <div className="absolute bottom-[7rem] right-4 z-10 space-y-2">
                    <AlertDialog>
                       <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl">
@@ -269,7 +269,3 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    
-
-    

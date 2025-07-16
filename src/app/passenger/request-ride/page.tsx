@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Wallet, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft, CreditCard, Landmark, ChevronDown, Users, Home, Briefcase } from "lucide-react";
+import { MapPin, Wallet, LocateFixed, Menu, Loader2, Star, X, ShieldCheck, Search, Pencil, Settings2, Car, ArrowLeft, CreditCard, Landmark, ChevronDown, Users, Home, Briefcase, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ import Image from "next/image";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 import { viagemCarImage, executiveCarImage } from "@/lib/images";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 
 
 type RideCategory = "comfort" | "executive";
@@ -66,6 +67,8 @@ interface AppFareConfig {
 const RIDE_REQUEST_KEY = 'passenger_current_ride';
 const RERIDE_REQUEST_KEY = 'reride_request';
 const ADMIN_FARES_CONFIG_KEY = 'admin_fares_config';
+const SURGE_MULTIPLIER = 1.3;
+
 
 const defaultFareConfig: AppFareConfig = {
     comfort: {
@@ -113,6 +116,8 @@ function RequestRidePage() {
   const [currentRideId, setCurrentRideId] = useState<string | null>(null);
   const [rideStatus, setRideStatus] = useState<string | null>(null);
   const [fare, setFare] = useState(0);
+  const [isSurge, setIsSurge] = useState(false);
+
 
   const [homeAddress, setHomeAddress] = useState<string | null>(null);
   const [workAddress, setWorkAddress] = useState<string | null>(null);
@@ -353,10 +358,16 @@ function RequestRidePage() {
             
             const categoryFares = fareConfig[rideCategory];
 
-            const totalFare = categoryFares.baseFare 
+            // For demonstration, let's assume surge pricing is active if the destination is a "Shopping"
+            const surgeActive = selectedDestination.place_name.toLowerCase().includes('shopping');
+            setIsSurge(surgeActive);
+            
+            const baseFare = categoryFares.baseFare 
                               + (categoryFares.costPerMinute * timeInMinutes)
                               + (categoryFares.costPerKm * distanceInKm)
                               + categoryFares.bookingFee;
+
+            const totalFare = surgeActive ? baseFare * SURGE_MULTIPLIER : baseFare;
 
             setFare(totalFare);
             
@@ -367,6 +378,7 @@ function RequestRidePage() {
       } else {
         setRoute(null);
         setFare(0);
+        setIsSurge(false);
       }
     }
     calculateRoute();
@@ -689,9 +701,17 @@ function RequestRidePage() {
                   <div className="flex items-center gap-2 px-1">
                       {fare > 0 && (
                           <div className="flex-1 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
+                            <div className="flex items-center justify-between">
                               <Label htmlFor="fare" className="text-base font-bold">
                                   Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                               </Label>
+                               {isSurge && (
+                                <Badge variant="destructive" className="gap-1">
+                                    <Zap className="h-4 w-4"/>
+                                    Alta Demanda
+                                </Badge>
+                               )}
+                            </div>
                           </div>
                       )}
                       <Button className="h-12 text-base font-bold flex-1" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>

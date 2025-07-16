@@ -197,7 +197,6 @@ function DriverDashboard() {
                 onMove={evt => setViewState(evt.viewState)}
                 style={{width: '100%', height: '100%'}}
                 mapStyle={mapStyle}
-                // The bottom padding is to ensure map controls like attribution don't get hidden by our custom UI
                 padding={{ bottom: 200 }} 
             >
                 <GeolocateControl position="top-left" trackUserLocation={true} showUserHeading={true} style={{ display: 'none' }} />
@@ -222,24 +221,26 @@ function DriverDashboard() {
                 ))}
             </MapGL>
 
-            <header className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start bg-transparent z-20 pointer-events-none">
-              <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
-                   <div className="flex items-center gap-2">
-                      <p className="text-xl font-bold">
-                          {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
-                      </p>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEarnings(!showEarnings)}>
-                          {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                      </Button>
-                   </div>
-                   <div className="h-6 w-px bg-border"></div>
-                   <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold">{todayRides}</span>
-                      <span className="text-sm text-muted-foreground">corridas</span>
-                   </div>
+            <header className="absolute top-0 left-0 right-0 p-4 z-20 pointer-events-none">
+              <div className="w-full flex justify-center">
+                <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xl font-bold">
+                            {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
+                        </p>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 pointer-events-auto" onClick={() => setShowEarnings(!showEarnings)}>
+                            {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </Button>
+                    </div>
+                    <div className="h-6 w-px bg-border"></div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold">{todayRides}</span>
+                        <span className="text-sm text-muted-foreground">corridas</span>
+                    </div>
+                </div>
               </div>
 
-               <div className="flex flex-col gap-2 pointer-events-auto">
+               <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
                     <Button
                         variant="default"
                         size="icon"
@@ -265,7 +266,7 @@ function DriverDashboard() {
                </div>
             </header>
 
-            <div className="absolute bottom-20 right-4 z-10 space-y-4">
+            <div className="absolute bottom-24 right-4 z-10 space-y-4">
                 <Button
                     onClick={() => setIsOnline(!isOnline)}
                     className={cn(
@@ -278,7 +279,7 @@ function DriverDashboard() {
                 </Button>
             </div>
             
-             <div className="absolute bottom-20 left-4 z-10">
+             <div className="absolute bottom-24 left-4 z-10">
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">

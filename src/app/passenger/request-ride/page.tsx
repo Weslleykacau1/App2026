@@ -474,9 +474,9 @@ function RequestRidePage() {
             variant="default"
             size="icon"
             className="h-12 w-12 rounded-full shadow-lg pointer-events-auto bg-card text-card-foreground hover:bg-card/90"
-            onClick={() => router.back()}
+            onClick={() => router.push('/passenger/profile')}
         >
-            <ArrowLeft className="h-6 w-6" />
+            <Menu className="h-6 w-6" />
         </Button>
         <Button
             variant="default"
@@ -716,5 +716,3 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-
-    

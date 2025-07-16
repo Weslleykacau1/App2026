@@ -26,6 +26,7 @@ const surgeZones = [
 ];
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
+const DRIVER_ONLINE_STATUS_KEY = 'driver_online_status';
 
 
 function DriverDashboard() {
@@ -63,11 +64,15 @@ function DriverDashboard() {
         { enableHighAccuracy: true }
     );
     
-    // Get earnings from session storage
+    // Get earnings and online status from session storage
     const storedEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
     setTodayEarnings(storedEarnings);
     const storedRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
     setTodayRides(storedRides);
+    const storedOnlineStatus = sessionStorage.getItem(DRIVER_ONLINE_STATUS_KEY);
+    if (storedOnlineStatus) {
+        setIsOnline(JSON.parse(storedOnlineStatus));
+    }
     
     const q = query(collection(db, "rides"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -77,6 +82,11 @@ function DriverDashboard() {
     return () => unsubscribe();
 
    }, []);
+   
+   const handleSetOnlineStatus = (status: boolean) => {
+       setIsOnline(status);
+       sessionStorage.setItem(DRIVER_ONLINE_STATUS_KEY, JSON.stringify(status));
+   }
 
 
   useEffect(() => {
@@ -266,25 +276,15 @@ function DriverDashboard() {
             </header>
 
             <div className="absolute bottom-24 right-4 z-10 space-y-4">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                         <Button
-                            className={cn(
-                                "h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto",
-                                isOnline ? "bg-green-500 hover:bg-green-600" : "bg-secondary hover:bg-secondary/80"
-                            )}
-                            onClick={(e) => {
-                                if (!isOnline) {
-                                    setIsOnline(true);
-                                } else {
-                                    // Let the AlertDialog handle the logic
-                                }
-                            }}
-                        >
-                           <span>{isOnline ? "Online" : "Offline"}</span>
-                        </Button>
-                    </AlertDialogTrigger>
-                    {isOnline && (
+                 {isOnline ? (
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                className="h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto bg-green-500 hover:bg-green-600"
+                            >
+                               Online
+                            </Button>
+                        </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Ficar offline?</AlertDialogTitle>
@@ -294,13 +294,23 @@ function DriverDashboard() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => setIsOnline(false)}>
+                                <AlertDialogAction onClick={() => handleSetOnlineStatus(false)}>
                                     Sim, ficar offline
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
-                    )}
-                </AlertDialog>
+                     </AlertDialog>
+                 ) : (
+                    <Button
+                        onClick={() => handleSetOnlineStatus(true)}
+                        className={cn(
+                            "h-16 rounded-full px-6 text-base font-bold transition-all duration-300 flex items-center shadow-2xl w-auto",
+                            "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        )}
+                    >
+                       Offline
+                    </Button>
+                 )}
             </div>
             
              <div className="absolute bottom-24 left-4 z-10">

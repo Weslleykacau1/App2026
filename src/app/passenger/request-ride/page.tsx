@@ -12,7 +12,7 @@ import { Map } from "@/components/map";
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import type { MapRef, LngLatLike } from "react-map-gl";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -109,6 +109,7 @@ function RequestRidePage() {
                 eta: Math.floor(Math.random() * 5) + 3,
             };
           setFoundDriver(driverInfo);
+          setItem(RIDE_REQUEST_KEY, { rideId: currentRideId, driver: driverInfo });
           toast({ title: "Motorista encontrado!", description: `${driverInfo.name} está a caminho.` });
         } else if (rideData && rideData.status === 'arrived') {
             toast({ title: "Seu motorista chegou!", description: "Estamos prontos para partir." });
@@ -123,6 +124,13 @@ function RequestRidePage() {
           setItem('ride_to_rate_driver', rideForRating);
           removeItem(RIDE_REQUEST_KEY);
           router.push('/passenger/rate-driver');
+        } else if (rideData?.status === 'cancelled') {
+            toast({
+                variant: 'destructive',
+                title: 'Corrida Cancelada',
+                description: 'Esta corrida foi cancelada.',
+            });
+            resetRideState();
         }
       });
 
@@ -180,7 +188,7 @@ function RequestRidePage() {
         setFoundDriver(pendingRequest.driver);
       }
     }
-  }, [geocodeAddress, toast]);
+  }, [geocodeAddress]);
 
   useEffect(() => {
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
@@ -228,8 +236,8 @@ function RequestRidePage() {
     }
   };
   
-  const debouncedFetchPickupSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'pickup'), 300), [mapboxToken]);
-  const debouncedFetchDestinationSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'destination'), 300), [mapboxToken]);
+  const debouncedFetchPickupSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'pickup'), 300), []);
+  const debouncedFetchDestinationSuggestions = useCallback(debounce((query: string) => fetchSuggestions(query, 'destination'), 300), []);
 
   const handlePickupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -411,6 +419,36 @@ function RequestRidePage() {
         }
     };
 
+    const resetRideState = () => {
+        removeItem(RIDE_REQUEST_KEY);
+        setCurrentRideId(null);
+        setFoundDriver(null);
+        setRoute(null);
+        setDestinationInput("");
+        setFareOffer(0);
+        setSelectedDestination(null);
+    }
+
+    const handleCancelRide = async () => {
+        if (!currentRideId) return;
+
+        try {
+            const rideDocRef = doc(db, "rides", currentRideId);
+            await updateDoc(rideDocRef, { status: "cancelled" });
+            toast({
+                title: "Corrida Cancelada",
+                description: "Sua corrida foi cancelada com sucesso.",
+            });
+            resetRideState();
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Erro ao Cancelar",
+                description: "Não foi possível cancelar a corrida. Tente novamente.",
+            });
+        }
+    };
+
 
   const RideCategoryCard = ({ type, name, seats, icon, isSelected, onSelect }: { type: RideCategory, name: string, seats: number, icon: React.ReactNode, isSelected: boolean, onSelect: () => void }) => (
     <div 
@@ -473,6 +511,23 @@ function RequestRidePage() {
                             <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
                          </div>
                      </div>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="w-full">Cancelar Corrida</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Tem certeza que deseja cancelar?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Não</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleCancelRide} className="bg-destructive hover:bg-destructive/90">Sim, cancelar</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                     </AlertDialog>
                  </CardContent>
              </Card>
          ) : currentRideId ? (

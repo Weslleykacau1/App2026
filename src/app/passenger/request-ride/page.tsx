@@ -641,7 +641,7 @@ function RequestRidePage() {
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold bg-[#cdfe05] text-black hover:bg-[#cdfe05]/90" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                      <Button className="w-full h-12 text-base font-bold" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
                         {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Solicitar Corrida
                       </Button>

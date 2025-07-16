@@ -257,7 +257,7 @@ function DriverDashboard() {
           </header>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-               <div className="absolute bottom-[7rem] right-4 z-10 space-y-2">
+                <div className="absolute bottom-[7.5rem] left-4 right-4 z-10 flex justify-between">
                    <AlertDialog>
                       <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl">
@@ -301,7 +301,6 @@ function DriverDashboard() {
               </div>
               
                <div className="flex justify-center items-center gap-4">
-                    <Button variant="outline" onClick={handleTestRide}>Corrida Teste</Button>
                     <Button
                         onClick={() => setIsOnline(!isOnline)}
                         className={cn(

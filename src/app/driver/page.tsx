@@ -333,6 +333,14 @@ function DriverDashboard() {
                      </Popover>
                </div>
             </header>
+            
+            {!isOnline && (
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10 pointer-events-none">
+                    <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center pointer-events-auto">
+                        <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
+                    </div>
+                </div>
+            )}
 
             <div className="absolute bottom-24 right-4 z-10 space-y-4">
                  {isOnline ? (

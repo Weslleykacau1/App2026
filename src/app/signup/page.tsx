@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const formSchema = z.object({
@@ -32,6 +33,9 @@ const formSchema = z.object({
   password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
   role: z.enum(["passenger", "driver"], {
     required_error: "Você precisa selecionar um perfil.",
+  }),
+  terms: z.boolean().refine(val => val === true, {
+    message: "Você deve aceitar os termos e a política de privacidade.",
   }),
 });
 
@@ -46,6 +50,7 @@ export default function SignupPage() {
       name: "",
       email: "",
       password: "",
+      terms: false,
     },
     mode: "onChange",
   });
@@ -177,6 +182,37 @@ export default function SignupPage() {
                           <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="terms"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Aceitar termos e condições
+                          </FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Eu concordo com a nossa{" "}
+                            <Link href="#" className="underline hover:text-primary">
+                              Política de Privacidade
+                            </Link>{" "}
+                            e{" "}
+                            <Link href="#" className="underline hover:text-primary">
+                              Termos de Uso
+                            </Link>
+                            .
+                          </p>
+                           <FormMessage />
+                        </div>
                       </FormItem>
                     )}
                   />

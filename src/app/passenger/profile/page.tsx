@@ -510,18 +510,14 @@ function ProfilePageContent() {
                      </CardContent>
                 </Card>
 
-                 <Card className="mb-6">
+                <Card className="mb-6">
                     <CardHeader>
                         <CardTitle>Ações Rápidas</CardTitle>
                     </CardHeader>
-                     <CardContent className="grid grid-cols-2 gap-4">
+                     <CardContent className="grid grid-cols-1 gap-4">
                         <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={handleOpenHistory}>
                            <History className="h-8 w-8 text-primary"/>
                            <p className="font-semibold">{t('profile.history.title')}</p>
-                        </Button>
-                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2">
-                           <Shield className="h-8 w-8 text-primary"/>
-                           <p className="font-semibold">{t('profile.settings.privacy_title')}</p>
                         </Button>
                     </CardContent>
                 </Card>
@@ -640,7 +636,7 @@ function ProfilePageContent() {
                 </Card>
 
                 <div className="mt-8">
-                     <Button variant="destructive" className="w-full h-12" onClick={logout}>
+                    <Button variant="destructive" className="w-full h-12" onClick={logout}>
                         <LogOut className="mr-2 h-5 w-5" />
                         {t('profile.logout_btn')}
                     </Button>
@@ -746,5 +742,3 @@ export default function ProfilePage() {
     )
 }
  
-
-    

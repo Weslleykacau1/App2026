@@ -11,6 +11,11 @@ import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell } from "luci
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getItem, setItem } from '@/lib/storage';
+import { AvailableRidesDrawer } from '@/components/available-rides-drawer';
+import { Badge } from '@/components/ui/badge';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 
 const surgeZones = [
   { lat: -3.742, lng: -38.512, price: 14 }, // Aldeota
@@ -38,6 +43,9 @@ function DriverDashboard() {
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayRides, setTodayRides] = useState(0);
   const [showEarnings, setShowEarnings] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [pendingRidesCount, setPendingRidesCount] = useState(0);
+
 
    useEffect(() => {
      // Get initial location
@@ -59,6 +67,13 @@ function DriverDashboard() {
     setTodayEarnings(storedEarnings);
     const storedRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
     setTodayRides(storedRides);
+    
+    const q = query(collection(db, "rides"), where("status", "==", "pending"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setPendingRidesCount(querySnapshot.size);
+    });
+    
+    return () => unsubscribe();
 
    }, []);
 
@@ -81,13 +96,14 @@ function DriverDashboard() {
         }
       );
 
+       // This logic is now handled by the drawer, but we can keep it as a fallback
        const rideCheckInterval = setInterval(() => {
         const rideRequest = getItem(RIDE_REQUEST_KEY);
         if (rideRequest) {
             console.log("Found ride request, navigating...");
             router.push('/driver/accept-ride');
         }
-      }, 3000); // Check for rides every 3 seconds
+      }, 5000); 
 
       return () => {
         if (watchIdRef.current !== null) {
@@ -230,9 +246,13 @@ function DriverDashboard() {
             <Button
                 variant="default"
                 size="icon"
-                className="h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
+                className="relative h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto text-card-foreground hover:bg-card/90"
+                onClick={() => setIsDrawerOpen(true)}
             >
                 <Bell className="h-6 w-6" />
+                {pendingRidesCount > 0 && (
+                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 animate-pulse">{pendingRidesCount}</Badge>
+                )}
             </Button>
           </header>
 
@@ -294,10 +314,9 @@ function DriverDashboard() {
                     </Button>
                </div>
           </div>
+          <AvailableRidesDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
       </div>
   );
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

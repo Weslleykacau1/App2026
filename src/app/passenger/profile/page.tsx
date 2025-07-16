@@ -68,6 +68,7 @@ function ProfilePage() {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
     const { language, changeLanguage, t } = useLanguage();
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', cpf: '', photoUrl: '', identityDocumentUrl: '', addressProofUrl: '', homeAddress: '', workAddress: '' });
     const [isLoading, setIsLoading] = useState(true);
@@ -121,6 +122,11 @@ function ProfilePage() {
     useEffect(() => {
         fetchProfileData();
     }, [user, language]);
+    
+     useEffect(() => {
+        setIsDarkMode(theme === 'dark');
+    }, [theme]);
+
 
      useEffect(() => {
         if (openModal === 'upload-photo') {
@@ -235,6 +241,13 @@ function ProfilePage() {
         setAddressInput(type === 'home' ? profileData.homeAddress : profileData.workAddress);
         setOpenModal('saved-locations');
     };
+    
+    const handleThemeChange = (checked: boolean) => {
+        const newTheme = checked ? 'dark' : 'light';
+        setTheme(newTheme);
+        setIsDarkMode(checked);
+    };
+
 
     const handleSaveAddress = async () => {
         if (!user || !addressTypeToSet) return;
@@ -266,6 +279,20 @@ function ProfilePage() {
             <Separator />
         </>
     );
+    
+    const renderSettingsItem = (icon: React.ReactNode, text: string, control: React.ReactNode) => (
+        <>
+            <div className="w-full flex justify-between items-center py-4 px-2">
+                <div className="flex items-center gap-4">
+                    {icon}
+                    <p className="font-semibold">{text}</p>
+                </div>
+                {control}
+            </div>
+            <Separator />
+        </>
+    )
+
 
     if (!user || isLoading) {
       return <div className="flex h-screen w-full items-center justify-center">Carregando...</div>;
@@ -476,7 +503,7 @@ function ProfilePage() {
                 <div className="flex flex-col items-center text-center my-6">
                     <div className="relative">
                         <Avatar className="h-24 w-24 border-4 border-background shadow-md" onClick={() => setOpenModal('upload-photo')}>
-                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
+                           <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                             <AvatarFallback>
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
@@ -504,6 +531,8 @@ function ProfilePage() {
                 <Card className="mb-6">
                     <CardContent className="p-2">
                         {renderMenuItem(<User className="h-5 w-5 text-muted-foreground"/>, "Dados pessoais", () => setOpenModal('personal-data'))}
+                        {renderMenuItem(<History className="h-5 w-5 text-muted-foreground" />, "Histórico de Viagens", () => setOpenModal('history'))}
+                        {renderMenuItem(<FileText className="h-5 w-5 text-muted-foreground" />, "Documentos", () => setOpenModal('documents'))}
                         {renderMenuItem(<Shield className="h-5 w-5 text-muted-foreground"/>, "Segurança", () => setOpenModal('security'))}
                         {renderMenuItem(<ShieldCheck className="h-5 w-5 text-muted-foreground"/>, "Login e segurança", () => setOpenModal('login-security'))}
                     </CardContent>
@@ -524,12 +553,12 @@ function ProfilePage() {
                 {/* Other Settings Section */}
                  <Card>
                     <CardContent className="p-2">
+                        {renderSettingsItem(<Moon className="h-5 w-5 text-muted-foreground"/>, "Modo escuro", <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />)}
                         {renderMenuItem(<Globe className="h-5 w-5 text-muted-foreground"/>, "Idioma", () => setOpenModal('language'), language === 'pt' ? 'Português' : 'English')}
                         {renderMenuItem(<Bell className="h-5 w-5 text-muted-foreground"/>, "Preferências de comunicação", () => setOpenModal('communication'))}
+                        {renderMenuItem(<LogOut className="h-5 w-5 text-muted-foreground"/>, "Terminar sessão", logout)}
                     </CardContent>
                 </Card>
-
-                <Button variant="ghost" className="w-full mt-6" onClick={logout}>Sair da conta</Button>
             </main>
 
             <Dialog open={!!openModal} onOpenChange={(isOpen) => !isOpen && setOpenModal(null)}>
@@ -540,5 +569,3 @@ function ProfilePage() {
 }
 
 export default withAuth(ProfilePage, ["passenger"]);
-
-    

@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { getItem, removeItem, setItem } from "@/lib/storage";
 
 interface RideRequest {
+  id: string;
   fare: number;
   pickupAddress: string;
   destination: string;
@@ -103,8 +104,15 @@ function AcceptRidePage() {
 
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(error => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
+      audioRef.current.loop = true;
+    }
+    
+    const playPromise = audioRef.current.play();
+
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
         console.log("A reprodução automática foi bloqueada pelo navegador:", error);
       });
     }
@@ -145,7 +153,6 @@ function AcceptRidePage() {
 
   return (
     <div className="h-screen w-screen relative">
-      <audio ref={audioRef} src={NOTIFICATION_SOUND_URL} preload="auto" loop />
       <MapGL
         mapboxAccessToken={mapboxToken}
         initialViewState={{

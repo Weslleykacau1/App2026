@@ -14,9 +14,12 @@ import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { setItem, getItem, removeItem } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 
 interface RideData {
+  id: string; // Firestore document ID
   fare: number;
   passenger: {
     name: string;
@@ -126,19 +129,27 @@ function OnRidePage() {
     });
   };
 
-  const handleFinishRide = () => {
+  const handleFinishRide = async () => {
     if (!rideData) return;
-    const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
-    const newEarnings = currentEarnings + rideData.fare;
-    sessionStorage.setItem('today_earnings', newEarnings.toString());
-    
-    const currentRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
-    const newRides = currentRides + 1;
-    sessionStorage.setItem('today_rides', newRides.toString());
+    try {
+        const rideDocRef = doc(db, "rides", rideData.id);
+        await updateDoc(rideDocRef, { status: 'finished' });
 
-    setItem('ride_to_rate_data', rideData);
-    removeItem(CURRENT_RIDE_KEY);
-    router.push('/driver/rate-passenger');
+        const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
+        const newEarnings = currentEarnings + rideData.fare;
+        sessionStorage.setItem('today_earnings', newEarnings.toString());
+        
+        const currentRides = parseInt(sessionStorage.getItem('today_rides') || '0', 10);
+        const newRides = currentRides + 1;
+        sessionStorage.setItem('today_rides', newRides.toString());
+
+        setItem('ride_to_rate_data', rideData);
+        removeItem(CURRENT_RIDE_KEY);
+        router.push('/driver/rate-passenger');
+    } catch (error) {
+        console.error("Error finishing ride:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível finalizar a corrida.' });
+    }
   };
 
   if (!mapboxToken || !rideData) {

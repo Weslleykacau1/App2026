@@ -21,7 +21,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { setItem, getItem, removeItem } from "@/lib/storage";
 import { Label } from "@/components/ui/label";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc, onSnapshot } from "firebase/firestore";
 import Image from "next/image";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
 
@@ -48,7 +48,7 @@ interface Suggestion {
   center: [number, number];
 }
 
-const RIDE_REQUEST_KEY = 'pending_ride_request';
+const RIDE_REQUEST_KEY = 'passenger_current_ride';
 const RERIDE_REQUEST_KEY = 'reride_request';
 const ADMIN_FARES_KEY = 'admin_fares_data';
 
@@ -75,21 +75,57 @@ function RequestRidePage() {
   const [selectedPickup, setSelectedPickup] = useState<Suggestion | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Suggestion | null>(null);
   const [route, setRoute] = useState<LngLatLike[] | null>(null);
-
-  const [isSearching, setIsSearching] = useState(false);
+  
+  const [isRequesting, setIsRequesting] = useState(false);
   const [foundDriver, setFoundDriver] = useState<FoundDriver | null>(null);
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Máquina de Cartão");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [isRequesting, setIsRequesting] = useState(false);
+  const [currentRideId, setCurrentRideId] = useState<string | null>(null);
 
   const [homeAddress, setHomeAddress] = useState<string | null>(null);
   const [workAddress, setWorkAddress] = useState<string | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [addressTypeToSet, setAddressTypeToSet] = useState<AddressType | null>(null);
   const [addressInput, setAddressInput] = useState("");
+
+
+  useEffect(() => {
+    // Listener for ride status updates
+    if (currentRideId) {
+      const unsubscribe = onSnapshot(doc(db, "rides", currentRideId), (docSnap) => {
+        const rideData = docSnap.data();
+        if (rideData && rideData.status === 'accepted' && !foundDriver) {
+           const driverInfo: FoundDriver = {
+                name: rideData.driverName || 'Motorista',
+                avatarUrl: `https://placehold.co/80x80.png`,
+                rating: rideData.driverRating || 4.9,
+                vehicle: {
+                    model: rideData.driverVehicleModel || 'Veículo Padrão',
+                    licensePlate: rideData.driverVehiclePlate || 'ABC-1234'
+                },
+                eta: Math.floor(Math.random() * 5) + 3,
+            };
+          setFoundDriver(driverInfo);
+          toast({ title: "Motorista encontrado!", description: `${driverInfo.name} está a caminho.` });
+        } else if (rideData && rideData.status === 'finished') {
+          // Ride finished, navigate to rating page
+          const rideForRating = { 
+              driverName: rideData.driverName, 
+              driverAvatar: `https://placehold.co/80x80.png`,
+              rideId: currentRideId
+          };
+          setItem('ride_to_rate_driver', rideForRating);
+          removeItem(RIDE_REQUEST_KEY);
+          router.push('/passenger/rate-driver');
+        }
+      });
+
+      return () => unsubscribe();
+    }
+  }, [currentRideId, router, toast, foundDriver]);
 
 
   const geocodeAddress = useCallback(async (address: string): Promise<Suggestion | null> => {
@@ -134,16 +170,18 @@ function RequestRidePage() {
     
     handleRerideRequest();
 
-    const pendingRequest = getItem<{driver: FoundDriver}>(RIDE_REQUEST_KEY);
+    const pendingRequest = getItem<{rideId: string, driver?: FoundDriver}>(RIDE_REQUEST_KEY);
     if(pendingRequest) {
-      setFoundDriver(pendingRequest.driver);
-      toast({ title: "Motorista encontrado!", description: `${pendingRequest.driver.name} está a caminho.` });
+      setCurrentRideId(pendingRequest.rideId);
+      if (pendingRequest.driver) {
+        setFoundDriver(pendingRequest.driver);
+      }
     }
   }, [geocodeAddress, toast]);
 
   useEffect(() => {
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
-    if (rerideRequest) return;
+    if (rerideRequest || currentRideId) return;
 
     if (mapboxToken) {
         navigator.geolocation.getCurrentPosition(async (position) => {
@@ -160,7 +198,7 @@ function RequestRidePage() {
           }
         });
     }
-  }, [mapboxToken]);
+  }, [mapboxToken, currentRideId]);
 
   const debounce = (func: Function, delay: number) => {
     let timeout: NodeJS.Timeout;
@@ -293,33 +331,9 @@ function RequestRidePage() {
         const finalFare = fareOffer;
 
         try {
-            const driversQuery = query(
-                collection(db, "profiles"), 
-                where("role", "==", "motorista"), 
-                where("status", "==", "Ativo"), 
-                limit(1)
-            );
-            
-            const querySnapshot = await getDocs(driversQuery);
-
-            if (querySnapshot.empty) {
-                toast({
-                    variant: "destructive",
-                    title: "Nenhum motorista disponível",
-                    description: "Por favor, tente novamente mais tarde.",
-                });
-                setIsRequesting(false);
-                return;
-            }
-
-            const driverDoc = querySnapshot.docs[0];
-            const driverData = driverDoc.data();
-
              const rideDocRef = await addDoc(collection(db, "rides"), {
                 passengerId: user.id,
                 passengerName: user.name,
-                driverId: driverDoc.id,
-                driverName: driverData.name || 'Motorista',
                 pickupAddress: selectedPickup.place_name,
                 destinationAddress: selectedDestination.place_name,
                 pickupCoords: {
@@ -336,75 +350,25 @@ function RequestRidePage() {
                 status: "pending",
                 createdAt: serverTimestamp(),
             });
-
-
-            const finalRideRequest = {
-                id: rideDocRef.id,
-                fare: finalFare,
-                pickupAddress: selectedPickup.place_name,
-                destination: selectedDestination.place_name,
-                tripDistance: 8.2, 
-                tripTime: 20,
-                rideCategory: rideCategory,
-                paymentMethod: paymentMethod,
-                passenger: {
-                    name: user.name,
-                    avatarUrl: `https://placehold.co/80x80.png`,
-                    rating: 4.8,
-                    phone: user.phone || '5511988887777', // Use registered phone or a fallback
-                },
-                 driver: {
-                    id: driverDoc.id,
-                    name: driverData.name || 'Motorista',
-                    avatarUrl: driverData.avatarUrl || `https://placehold.co/80x80.png`,
-                    rating: driverData.rating || 4.9,
-                    vehicle: {
-                        model: driverData.vehicle_model || 'Veículo Padrão',
-                        licensePlate: driverData.vehicle_license_plate || 'ABC-1234'
-                    },
-                    eta: Math.floor(Math.random() * 5) + 3,
-                },
-                route: {
-                    pickup: { lat: selectedPickup.center[1], lng: selectedPickup.center[0] },
-                    destination: { lat: selectedDestination.center[1], lng: selectedDestination.center[0] },
-                    coordinates: route || []
-                }
-            };
-
-            setItem(RIDE_REQUEST_KEY, finalRideRequest);
-            setFoundDriver(finalRideRequest.driver);
+            
+            setCurrentRideId(rideDocRef.id);
+            setItem(RIDE_REQUEST_KEY, { rideId: rideDocRef.id });
 
             toast({
                 title: "Solicitação Enviada!",
                 description: "Buscando o melhor motorista para você.",
             });
-            setIsRequesting(false);
 
         } catch (error) {
-            console.error("Error finding driver:", error);
+            console.error("Error creating ride request:", error);
             toast({
                 variant: "destructive",
                 title: "Erro ao solicitar corrida",
-                description: "Não foi possível encontrar um motorista. Tente novamente.",
+                description: "Não foi possível criar sua solicitação. Tente novamente.",
             });
         } finally {
             setIsRequesting(false);
         }
-  };
-  
-   const handleCancelRide = () => {
-        setFoundDriver(null);
-        setSelectedDestination(null);
-        setDestinationInput("");
-        setFareOffer(0);
-        setRoute(null);
-        removeItem(RIDE_REQUEST_KEY);
-        toast({ title: "Corrida cancelada.", description: "Você pode solicitar uma nova corrida quando quiser." });
-    };
-
-  const handleCancelSearch = () => {
-    setIsSearching(false);
-    removeItem(RIDE_REQUEST_KEY);
   };
 
   const handleSavedAddressClick = async (type: AddressType) => {
@@ -506,11 +470,22 @@ function RequestRidePage() {
                             <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
                          </div>
                      </div>
-                     <Button variant="destructive" className="w-full h-12" onClick={handleCancelRide}>
-                         <X className="mr-2 h-4 w-4"/> Cancelar Corrida
-                     </Button>
                  </CardContent>
              </Card>
+         ) : currentRideId ? (
+            <AlertDialog open={true}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-center">Procurando por um motorista</AlertDialogTitle>
+                        <AlertDialogDescription className="text-center">
+                        Aguarde enquanto encontramos o motorista mais próximo para você.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="flex justify-center items-center py-8">
+                        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
@@ -632,7 +607,7 @@ function RequestRidePage() {
                   </div>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                      <Button className="w-full h-12 text-base font-bold" variant="default" disabled={!destinationInput || fareOffer <= 0 || isRequesting} onClick={handleConfirmRequest}>
                         {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Solicitar Corrida
                       </Button>
@@ -650,25 +625,6 @@ function RequestRidePage() {
               </Card>
           )}
       </div>
-
-       <AlertDialog open={isSearching && !foundDriver}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center">Procurando por um motorista</AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              Aguarde enquanto encontramos o motorista mais próximo para você.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-          </div>
-          <AlertDialogFooter>
-             <Button variant="outline" className="w-full" onClick={handleCancelSearch}>
-                Cancelar Busca
-             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
             <DialogContent>

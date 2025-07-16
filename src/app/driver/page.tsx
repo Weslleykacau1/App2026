@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 
-type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
+type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
 
 const surgeZones = [
   { lat: -3.742, lng: -38.512, price: 14 }, // Aldeota
@@ -56,7 +56,7 @@ function DriverDashboard() {
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
   const isInitialLoad = useRef(true);
   const [paymentPreferences, setPaymentPreferences] = useState<Record<PaymentMethod, boolean>>({
-    'Máquina de Cartão': true,
+    'Cartão': true,
     'PIX': true,
     'Dinheiro': true,
   });
@@ -418,5 +418,3 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

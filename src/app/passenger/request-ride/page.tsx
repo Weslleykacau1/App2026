@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 type RideCategory = "comfort" | "executive";
-type PaymentMethod = "Máquina de Cartão" | "PIX" | "Dinheiro";
+type PaymentMethod = "Cartão" | "PIX" | "Dinheiro";
 type AddressType = 'home' | 'work';
 
 
@@ -111,7 +111,7 @@ function RequestRidePage() {
   const { toast } = useToast();
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Máquina de Cartão");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cartão");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [currentRideId, setCurrentRideId] = useState<string | null>(null);
   const [rideStatus, setRideStatus] = useState<string | null>(null);
@@ -200,7 +200,6 @@ function RequestRidePage() {
       return () => unsubscribe();
     }
   }, [currentRideId, router, toast, foundDriver]);
-
 
   const geocodeAddress = useCallback(async (address: string): Promise<Suggestion | null> => {
     if (!mapboxToken) return null;
@@ -411,7 +410,7 @@ function RequestRidePage() {
   };
     
   const paymentIcons: { [key in PaymentMethod]: React.ReactNode } = {
-        "Máquina de Cartão": <CreditCard className="h-5 w-5 text-muted-foreground"/>,
+        "Cartão": <CreditCard className="h-5 w-5 text-muted-foreground"/>,
         "PIX": <Landmark className="h-5 w-5 text-muted-foreground"/>,
         "Dinheiro": <Wallet className="h-5 w-5 text-muted-foreground"/>
     }
@@ -695,4 +694,3 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
-

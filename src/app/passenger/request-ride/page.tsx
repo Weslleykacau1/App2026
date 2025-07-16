@@ -19,7 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setItem, getItem, removeItem } from "@/lib/storage";
-import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
@@ -65,7 +64,7 @@ function RequestRidePage() {
   const [destinationInput, setDestinationInput] = useState("");
   const [fareOffer, setFareOffer] = useState(0);
   const [tripDistance, setTripDistance] = useState(0);
-  const [tipPercentage, setTipPercentage] = useState(0);
+  const [farePerKm, setFarePerKm] = useState(0);
 
   const [pickupSuggestions, setPickupSuggestions] = useState<Suggestion[]>([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState<Suggestion[]>([]);
@@ -242,10 +241,11 @@ function RequestRidePage() {
 
             const adminFares = getItem<{ comfort: string, executive: string }>(ADMIN_FARES_KEY) || { comfort: '1.80', executive: '2.20' };
             const ratePerKm = rideCategory === 'viagem' ? parseFloat(adminFares.comfort) : parseFloat(adminFares.executive);
+            setFarePerKm(ratePerKm);
+            
             const baseFare = distanceInKm * ratePerKm;
             
             setFareOffer(baseFare);
-            setTipPercentage(0); // Reset tip when route changes
             
             if(mapRef.current) {
                 mapRef.current.fitBounds([selectedPickup.center as LngLatLike, selectedDestination.center as LngLatLike], { padding: 80, duration: 1000 });
@@ -290,7 +290,7 @@ function RequestRidePage() {
         
         setIsRequesting(true);
 
-        const finalFare = fareOffer * (1 + tipPercentage / 100);
+        const finalFare = fareOffer;
 
         try {
             const driversQuery = query(
@@ -461,7 +461,7 @@ function RequestRidePage() {
     </div>
   );
   
-  const finalFare = fareOffer * (1 + tipPercentage / 100);
+  const finalFare = fareOffer;
 
 
   return (
@@ -621,20 +621,11 @@ function RequestRidePage() {
                                     <Label htmlFor="fare" className="text-base font-bold">
                                         Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                     </Label>
-                                    <span className="text-xs text-muted-foreground">
-                                        Base: {fareOffer.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Slider
-                                        id="fare"
-                                        min={0}
-                                        max={20}
-                                        step={1}
-                                        value={[tipPercentage]}
-                                        onValueChange={(value) => setTipPercentage(value[0])}
-                                    />
-                                    <span className="text-sm font-medium w-12 text-right">+{tipPercentage}%</span>
+                                    {farePerKm > 0 && (
+                                         <span className="text-xs text-muted-foreground">
+                                            {farePerKm.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/km
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         )}

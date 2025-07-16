@@ -291,7 +291,7 @@ function OnRidePage() {
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction onClick={handleFinishRide}>
-                                Receber e Finalizar
+                                Finalizar corrida e avaliar passageiro
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

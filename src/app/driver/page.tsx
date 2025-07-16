@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
-import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff, SteeringWheel } from "lucide-react";
+import { Menu, Shield, Phone, BarChart2, LocateFixed, Eye, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -283,7 +283,19 @@ function DriverDashboard() {
                             onCheckedChange={setIsOnline}
                             className="h-12 w-24 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-muted"
                         >
-                            <SteeringWheel className={cn("h-6 w-6 text-muted-foreground transition-colors", isOnline && "text-white")} />
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={cn("h-6 w-6 transition-colors", isOnline ? "text-white" : "text-muted-foreground")}
+                            >
+                                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="2"/>
+                                <path d="M12 2V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <path d="M12 19V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <path d="M5 12H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <path d="M22 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
                         </Switch>
                   </div>
                   
@@ -304,5 +316,3 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    

@@ -6,7 +6,7 @@ import { withAuth } from "@/components/with-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2, Mic, Languages, Undo2, Pencil } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Edit, FileText, Moon, Bell, MapPin, Globe, Share2, EyeOff, Save, LogOut, Camera, Library, Settings, History, Shield, ShieldCheck, Home, Briefcase, Plus, Calendar, ChevronRight, Upload, CheckSquare, Trash2, Mic, Languages, Undo2, Pencil, Car, ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth, User as AuthUser } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +22,12 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getItem, setItem } from "@/lib/storage";
+import { getItem, setItem, removeItem } from "@/lib/storage";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useLanguage } from "@/context/language-context";
 import { BottomNavBar } from "@/components/bottom-nav-bar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type ModalType = 'upload-photo' | null;
 type AddressType = 'home' | 'work' | 'custom' | { type: 'edit_custom', id: string };
@@ -47,6 +48,9 @@ interface Ride {
     };
     status: 'completed' | 'cancelled';
 }
+
+const PRESELECTED_DESTINATION_KEY = 'preselected_destination';
+
 
 function ProfilePageContent() {
     const router = useRouter();
@@ -367,6 +371,20 @@ function ProfilePageContent() {
         router.push('/passenger/request-ride');
     };
     
+    const handleRequestRideToSavedAddress = (address: string | null) => {
+        if (!address) {
+            toast({
+                variant: "destructive",
+                title: "Endereço não encontrado",
+                description: "Adicione este endereço no seu perfil primeiro.",
+            });
+            return;
+        }
+        setItem(PRESELECTED_DESTINATION_KEY, address);
+        router.push('/passenger/request-ride');
+    };
+
+
      const renderCustomLocationItem = (location: SavedLocation) => (
          <div key={location.id}>
             <div className="w-full h-auto justify-between items-center py-4 px-2 flex">
@@ -378,6 +396,9 @@ function ProfilePageContent() {
                     </div>
                 </div>
                 <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRequestRideToSavedAddress(location.address)}>
+                        <Car className="h-4 w-4 text-primary"/>
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenAddressSheet({ type: 'edit_custom', id: location.id }, location)}>
                         <Edit className="h-4 w-4"/>
                     </Button>
@@ -581,9 +602,23 @@ function ProfilePageContent() {
                                    <p className="text-xs text-muted-foreground">{profileData.homeAddress || t('profile.address.add_home')}</p>
                                </div>
                            </div>
-                           <Button variant="ghost" size="icon" onClick={() => handleOpenAddressSheet('home')}>
-                               {profileData.homeAddress ? <Pencil className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-primary" />}
-                           </Button>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleRequestRideToSavedAddress(profileData.homeAddress)}>
+                                        <Car className="mr-2 h-4 w-4" />
+                                        Solicitar Corrida
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleOpenAddressSheet('home')}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        {profileData.homeAddress ? 'Editar' : 'Adicionar'}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                          <div className="flex items-center justify-between py-3 px-2">
                            <div className="flex items-center gap-4">
@@ -593,9 +628,23 @@ function ProfilePageContent() {
                                    <p className="text-xs text-muted-foreground">{profileData.workAddress || t('profile.address.add_work')}</p>
                                </div>
                            </div>
-                           <Button variant="ghost" size="icon" onClick={() => handleOpenAddressSheet('work')}>
-                               {profileData.workAddress ? <Pencil className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-primary" />}
-                           </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleRequestRideToSavedAddress(profileData.workAddress)}>
+                                        <Car className="mr-2 h-4 w-4" />
+                                        Solicitar Corrida
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleOpenAddressSheet('work')}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        {profileData.workAddress ? 'Editar' : 'Adicionar'}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
 
                         {profileData.savedLocations.map(renderCustomLocationItem)}

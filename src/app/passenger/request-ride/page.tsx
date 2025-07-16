@@ -66,6 +66,7 @@ interface AppFareConfig {
 const RIDE_REQUEST_KEY = 'passenger_current_ride';
 const RERIDE_REQUEST_KEY = 'reride_request';
 const ADMIN_FARES_CONFIG_KEY = 'admin_fares_config';
+const PRESELECTED_DESTINATION_KEY = 'preselected_destination';
 const SURGE_MULTIPLIER = 1.3;
 
 
@@ -241,7 +242,20 @@ function RequestRidePage() {
       }
     };
     
+    const handlePreselectedDestination = async () => {
+        const preselectedDestination = getItem<string>(PRESELECTED_DESTINATION_KEY);
+        if (preselectedDestination) {
+            removeItem(PRESELECTED_DESTINATION_KEY);
+            setDestinationInput(preselectedDestination);
+            const destinationSuggestion = await geocodeAddress(preselectedDestination);
+            if (destinationSuggestion) {
+                setSelectedDestination(destinationSuggestion);
+            }
+        }
+    };
+
     handleRerideRequest();
+    handlePreselectedDestination();
 
     const pendingRequest = getItem<{rideId: string, driver?: FoundDriver}>(RIDE_REQUEST_KEY);
     if(pendingRequest) {
@@ -256,7 +270,8 @@ function RequestRidePage() {
 
   useEffect(() => {
     const rerideRequest = getItem(RERIDE_REQUEST_KEY);
-    if (rerideRequest || currentRideId) return;
+    const preselectedDest = getItem(PRESELECTED_DESTINATION_KEY);
+    if (rerideRequest || currentRideId || preselectedDest) return;
 
     if (mapboxToken) {
         navigator.geolocation.getCurrentPosition(async (position) => {

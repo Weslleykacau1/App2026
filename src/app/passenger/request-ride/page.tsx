@@ -595,96 +595,105 @@ function RequestRidePage() {
                 </AlertDialogContent>
             </AlertDialog>
          ) : (
-            <Card className="shadow-2xl rounded-2xl bg-card">
-                <CardContent className="p-2 space-y-3">
-                   <div className="space-y-2 px-1">
-                        <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
-                            <PopoverAnchor asChild>
-                                <div className="relative flex items-center">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <>
+                {!route && (
+                    <div className="w-full px-4 mb-2 pointer-events-none">
+                        <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center pointer-events-auto">
+                            <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
+                        </div>
+                    </div>
+                 )}
+                <Card className="shadow-2xl rounded-2xl bg-card">
+                    <CardContent className="p-2 space-y-3">
+                    <div className="space-y-2 px-1">
+                            <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
+                                <PopoverAnchor asChild>
+                                    <div className="relative flex items-center">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                        <Input
+                                            id="pickup"
+                                            placeholder="Local de embarque"
+                                            className="pl-10 h-11 text-base bg-muted border-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            value={pickupInput}
+                                            onChange={handlePickupChange}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                </PopoverAnchor>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                                    {pickupSuggestions.map((suggestion) => (
+                                        <Button key={suggestion.id} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal" onClick={() => handleSelectSuggestion(suggestion, 'pickup')}>
+                                        {suggestion.place_name}
+                                        </Button>
+                                    ))}
+                                </PopoverContent>
+                            </Popover>
+                            <Popover open={isDestinationSuggestionsOpen} onOpenChange={setIsDestinationSuggestionsOpen}>
+                                <PopoverAnchor asChild>
+                                    <div className="relative flex items-center">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                     <Input
-                                        id="pickup"
-                                        placeholder="Local de embarque"
-                                        className="pl-10 h-11 text-base bg-muted border-none focus-visible:ring-1 focus-visible:ring-ring"
-                                        value={pickupInput}
-                                        onChange={handlePickupChange}
+                                        id="destination"
+                                        placeholder="Para onde vamos?"
+                                        className="pl-10 h-11 text-base bg-muted border-none"
+                                        required
+                                        value={destinationInput}
+                                        onChange={handleDestinationChange}
                                         autoComplete="off"
                                     />
+                                    </div>
+                                </PopoverAnchor>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
+                                    {destinationSuggestions.map((suggestion) => (
+                                        <Button key={suggestion.id} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal" onClick={() => handleSelectSuggestion(suggestion, 'destination')}>
+                                        {suggestion.place_name}
+                                        </Button>
+                                    ))}
+                                </PopoverContent>
+                            </Popover>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 px-1">
+                        <RideCategoryCard type="comfort" name="Comfort" seats={4} description="4 lugares, porta-malas maior" icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
+                        <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                    </div>
+                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
+                        {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
+                            <Label key={method} htmlFor={method} className={cn(
+                                "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                            )}>
+                                <RadioGroupItem value={method} id={method} className="sr-only" />
+                                {paymentIcons[method]}
+                                <span className="text-xs font-semibold mt-1">{method}</span>
+                            </Label>
+                        ))}
+                    </RadioGroup>
+                    
+                    <div className="flex items-center gap-2 px-1">
+                        {fare > 0 && (
+                            <div className="flex-1 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
+                                <div className="flex items-center justify-between">
+                                <Label htmlFor="fare" className="text-base font-bold">
+                                    Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                                </Label>
+                                {isSurge && (
+                                    <Badge variant="destructive" className="gap-1">
+                                        <Zap className="h-4 w-4"/>
+                                        Alta Demanda
+                                    </Badge>
+                                )}
                                 </div>
-                            </PopoverAnchor>
-                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                                {pickupSuggestions.map((suggestion) => (
-                                    <Button key={suggestion.id} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal" onClick={() => handleSelectSuggestion(suggestion, 'pickup')}>
-                                    {suggestion.place_name}
-                                    </Button>
-                                ))}
-                            </PopoverContent>
-                        </Popover>
-                        <Popover open={isDestinationSuggestionsOpen} onOpenChange={setIsDestinationSuggestionsOpen}>
-                            <PopoverAnchor asChild>
-                                <div className="relative flex items-center">
-                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                  <Input
-                                    id="destination"
-                                    placeholder="Para onde vamos?"
-                                    className="pl-10 h-11 text-base bg-muted border-none"
-                                    required
-                                    value={destinationInput}
-                                    onChange={handleDestinationChange}
-                                    autoComplete="off"
-                                  />
-                                </div>
-                            </PopoverAnchor>
-                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1">
-                                {destinationSuggestions.map((suggestion) => (
-                                    <Button key={suggestion.id} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal" onClick={() => handleSelectSuggestion(suggestion, 'destination')}>
-                                    {suggestion.place_name}
-                                    </Button>
-                                ))}
-                            </PopoverContent>
-                        </Popover>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 px-1">
-                      <RideCategoryCard type="comfort" name="Comfort" seats={4} description="4 lugares, porta-malas maior" icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
-                      <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
-                  </div>
-                   <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
-                      {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
-                           <Label key={method} htmlFor={method} className={cn(
-                              "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
-                              paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
-                           )}>
-                              <RadioGroupItem value={method} id={method} className="sr-only" />
-                              {paymentIcons[method]}
-                              <span className="text-xs font-semibold mt-1">{method}</span>
-                           </Label>
-                      ))}
-                  </RadioGroup>
-                  
-                  <div className="flex items-center gap-2 px-1">
-                      {fare > 0 && (
-                          <div className="flex-1 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
-                            <div className="flex items-center justify-between">
-                              <Label htmlFor="fare" className="text-base font-bold">
-                                  Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                              </Label>
-                               {isSurge && (
-                                <Badge variant="destructive" className="gap-1">
-                                    <Zap className="h-4 w-4"/>
-                                    Alta Demanda
-                                </Badge>
-                               )}
                             </div>
-                          </div>
-                      )}
-                      <Button className="h-12 text-base font-bold flex-1" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
-                        {isRequesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Solicitar
-                      </Button>
-                  </div>
+                        )}
+                        <Button className="h-12 text-base font-bold flex-1" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                            {isRequesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Solicitar
+                        </Button>
+                    </div>
 
-                </CardContent>
-              </Card>
+                    </CardContent>
+                </Card>
+            </>
           )}
       </div>
 

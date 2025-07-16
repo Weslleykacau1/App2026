@@ -392,7 +392,8 @@ function ProfilePageContent() {
         if (addressTypeToSet === 'home') return "Editar endereço de Casa";
         if (addressTypeToSet === 'work') return "Editar endereço de Trabalho";
         if (addressTypeToSet === 'custom') return "Adicionar novo local";
-        if (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') return "Editar local salvo";
+        if (addressTypeToSet && typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom') return "Editar local salvo";
+        return "";
     };
 
     return (
@@ -568,7 +569,7 @@ function ProfilePageContent() {
                         <SheetTitle>{getSheetTitle()}</SheetTitle>
                     </SheetHeader>
                     <div className="py-4 space-y-4">
-                         {(addressTypeToSet === 'custom' || (typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom')) && (
+                         {(addressTypeToSet === 'custom' || (addressTypeToSet && typeof addressTypeToSet === 'object' && addressTypeToSet.type === 'edit_custom')) && (
                             <div>
                                 <Label htmlFor="location-name">Nome do Local</Label>
                                 <Input 
@@ -613,3 +614,5 @@ export default function ProfilePage() {
     )
 }
  
+
+    

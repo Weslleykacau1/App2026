@@ -9,7 +9,7 @@ import MapGL, { Marker, GeolocateControl, MapRef } from 'react-map-gl';
 import { useTheme } from 'next-themes';
 import { Menu, Shield, Phone, LocateFixed, Eye, EyeOff, Radio, Bell, TestTube2, X } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getItem, setItem } from '@/lib/storage';
 import { AvailableRidesDrawer } from '@/components/available-rides-drawer';
 import { Badge } from '@/components/ui/badge';
@@ -323,7 +323,3 @@ function DriverDashboard() {
 }
 
 export default withAuth(DriverDashboard, ["driver"]);
-
-    
-
-    

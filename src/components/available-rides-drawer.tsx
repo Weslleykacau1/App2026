@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -14,13 +14,14 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { setItem } from '@/lib/storage';
 import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface RideRequest {
     id: string;
     passengerId: string;
     passengerName: string;
-    driverId: string;
-    driverName: string;
+    driverId?: string; // Driver is not assigned yet
+    driverName?: string;
     pickupAddress: string;
     destinationAddress: string;
     fare: number;
@@ -39,12 +40,15 @@ interface AvailableRidesDrawerProps {
 }
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
+const CURRENT_RIDE_KEY = 'current_ride_data';
 
 export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawerProps) {
     const { user: driver } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
     const [rides, setRides] = useState<RideRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [acceptingRideId, setAcceptingRideId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!open) return;
@@ -72,45 +76,56 @@ export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawe
         return () => unsubscribe();
     }, [open]);
 
-    const handleAcceptRide = (ride: RideRequest) => {
+    const handleAcceptRide = async (ride: RideRequest) => {
         if (!driver) return;
+        setAcceptingRideId(ride.id);
 
-        const rideRequestForDriver = {
-            id: ride.id,
-            fare: ride.fare,
-            pickupAddress: ride.pickupAddress,
-            destination: ride.destinationAddress,
-            tripDistance: 0, // This would need to be calculated or stored
-            tripTime: 0, // This would need to be calculated or stored
-            rideCategory: ride.category,
-            paymentMethod: ride.paymentMethod,
-            passenger: {
-                name: ride.passengerName,
-                avatarUrl: `https://placehold.co/80x80.png`,
-                rating: 4.8, // This should come from passenger profile
-                phone: '5511988887777', // Placeholder phone
-            },
-            driver: {
-                id: driver.id,
-                name: driver.name,
-                avatarUrl: `https://placehold.co/80x80.png`, // driver avatar
-                rating: 4.9, // driver rating
-                vehicle: {
-                    model: driver.vehicle_model || 'Veículo Padrão',
-                    licensePlate: driver.vehicle_license_plate || 'ABC-1234'
+        try {
+            const rideDocRef = doc(db, "rides", ride.id);
+            await updateDoc(rideDocRef, {
+                driverId: driver.id,
+                driverName: driver.name,
+                status: 'accepted'
+            });
+
+            const rideDataForDriver = {
+                id: ride.id,
+                fare: ride.fare,
+                pickupAddress: ride.pickupAddress,
+                destination: ride.destinationAddress,
+                passenger: {
+                    name: ride.passengerName,
+                    avatarUrl: `https://placehold.co/80x80.png`, // Should come from passenger profile
+                    rating: 4.8, // Should come from passenger profile
+                    phone: '5511999999999', // Placeholder phone
                 },
-                eta: Math.floor(Math.random() * 5) + 3,
-            },
-            route: {
-                pickup: { lat: ride.pickupCoords.lat, lng: ride.pickupCoords.lng },
-                destination: { lat: ride.destinationCoords.lat, lng: ride.destinationCoords.lng },
-                coordinates: ride.route || []
-            }
-        };
+                route: {
+                    pickup: { lat: ride.pickupCoords.lat, lng: ride.pickupCoords.lng },
+                    destination: { lat: ride.destinationCoords.lat, lng: ride.destinationCoords.lng },
+                    coordinates: ride.route?.coordinates || []
+                }
+            };
+            
+            setItem(CURRENT_RIDE_KEY, rideDataForDriver);
 
-        setItem(RIDE_REQUEST_KEY, rideRequestForDriver);
-        onOpenChange(false);
-        router.push('/driver/accept-ride');
+            toast({
+                title: 'Corrida Aceita!',
+                description: 'Navegando para os detalhes da corrida.',
+            });
+            
+            onOpenChange(false);
+            router.push('/driver/on-ride');
+
+        } catch (error) {
+            console.error("Error accepting ride:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Erro ao aceitar',
+                description: 'A corrida pode não estar mais disponível. Tente outra.',
+            });
+        } finally {
+            setAcceptingRideId(null);
+        }
     };
 
     return (
@@ -163,8 +178,13 @@ export function AvailableRidesDrawer({ open, onOpenChange }: AvailableRidesDrawe
                                                 <p>{ride.createdAt.toLocaleTimeString('pt-BR')}</p>
                                             </div>
                                         </div>
-                                        <Button className="w-full" onClick={() => handleAcceptRide(ride)}>
-                                            Aceitar Corrida
+                                        <Button 
+                                            className="w-full" 
+                                            onClick={() => handleAcceptRide(ride)}
+                                            disabled={acceptingRideId === ride.id}
+                                        >
+                                            {acceptingRideId === ride.id && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                            {acceptingRideId === ride.id ? 'Aceitando...' : 'Aceitar Corrida'}
                                         </Button>
                                     </CardContent>
                                 </Card>

@@ -157,3 +157,5 @@ function StatisticsPage() {
 }
 
 export default withAuth(StatisticsPage, ["driver"]);
+
+    

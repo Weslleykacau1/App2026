@@ -77,8 +77,8 @@ export const translations = {
           from: "De:",
           to: "Para:",
           status: {
-              concluída: "Concluída",
-              cancelada: "Cancelada"
+              completed: "Concluída",
+              cancelled: "Cancelada"
           },
           request_again_btn: "Solicitar Novamente",
           no_rides: "Suas viagens aparecerão aqui.",
@@ -203,8 +203,8 @@ export const translations = {
           from: "From:",
           to: "To:",
           status: {
-              concluída: "Completed",
-              cancelada: "Canceled"
+              completed: "Completed",
+              cancelled: "Cancelled"
           },
           request_again_btn: "Request Again",
           no_rides: "Your trips will appear here.",
@@ -270,7 +270,3 @@ type DotNestedKeys<T> = (T extends object ?
 
 
 export type TranslationKey = DotNestedKeys<typeof translations.pt>;
-
-    
-
-    

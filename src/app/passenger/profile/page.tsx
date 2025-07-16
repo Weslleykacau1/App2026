@@ -45,7 +45,7 @@ interface Ride {
     createdAt: {
         toDate: () => Date;
     };
-    status: 'concluída' | 'cancelada';
+    status: 'completed' | 'cancelled';
 }
 
 function ProfilePageContent() {
@@ -350,7 +350,7 @@ function ProfilePageContent() {
     };
     
     const handleRequestAgain = (ride: Ride) => {
-        if (ride.status === 'cancelada') {
+        if (ride.status === 'cancelled') {
             toast({
                 variant: 'destructive',
                 title: t('toast.reride_cancelled_title'),
@@ -720,7 +720,7 @@ function ProfilePageContent() {
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <Badge variant={ride.status === 'concluída' ? "secondary" : "destructive"}>
+                                            <Badge variant={ride.status === 'completed' ? "secondary" : "destructive"}>
                                                 {t(`profile.history.status.${ride.status}`)}
                                             </Badge>
                                              <Button variant="outline" size="sm" onClick={() => handleRequestAgain(ride)}>
@@ -750,8 +750,3 @@ export default function ProfilePage() {
         </Suspense>
     )
 }
- 
-
-    
-
-    

@@ -163,7 +163,7 @@ function OnRidePage() {
     if (!rideData) return;
     try {
         const rideDocRef = doc(db, "rides", rideData.id);
-        await updateDoc(rideDocRef, { status: 'finished' });
+        await updateDoc(rideDocRef, { status: 'completed' });
 
         const currentEarnings = parseFloat(sessionStorage.getItem('today_earnings') || '0');
         const newEarnings = currentEarnings + rideData.fare;

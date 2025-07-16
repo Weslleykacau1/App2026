@@ -120,7 +120,7 @@ function RequestRidePage() {
           setItem(RIDE_REQUEST_KEY, { rideId: currentRideId, driver: driverInfo });
           toast({ title: "Motorista encontrado!", description: `${driverInfo.name} está a caminho.` });
         }
-        else if (rideData && rideData.status === 'finished') {
+        else if (rideData && rideData.status === 'completed') {
           // Ride finished, navigate to rating page
           const rideForRating = { 
               driverName: rideData.driverName, 
@@ -557,23 +557,6 @@ function RequestRidePage() {
          ) : (
             <Card className="shadow-2xl rounded-2xl bg-card">
                 <CardContent className="p-2 space-y-3">
-                    <div className="grid grid-cols-2 gap-2 px-1">
-                        <RideCategoryCard type="comfort" name="Comfort" seats={4} icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
-                        <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-8 w-8 text-secondary-foreground" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
-                   </div>
-                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
-                        {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
-                             <Label key={method} htmlFor={method} className={cn(
-                                "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
-                                paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
-                             )}>
-                                <RadioGroupItem value={method} id={method} className="sr-only" />
-                                {paymentIcons[method]}
-                                <span className="text-xs font-semibold mt-1">{method}</span>
-                             </Label>
-                        ))}
-                    </RadioGroup>
-                   
                    <div className="space-y-2 px-1">
                         <div className="flex gap-2">
                             <Button variant="ghost" className="flex-1 bg-muted h-14" onClick={() => handleSavedAddressClick('home')}>
@@ -630,27 +613,35 @@ function RequestRidePage() {
                                 ))}
                             </PopoverContent>
                         </Popover>
-
-                        {fare > 0 && (
-                            <div className="space-y-3 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
-                                <div className="flex justify-between items-center">
-                                    <Label htmlFor="fare" className="text-base font-bold">
-                                        Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                                    </Label>
-                                    {farePerKm > 0 && (
-                                         <span className="text-xs text-muted-foreground">
-                                            {farePerKm.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/km
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                   </div>
+                  <div className="grid grid-cols-2 gap-2 px-1">
+                      <RideCategoryCard type="comfort" name="Comfort" seats={4} icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
+                      <RideCategoryCard type="executive" name="Executive" seats={4} icon={<Car className="h-8 w-8 text-secondary-foreground" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
+                  </div>
+                   <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="grid grid-cols-3 gap-2 px-1">
+                      {(Object.keys(paymentIcons) as PaymentMethod[]).map((method) => (
+                           <Label key={method} htmlFor={method} className={cn(
+                              "flex flex-col items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                              paymentMethod === method ? "border-primary bg-primary/10" : "border-transparent bg-muted"
+                           )}>
+                              <RadioGroupItem value={method} id={method} className="sr-only" />
+                              {paymentIcons[method]}
+                              <span className="text-xs font-semibold mt-1">{method}</span>
+                           </Label>
+                      ))}
+                  </RadioGroup>
                   
                   <div className="flex items-center gap-2 px-1">
-                      <Button className="w-full h-12 text-base font-bold" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
-                        {isRequesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Solicitar Corrida
+                      {fare > 0 && (
+                          <div className="flex-1 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
+                              <Label htmlFor="fare" className="text-base font-bold">
+                                  Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                              </Label>
+                          </div>
+                      )}
+                      <Button className="h-12 text-base font-bold flex-1" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                        {isRequesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Solicitar
                       </Button>
                   </div>
 

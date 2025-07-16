@@ -40,7 +40,7 @@ interface Ride {
     createdAt: {
         toDate: () => Date;
     };
-    status: 'concluída' | 'cancelada';
+    status: 'completed' | 'cancelled';
 }
 
 
@@ -632,7 +632,7 @@ function DriverProfilePage() {
                                             <p><span className="font-medium text-foreground">{t('profile.history.from')}</span> {ride.pickupAddress}</p>
                                             <p><span className="font-medium text-foreground">{t('profile.history.to')}</span> {ride.destinationAddress}</p>
                                         </div>
-                                        <Badge variant={ride.status === 'concluída' ? "secondary" : "destructive"}>
+                                        <Badge variant={ride.status === 'completed' ? "secondary" : "destructive"}>
                                             {t(`profile.history.status.${ride.status}`)}
                                         </Badge>
                                     </div>
@@ -648,5 +648,3 @@ function DriverProfilePage() {
 }
 
 export default withAuth(DriverProfilePage, ["driver"]);
-
-    

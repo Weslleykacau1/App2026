@@ -148,7 +148,7 @@ function RequestRidePage() {
   };
 
   const fetchSuggestions = async (query: string, type: 'pickup' | 'destination') => {
-    if (query.length < 3 || !mapboxToken) {
+    if (query.length < 10 || !mapboxToken) {
       if (type === 'pickup') setPickupSuggestions([]);
       else setDestinationSuggestions([]);
       return;
@@ -628,3 +628,5 @@ function RequestRidePage() {
 }
 
 export default withAuth(RequestRidePage, ["passenger"]);
+
+    

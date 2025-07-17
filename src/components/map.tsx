@@ -46,7 +46,13 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
           const { longitude, latitude } = position.coords;
           setUserLocation({ longitude, latitude });
         },
-        (error) => console.error("Error getting user location:", error),
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            console.warn("User denied geolocation permission");
+          } else {
+            console.error("Error getting user location:", error);
+          }
+        },
         { enableHighAccuracy: true }
     );
 

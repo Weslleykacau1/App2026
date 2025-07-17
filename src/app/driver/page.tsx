@@ -31,7 +31,7 @@ const surgeZones = [
 
 const RIDE_REQUEST_KEY = 'pending_ride_request';
 const DRIVER_ONLINE_STATUS_KEY = 'driver_online_status';
-const NOTIFICATION_SOUND_URL = "https://cdn.pixabay.com/audio/2022/03/15/audio_2c4102c9a2.mp3";
+const NOTIFICATION_SOUND_URL = "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3";
 const PAYMENT_PREFERENCES_KEY = 'driver_payment_preferences';
 
 

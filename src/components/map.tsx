@@ -50,7 +50,7 @@ export function Map({ mapRef, showMovingCar, pickup, destination, route }: { map
           if (error.code === error.PERMISSION_DENIED) {
             console.warn("User denied geolocation permission");
           } else {
-            console.error("Error getting user location:", error);
+            console.warn("Error getting user location:", error);
           }
         },
         { enableHighAccuracy: true }

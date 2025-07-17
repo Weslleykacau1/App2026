@@ -285,6 +285,15 @@ function RequestRidePage() {
           } else {
             setPickupInput("Localização atual");
           }
+        }, (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            toast({
+              title: "Localização negada",
+              description: "Para usar sua localização atual, permita o acesso à localização nas configurações do navegador.",
+              variant: "default"
+            });
+          }
+          setPickupInput("Digite seu local de embarque");
         });
     }
   }, [mapboxToken, currentRideId]);
@@ -406,6 +415,20 @@ function RequestRidePage() {
                 essential: true,
             });
         }
+    }, (error) => {
+      if (error.code === error.PERMISSION_DENIED) {
+        toast({
+          title: "Localização negada",
+          description: "Para usar sua localização atual, permita o acesso à localização nas configurações do navegador.",
+          variant: "default"
+        });
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        toast({
+          title: "Localização indisponível",
+          description: "Não foi possível obter sua localização atual.",
+          variant: "default"
+        });
+      }
     });
   };
     

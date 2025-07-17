@@ -228,14 +228,14 @@ function OnRidePage() {
 
       <div className="absolute top-0 left-0 right-0 p-4 space-y-2">
         <Card className="shadow-lg rounded-2xl">
-          <CardContent className="p-4 flex justify-between items-center">
+          <CardContent className="p-3 sm:p-4 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                 <AvatarImage src={rideData.passenger.avatarUrl || undefined} data-ai-hint="person avatar" />
                 <AvatarFallback>{rideData.passenger.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-bold">{rideData.passenger.name}</p>
+                <p className="font-bold text-sm sm:text-base">{rideData.passenger.name}</p>
                 <div className="flex items-center gap-1 text-sm">
                     <Star className="h-4 w-4 text-yellow-400" fill="currentColor"/>
                     <span>{rideData.passenger.rating.toFixed(1)}</span>
@@ -243,7 +243,7 @@ function OnRidePage() {
               </div>
             </div>
             <div className="flex gap-2">
-               <Button variant="outline" size="icon" className="h-12 w-12 rounded-full" onClick={handleOpenWhatsApp}>
+               <Button variant="outline" size="icon" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full" onClick={handleOpenWhatsApp}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -266,36 +266,36 @@ function OnRidePage() {
 
       <div className="absolute bottom-0 left-0 right-0 p-4">
         <Card className="w-full max-w-lg mx-auto rounded-2xl shadow-2xl overflow-hidden">
-          <CardContent className="p-4 space-y-4">
+          <CardContent className="p-3 sm:p-4 space-y-4">
             <div>
               {ridePhase === 'to_pickup' ? (
                  <>
                     <p className="text-sm text-muted-foreground">Buscar passageiro em:</p>
-                    <p className="font-bold text-lg">{rideData.pickupAddress}</p>
+                    <p className="font-bold text-base sm:text-lg">{rideData.pickupAddress}</p>
                  </>
               ) : (
                 <>
                     <p className="text-sm text-muted-foreground">Destino Final:</p>
-                    <p className="font-bold text-lg">{rideData.destination}</p>
+                    <p className="font-bold text-base sm:text-lg">{rideData.destination}</p>
                 </>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
-               <Button onClick={handleOpenWaze} className="h-14 text-base bg-sky-500 hover:bg-sky-600 text-white">
+               <Button onClick={handleOpenWaze} className="h-12 sm:h-14 text-sm sm:text-base bg-sky-500 hover:bg-sky-600 text-white">
                     Waze
                 </Button>
-                <Button onClick={handleOpenGoogleMaps} className="h-14 text-base bg-white hover:bg-gray-200 text-gray-800">
+                <Button onClick={handleOpenGoogleMaps} className="h-12 sm:h-14 text-sm sm:text-base bg-white hover:bg-gray-200 text-gray-800">
                     Maps
                 </Button>
             </div>
             {ridePhase === 'to_pickup' ? (
-                <Button onClick={handleStartRide} className="w-full h-12 text-base">
+                <Button onClick={handleStartRide} className="w-full h-12 text-sm sm:text-base">
                     Cheguei / Iniciar Corrida
                 </Button>
             ) : (
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full h-12 text-base">
+                        <Button variant="destructive" className="w-full h-12 text-sm sm:text-base">
                             Finalizar Corrida
                         </Button>
                     </AlertDialogTrigger>

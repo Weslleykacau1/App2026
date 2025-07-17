@@ -389,26 +389,26 @@ function DriverProfilePage() {
             <main className="flex-1 py-6 container mx-auto px-4 pb-24">
                 <div className="flex flex-col items-center text-center">
                      <div className="relative">
-                        <Avatar className="h-28 w-28 border-4 border-background shadow-md">
+                        <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-md">
                             <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                             <AvatarFallback>
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
-                         <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
+                         <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 sm:h-8 sm:w-8 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
                             <Plus className="h-5 w-5" />
                         </button>
                     </div>
-                    <h2 className="text-2xl font-bold mt-4">{profileData.name}</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold mt-4">{profileData.name}</h2>
                     <div className="flex items-center gap-2 mt-1">
                         <Star className="h-5 w-5 text-yellow-400 fill-current" />
                         <span className="font-semibold text-muted-foreground">4.8 (Avaliação)</span>
                     </div>
                         <Badge variant="outline" className="mt-3 bg-blue-100 text-blue-800 border-blue-300">{t('roles.driver')}</Badge>
-                        <p className="text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-2">{t('profile.member_since', { date: 'Fevereiro 2023' })}</p>
                 </div>
 
-                <Card className="mt-8">
+                <Card className="mt-6 sm:mt-8">
                      <CardHeader className="flex flex-row items-center justify-between">
                          <div>
                             <CardTitle>{t('profile.personal_info')}</CardTitle>
@@ -439,7 +439,7 @@ function DriverProfilePage() {
                      </CardContent>
                 </Card>
 
-                 <Card className="mt-6">
+                 <Card className="mt-4 sm:mt-6">
                      <CardHeader className="flex flex-row items-center justify-between">
                          <div>
                             <CardTitle>{t('profile.vehicle.title')}</CardTitle>
@@ -476,7 +476,7 @@ function DriverProfilePage() {
                 </Card>
 
 
-                <Card className="mt-6">
+                <Card className="mt-4 sm:mt-6">
                     <CardHeader>
                         <CardTitle>{t('profile.documents.title')}</CardTitle>
                     </CardHeader>
@@ -512,7 +512,7 @@ function DriverProfilePage() {
                     </CardContent>
                 </Card>
                 
-                 <Card className="mt-6">
+                 <Card className="mt-4 sm:mt-6">
                     <CardHeader>
                         <CardTitle>Configurações</CardTitle>
                     </CardHeader>
@@ -569,7 +569,7 @@ function DriverProfilePage() {
                     </CardContent>
                 </Card>
 
-                <Card className="mt-6">
+                <Card className="mt-4 sm:mt-6">
                      <CardHeader>
                         <CardTitle>{t('profile.settings.privacy_title')}</CardTitle>
                     </CardHeader>
@@ -585,7 +585,7 @@ function DriverProfilePage() {
                     </CardContent>
                 </Card>
 
-                <Card className="mt-6">
+                <Card className="mt-4 sm:mt-6">
                     <CardHeader>
                         <CardTitle>{t('profile.history.title')}</CardTitle>
                         <CardDescription>{t('profile.history.description')}</CardDescription>
@@ -597,7 +597,7 @@ function DriverProfilePage() {
                     </CardContent>
                 </Card>
                 
-                <div className="mt-8">
+                <div className="mt-6 sm:mt-8">
                      <Button variant="destructive" className="w-full h-12" onClick={logout}>
                         <LogOut className="mr-2 h-5 w-5" />
                         {t('profile.logout_btn')}

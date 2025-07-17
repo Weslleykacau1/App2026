@@ -478,31 +478,31 @@ function ProfilePageContent() {
             <main className="flex-1 pb-24 container mx-auto px-4">
                 <div className="flex flex-col items-center text-center my-6">
                     <div className="relative">
-                        <Avatar className="h-24 w-24 border-4 border-background shadow-md">
+                        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-md">
                            <AvatarImage src={profileData.photoUrl || undefined} data-ai-hint="person avatar" />
                             <AvatarFallback>
                                 <User className="h-12 w-12 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
-                        <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-7 w-7 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
+                        <button onClick={() => setOpenModal('upload-photo')} className="absolute bottom-0 right-0 h-6 w-6 sm:h-7 sm:w-7 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background">
                             <Plus className="h-4 w-4" />
                         </button>
                     </div>
-                    <h1 className="text-2xl font-bold mt-4">{profileData.name}</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold mt-4">{profileData.name}</h1>
                 </div>
 
-                <Card className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-sm mb-6">
+                <Card className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-sm mb-4 sm:mb-6">
                     <CardContent className="p-4 flex items-center gap-4">
                         <div className="bg-blue-500 text-white h-10 w-10 flex items-center justify-center rounded-lg">
                            <ShieldCheck className="h-6 w-6"/>
                         </div>
-                        <p className="flex-1 font-medium text-blue-800 dark:text-blue-200">
+                        <p className="flex-1 font-medium text-blue-800 dark:text-blue-200 text-sm sm:text-base">
                            Lembre-se de usar sempre o cinto de segurança.
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card className="mb-6">
+                <Card className="mb-4 sm:mb-6">
                      <CardHeader className="flex flex-row items-center justify-between">
                          <div>
                             <CardTitle>{t('profile.personal_info')}</CardTitle>
@@ -537,7 +537,7 @@ function ProfilePageContent() {
                      </CardContent>
                 </Card>
 
-                <Card className="mb-6">
+                <Card className="mb-4 sm:mb-6">
                     <CardHeader>
                         <CardTitle>{t('profile.documents.title')}</CardTitle>
                     </CardHeader>
@@ -573,7 +573,7 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
                 
-                <Card className="mb-6">
+                <Card className="mb-4 sm:mb-6">
                     <CardHeader>
                         <CardTitle className="text-lg">{t('profile.address.saved_locations')}</CardTitle>
                     </CardHeader>
@@ -640,7 +640,7 @@ function ProfilePageContent() {
                     </CardContent>
                 </Card>
                 
-                 <Card className="mb-6">
+                 <Card className="mb-4 sm:mb-6">
                     <CardHeader>
                         <CardTitle>{t('profile.settings.title')}</CardTitle>
                     </CardHeader>

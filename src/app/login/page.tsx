@@ -71,24 +71,24 @@ export default function LoginPage() {
   
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-background text-foreground">
       <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.push('/')}>
             <ArrowLeft />
       </Button>
-      <div className="w-full max-w-sm flex flex-col items-center text-center">
+      <div className="w-full max-w-sm flex flex-col items-center text-center px-4 sm:px-0">
         <Car className="h-14 w-14 mb-6 text-primary" />
-        <h1 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h1>
-        <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Bem-vindo de volta</h1>
+        <p className="mt-2 text-sm sm:text-base text-muted-foreground">Faça login para continuar</p>
 
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4 mt-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4 mt-6 sm:mt-8">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="Email" {...field} className="h-12 text-base" />
+                      <Input placeholder="Email" {...field} className="h-11 sm:h-12 text-sm sm:text-base" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
+                      <Input type="password" placeholder="Senha" {...field} className="h-11 sm:h-12 text-sm sm:text-base" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-               <Button type="submit" className="w-full !mt-6 h-12 text-base font-semibold" disabled={isSubmitting}>
+               <Button type="submit" className="w-full !mt-6 h-11 sm:h-12 text-sm sm:text-base font-semibold" disabled={isSubmitting}>
                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                  Entrar
                </Button>
@@ -143,7 +143,7 @@ export default function LoginPage() {
             <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">OU</span>
         </div>
 
-        <Button onClick={handleGoogleLogin} variant="outline" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
+        <Button onClick={handleGoogleLogin} variant="outline" className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold" disabled={isSubmitting}>
              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
             Entrar com Google
         </Button>

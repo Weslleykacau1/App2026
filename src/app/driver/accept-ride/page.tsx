@@ -198,29 +198,29 @@ function AcceptRidePage() {
                     <Zap className="h-4 w-4 mr-1.5"/>
                     Alta demanda
                   </Badge>
-                  <h2 className="text-4xl font-bold mt-1">R${rideData.fare.toFixed(2)}</h2>
+                  <h2 className="text-2xl sm:text-4xl font-bold mt-1">R${rideData.fare.toFixed(2)}</h2>
                 </div>
                 <div className="text-right">
-                    <p className="font-semibold">{rideData.tripDistance.toFixed(1)} km</p>
+                    <p className="font-semibold text-sm sm:text-base">{rideData.tripDistance.toFixed(1)} km</p>
                     <p className="text-sm opacity-90">{rideData.tripTime} min</p>
                 </div>
              </div>
           </div>
           <div className="p-4 bg-gray-800 text-white flex items-center justify-between">
             <div className="flex items-center gap-4">
-                <Avatar className="h-14 w-14 border-2 border-gray-600">
+                <Avatar className="h-12 w-12 sm:h-14 sm:w-14 border-2 border-gray-600">
                     <AvatarImage src={rideData.passenger.avatarUrl || undefined} data-ai-hint="person avatar" />
                     <AvatarFallback>{rideData.passenger.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <h3 className="text-lg font-bold">{rideData.passenger.name}</h3>
+                    <h3 className="text-base sm:text-lg font-bold">{rideData.passenger.name}</h3>
                     <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-yellow-400" fill="currentColor" />
                         <p className="font-semibold">{rideData.passenger.rating.toFixed(1)}</p>
                     </div>
                 </div>
             </div>
-            <Button size="lg" className="h-16 w-32 bg-primary hover:bg-primary/90 text-lg font-bold" onClick={handleAcceptRide}>
+            <Button size="lg" className="h-12 w-24 sm:h-16 sm:w-32 bg-primary hover:bg-primary/90 text-sm sm:text-lg font-bold" onClick={handleAcceptRide}>
                 Aceitar
             </Button>
           </div>
@@ -232,8 +232,8 @@ function AcceptRidePage() {
                   <MapPin className="h-5 w-5 text-red-500" />
                 </div>
                 <div>
-                  <p className="font-medium">1.5 km de distância · <span className="text-muted-foreground">{rideData.pickupAddress}</span></p>
-                  <p className="font-medium mt-2">{rideData.destination}</p>
+                  <p className="font-medium text-sm sm:text-base">1.5 km de distância · <span className="text-muted-foreground">{rideData.pickupAddress}</span></p>
+                  <p className="font-medium mt-2 text-sm sm:text-base">{rideData.destination}</p>
                 </div>
               </div>
                <Badge variant="outline" className="gap-2">

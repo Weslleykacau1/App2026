@@ -132,14 +132,14 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm px-4 sm:px-0">
         <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.push('/')}>
             <ArrowLeft />
         </Button>
         <div className="text-center mb-8">
             <Car className="h-12 w-12 mx-auto text-primary" />
-            <h1 className="text-4xl font-bold text-primary mt-2">Criar Conta</h1>
-            <p className="text-muted-foreground">Comece sua jornada com TriDriver.</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-primary mt-2">Criar Conta</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Comece sua jornada com TriDriver.</p>
         </div>
         
           <Form {...form}>
@@ -183,7 +183,7 @@ export default function SignupPage() {
                       <Separator />
                       <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">Continue com</span>
                   </div>
-                  <Button onClick={handleGoogleSignup} variant="outline" className="w-full h-12 text-base font-semibold" disabled={isGoogleSubmitting}>
+                  <Button onClick={handleGoogleSignup} variant="outline" className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold" disabled={isGoogleSubmitting}>
                       {isGoogleSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
                       Google
                   </Button>
@@ -197,7 +197,7 @@ export default function SignupPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Nome Completo" {...field} className="h-12 text-base" />
+                          <Input placeholder="Nome Completo" {...field} className="h-11 sm:h-12 text-sm sm:text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -209,7 +209,7 @@ export default function SignupPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Email" {...field} className="h-12 text-base" />
+                          <Input placeholder="Email" {...field} className="h-11 sm:h-12 text-sm sm:text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -221,7 +221,7 @@ export default function SignupPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input type="password" placeholder="Senha" {...field} className="h-12 text-base" />
+                          <Input type="password" placeholder="Senha" {...field} className="h-11 sm:h-12 text-sm sm:text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -258,7 +258,7 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-                   <Button type="submit" className="w-full !mt-6 h-12 text-lg font-bold" disabled={!form.formState.isValid || isSubmitting}>
+                   <Button type="submit" className="w-full !mt-6 h-11 sm:h-12 text-base sm:text-lg font-bold" disabled={!form.formState.isValid || isSubmitting}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isSubmitting ? 'Cadastrando...' : 'Continuar com Email'}
                   </Button>

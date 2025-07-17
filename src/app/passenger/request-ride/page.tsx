@@ -522,15 +522,15 @@ function RequestRidePage() {
     <div 
         onClick={onSelect}
         className={cn(
-            "p-3 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center gap-1 w-full border-2 text-center",
+            "p-2 sm:p-3 rounded-lg cursor-pointer transition-all flex flex-col items-center justify-center gap-1 w-full border-2 text-center",
             isSelected ? 'bg-primary/20 border-primary' : 'bg-muted/50 border-transparent hover:bg-muted'
         )}
     >
         {icon}
         <div className="flex items-center gap-2">
-            <h3 className="font-bold text-sm text-foreground">{name}</h3>
+            <h3 className="font-bold text-xs sm:text-sm text-foreground">{name}</h3>
         </div>
-         <p className="text-xs text-muted-foreground flex items-center gap-1">{description}</p>
+         <p className="text-xs text-muted-foreground flex items-center gap-1 text-center leading-tight">{description}</p>
     </div>
   );
   
@@ -563,21 +563,21 @@ function RequestRidePage() {
                          <p className="font-bold text-lg">Seu motorista está a caminho!</p>
                          <p className="font-bold text-lg text-primary">{foundDriver.eta} min</p>
                      </div>
-                     <div className="flex items-center gap-4">
-                         <Avatar className="h-16 w-16">
+                     <div className="flex items-center gap-3 sm:gap-4">
+                         <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
                             <AvatarImage src={foundDriver.avatarUrl || undefined} data-ai-hint="person avatar"/>
                             <AvatarFallback>{foundDriver.name.charAt(0)}</AvatarFallback>
                          </Avatar>
                          <div className="flex-1">
-                             <h3 className="font-bold text-xl">{foundDriver.name}</h3>
+                             <h3 className="font-bold text-lg sm:text-xl">{foundDriver.name}</h3>
                              <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 text-yellow-400" fill="currentColor"/>
                                 <span className="font-semibold text-foreground">{foundDriver.rating.toFixed(1)}</span>
                              </div>
                          </div>
                          <div className="text-right">
-                            <p className="font-bold">{foundDriver.vehicle.model}</p>
-                            <p className="text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
+                            <p className="font-bold text-sm sm:text-base">{foundDriver.vehicle.model}</p>
+                            <p className="text-xs sm:text-sm bg-muted px-2 py-1 rounded-md font-mono">{foundDriver.vehicle.licensePlate}</p>
                          </div>
                      </div>
                       {rideStatus === "accepted" && (
@@ -621,15 +621,15 @@ function RequestRidePage() {
          ) : (
             <>
                 {!route && (
-                    <div className="w-full px-4 mb-2">
+                    <div className="w-full px-2 sm:px-4 mb-2">
                         <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center">
-                            <p className="text-lg font-medium text-card-foreground">Olá, {firstName}</p>
+                            <p className="text-base sm:text-lg font-medium text-card-foreground">Olá, {firstName}</p>
                         </div>
                     </div>
                  )}
                 <Card className="shadow-2xl rounded-2xl bg-card">
-                    <CardContent className="p-2 space-y-3">
-                    <div className="space-y-2 px-1">
+                    <CardContent className="p-3 sm:p-4 space-y-3">
+                    <div className="space-y-2">
                             <Popover open={isPickupSuggestionsOpen} onOpenChange={setIsPickupSuggestionsOpen}>
                                 <PopoverAnchor asChild>
                                     <div className="relative flex items-center">
@@ -637,7 +637,7 @@ function RequestRidePage() {
                                         <Input
                                             id="pickup"
                                             placeholder="Local de embarque"
-                                            className="pl-10 h-11 text-base bg-muted border-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            className="pl-10 h-12 sm:h-11 text-sm sm:text-base bg-muted border-none focus-visible:ring-1 focus-visible:ring-ring"
                                             value={pickupInput}
                                             onChange={handlePickupChange}
                                             autoComplete="off"
@@ -659,7 +659,7 @@ function RequestRidePage() {
                                     <Input
                                         id="destination"
                                         placeholder="Para onde vamos?"
-                                        className="pl-10 h-11 text-base bg-muted border-none"
+                                        className="pl-10 h-12 sm:h-11 text-sm sm:text-base bg-muted border-none"
                                         required
                                         value={destinationInput}
                                         onChange={handleDestinationChange}
@@ -676,50 +676,50 @@ function RequestRidePage() {
                                 </PopoverContent>
                             </Popover>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 px-1">
+                    <div className="grid grid-cols-2 gap-2">
                         <RideCategoryCard type="comfort" name="Comfort" seats={4} description="4 lugares, porta-malas maior" icon={<Car className="h-8 w-8 text-primary" />} isSelected={rideCategory === 'comfort'} onSelect={() => setRideCategory('comfort')} />
                         <RideCategoryCard type="executive" name="Executive" seats={4} description="4 lugares" icon={<Car className="h-8 w-8 text-green-600" />} isSelected={rideCategory === 'executive'} onSelect={() => setRideCategory('executive')} />
                     </div>
-                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="flex flex-col gap-2 px-1">
+                    <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} className="flex flex-col gap-2">
                         <Label htmlFor="Cartão" className={cn(
-                            "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                            "flex items-center justify-center rounded-lg border-2 p-2 sm:p-3 cursor-pointer transition-colors hover:bg-accent/50",
                             paymentMethod === 'Cartão' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
                         )}>
                             <RadioGroupItem value="Cartão" id="Cartão" className="sr-only" />
                             <div className="flex items-center gap-2">
                                 {paymentIcons['Cartão']}
-                                <span className="font-semibold">Cartão</span>
+                                <span className="font-semibold text-sm sm:text-base">Cartão</span>
                             </div>
                         </Label>
                         <div className="grid grid-cols-2 gap-2">
                             <Label htmlFor="PIX" className={cn(
-                                "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                "flex items-center justify-center rounded-lg border-2 p-2 sm:p-3 cursor-pointer transition-colors hover:bg-accent/50",
                                 paymentMethod === 'PIX' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
                             )}>
                                 <RadioGroupItem value="PIX" id="PIX" className="sr-only" />
                                 <div className="flex items-center gap-2">
                                     {paymentIcons['PIX']}
-                                    <span className="font-semibold">PIX</span>
+                                    <span className="font-semibold text-sm sm:text-base">PIX</span>
                                 </div>
                             </Label>
                             <Label htmlFor="Dinheiro" className={cn(
-                                "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-colors hover:bg-accent/50",
+                                "flex items-center justify-center rounded-lg border-2 p-2 sm:p-3 cursor-pointer transition-colors hover:bg-accent/50",
                                 paymentMethod === 'Dinheiro' ? "border-primary bg-primary/10" : "border-transparent bg-muted"
                             )}>
                                 <RadioGroupItem value="Dinheiro" id="Dinheiro" className="sr-only" />
                                 <div className="flex items-center gap-2">
                                     {paymentIcons['Dinheiro']}
-                                    <span className="font-semibold">Dinheiro</span>
+                                    <span className="font-semibold text-sm sm:text-base">Dinheiro</span>
                                 </div>
                             </Label>
                         </div>
                     </RadioGroup>
                     
-                    <div className="flex items-center gap-2 px-1">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         {fare > 0 && (
-                            <div className="flex-1 bg-muted p-3 rounded-lg animate-in fade-in-0 duration-300">
+                            <div className="flex-1 bg-muted p-2 sm:p-3 rounded-lg animate-in fade-in-0 duration-300">
                                 <div className="flex items-center justify-between">
-                                <Label htmlFor="fare" className="text-base font-bold">
+                                <Label htmlFor="fare" className="text-sm sm:text-base font-bold">
                                     Tarifa: <span className="text-primary">{finalFare.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                 </Label>
                                 {isSurge && (
@@ -731,7 +731,7 @@ function RequestRidePage() {
                                 </div>
                             </div>
                         )}
-                        <Button className="h-12 text-base font-bold flex-1" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
+                        <Button className="h-12 text-sm sm:text-base font-bold flex-1 sm:flex-initial sm:min-w-[120px]" variant="default" disabled={!destinationInput || fare <= 0 || isRequesting} onClick={handleConfirmRequest}>
                             {isRequesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Solicitar
                         </Button>

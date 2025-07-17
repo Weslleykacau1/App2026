@@ -266,18 +266,18 @@ function DriverDashboard() {
 
             <header className="absolute top-0 left-0 right-0 p-4 z-20 pointer-events-none">
               <div className="w-full flex justify-center">
-                <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-4 shadow-lg pointer-events-auto flex items-center gap-4">
+                <div className="bg-card/90 backdrop-blur-sm rounded-full py-2 px-3 sm:px-4 shadow-lg pointer-events-auto flex items-center gap-2 sm:gap-4">
                     <div className="flex items-center gap-2">
-                        <p className="text-xl font-bold">
+                        <p className="text-lg sm:text-xl font-bold">
                             {showEarnings ? formatCurrency(todayEarnings) : "R$ ****,**"}
                         </p>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 pointer-events-auto" onClick={() => setShowEarnings(!showEarnings)}>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 sm:h-6 sm:w-6 pointer-events-auto" onClick={() => setShowEarnings(!showEarnings)}>
                             {showEarnings ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </Button>
                     </div>
                     <div className="h-6 w-px bg-border"></div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold">{todayRides}</span>
+                        <span className="text-lg sm:text-xl font-bold">{todayRides}</span>
                     </div>
                 </div>
               </div>
@@ -286,26 +286,26 @@ function DriverDashboard() {
                     <Button
                         variant="default"
                         size="icon"
-                        className="relative h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90"
+                        className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90"
                         onClick={() => setIsDrawerOpen(true)}
                     >
-                        <Bell className="h-6 w-6" />
+                        <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                         {pendingRidesCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 animate-pulse">{pendingRidesCount}</Badge>
+                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 justify-center p-0 animate-pulse text-xs">{pendingRidesCount}</Badge>
                         )}
                     </Button>
                      <Button
                         variant="default"
                         size="icon"
-                        className="h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90"
+                        className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90"
                         onClick={handleLocateUser}
                     >
-                        <LocateFixed className="h-6 w-6" />
+                        <LocateFixed className="h-5 w-5 sm:h-6 sm:w-6" />
                     </Button>
                      <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="default" size="icon" className="h-12 w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90">
-                                <Filter className="h-6 w-6" />
+                            <Button variant="default" size="icon" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-card/90 backdrop-blur-sm shadow-lg text-card-foreground hover:bg-card/90">
+                                <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="end">
@@ -335,19 +335,19 @@ function DriverDashboard() {
             </header>
             
             {!isOnline && (
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
+                <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
                     <div className="bg-card/90 backdrop-blur-sm rounded-lg py-3 px-4 shadow-lg text-center pointer-events-auto">
-                        <p className="text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
+                        <p className="text-base sm:text-lg font-medium text-card-foreground">Que bom ver-te novamente.</p>
                     </div>
                 </div>
             )}
 
-            <div className="absolute bottom-24 right-4 z-10 space-y-4">
+            <div className="absolute bottom-24 right-4 z-10 space-y-2 sm:space-y-4">
                  {isOnline ? (
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button
-                                className="h-16 rounded-full px-6 text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto bg-green-500 hover:bg-green-600"
+                                className="h-12 sm:h-16 rounded-full px-4 sm:px-6 text-sm sm:text-base font-bold text-white transition-all duration-300 flex items-center shadow-2xl w-auto bg-green-500 hover:bg-green-600"
                             >
                                Online
                             </Button>
@@ -371,7 +371,7 @@ function DriverDashboard() {
                     <Button
                         onClick={() => handleSetOnlineStatus(true)}
                         className={cn(
-                            "h-16 rounded-full px-6 text-base font-bold transition-all duration-300 flex items-center shadow-2xl w-auto",
+                            "h-12 sm:h-16 rounded-full px-4 sm:px-6 text-sm sm:text-base font-bold transition-all duration-300 flex items-center shadow-2xl w-auto",
                             "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                         )}
                     >
@@ -383,7 +383,7 @@ function DriverDashboard() {
              <div className="absolute bottom-24 left-4 z-10">
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="icon" className="h-14 w-14 rounded-full shadow-2xl pointer-events-auto">
+                        <Button variant="destructive" size="icon" className="h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl pointer-events-auto">
                             <Shield className="h-7 w-7" />
                         </Button>
                     </AlertDialogTrigger>
@@ -402,13 +402,13 @@ function DriverDashboard() {
                         </AlertDialogCancel>
                         <div className="grid grid-cols-1 gap-4 py-4">
                             <a href="tel:190" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg rounded-lg">
+                                <Button variant="destructive" className="w-full h-10 sm:h-12 text-base sm:text-lg rounded-lg">
                                     <Phone className="mr-2 h-5 w-5" />
                                     Ligar para a Polícia (190)
                                 </Button>
                             </a>
                                 <a href="tel:192" className="w-full">
-                                <Button variant="destructive" className="w-full h-12 text-lg rounded-lg">
+                                <Button variant="destructive" className="w-full h-10 sm:h-12 text-base sm:text-lg rounded-lg">
                                     <Phone className="mr-2 h-5 w-5" />
                                     Ligar para o SAMU (192)
                                 </Button>
